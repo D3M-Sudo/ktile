@@ -1,0 +1,47 @@
+# === Ktile .gitignore — Rust-first (M0 docs, codice da M1) ===
+
+# --- Rust / Cargo ---
+# Build output (rigenerabile via `cargo build`)
+/target/
+# Backup del compilatore/IDE Rust
+**/*.rs.bk
+*.pdb
+# Cargo.lock: NON ignorato di proposito.
+# `ktile` sarà un binario applicativo -> il lock va committato per build riproducibili.
+# (Se in futuro diventa workspace lib+bin, rivalutare.)
+
+# --- OS / Linux ---
+.DS_Store
+Thumbs.db
+*~
+.nfs*
+.Trash-*
+
+# --- Editor / IDE ---
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.default
+.idea/
+*.swp
+*.swo
+*.swn
+*~
+\#*\#
+.\#*
+
+# --- Diagnostica M0/M1 (log X11, non sporcare il repo) ---
+*.log
+xev.log
+*.pcap
+/tmp/
+
+# --- Build / packaging locale (M8) ---
+*.deb
+*.rpm
+*.tar.gz
+dist/
+
+# --- Env / secrets (mai committare) ---
+.env
+.env.*
+!.env.example

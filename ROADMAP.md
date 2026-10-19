@@ -1,0 +1,101 @@
+# ROADMAP — Ktile
+
+> Fonte di verità di pianificazione del progetto. **Regola operativa permanente:** ogni task completato, cambio di stato di un modulo o nuova decisione architetturale aggiorna **contestualmente** questo file (checkbox e/o ADR) e/o `ARCHITECTURE.md`.
+> Stato redazione: 2026-10-17 — fase **M0** non ancora avviata sulla macchina target.
+
+## 1. Funzionalità per fasi
+
+### MVP (M0–M5): dal POC read-only all'applicazione manuale
+Baseline e verifica ambiente · POC X11 read-only (`x11rb`) · core geometrico puro · layout dwindle + master-stack · config TOML + dry-run · applicazione manuale delle geometrie su Muffin.
+
+### Fase 2 (M6–M7): auto-tiling e compatibilità Cinnamon
+Event loop daemon opt-in con anti-livelock e shutdown pulito · pannelli/strut/auto-hide · transient e popup · multi-monitor e hotplug · rivalutazione sticky (ADR-9).
+
+### Optimization (M8+): packaging e consolidamento
+Build release in `~/.local/bin` · autostart opzionale · audit dipendenze (`cargo tree`, licenze) · misure RAM/CPU su target · regole per finestra/workspace (post-M8, su requisito esplicito).
+
+## 2. Checklist task
+
+Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato oltre il progetto.
+
+### M0 — Baseline e verifica repository (read-only)
+- [ ] Raccogliere baseline: branch, HEAD SHA, working tree (`git status --porcelain`)
+- [ ] Versioni: Mint (`/etc/os-release`), Cinnamon, Muffin, architettura
+- [ ] Sessione: `XDG_SESSION_TYPE`, `DISPLAY`; verifica X11
+- [ ] Rust/Cargo presenti? (se assenti: NON installare, riferire e attendere)
+- [ ] Strumenti diagnostici presenti (`xprop`, `xwininfo`, `xev`, `xrandr`, …)
+- [ ] Matrice EWMH su root + finestre campione (doc 03, §8)
+- [ ] Scrivere `docs/environment-baseline.md` con marcature verificato/ipotesi
+- [ ] Stop condition verificate: nessuna anomalia bloccante
+
+### M1 — POC X11 read-only
+- [ ] Progetto Cargo `ktile` con `x11rb` + `thiserror` (una crate alla volta)
+- [ ] Connessione + internamento atomi EWMH
+- [ ] Verifica doppia `_NET_SUPPORTING_WM_CHECK`; nome WM
+- [ ] Lettura `_NET_CLIENT_LIST` (fallback stacking) e `_NET_ACTIVE_WINDOW`
+- [ ] Selezione eventi root; log Map/Unmap/Destroy/PropertyNotify (30 s)
+- [ ] Stampa client: XID + class + desktop + window type
+- [ ] Exit codes 4 (no X11) / 6 (no EWMH essenziale); BadWindow → skip+warn
+- [ ] Test unitari (exit codes, CLI); integrazione Xvfb marcata `#[ignore]`
+- [ ] Manuali su Cinnamon reale; `docs/M1-findings.md`
+- [ ] Gate: zero API di scrittura geometrica (grep configure/moveresize = 0 match)
+
+### M2 — Core geometrico
+- [ ] `layout/geometry.rs` + `plan.rs` (Rect, gap inner/outer, validazioni)
+- [ ] Test ≥40 casi: 0/1/N finestre, aree piccole, gap estremi, coordinate negative, 1px, N=128
+- [ ] Gate fmt/clippy/test
+
+### M3 — Dwindle e master-stack
+- [ ] `layout/tree.rs` (insert/remove/promote, split persistente)
+- [ ] `layout/dwindle.rs` (split_mode longest-side/alternating, split_target, ratio clamp)
+- [ ] `layout/master_stack.rs` (new_status, promozione slave più vecchio, mfact)
+- [ ] Test: rimozioni radice/foglia/intermedia, sospese D8, min-size, idempotenza, replay deterministo
+- [ ] Copertura ≥80% linee su `layout/`
+
+### M4 — Configurazione e dry-run
+- [ ] `config.rs` (TOML, validazioni, `outer`, `split_target`, `new_status`)
+- [ ] `eligibility.rs` + test matrice (transient, popup, dock, fullscreen, HIDDEN, sticky D9, altri desktop)
+- [ ] `monitor.rs` (RandR + strut → area; v1 singolo monitor con errore chiaro)
+- [ ] CLI: `--check-config`, `--list-windows`, `--dry-run --layout`
+- [ ] Manuali target: aree rispettano pannelli in dry-run
+- [ ] Gate: dry-run corretto, **zero richieste inviate**
+
+### M5 — Applicazione manuale
+- [ ] `x11/applier.rs` (gate richieste, geometry-in-flight, BadWindow, max 3 per burst)
+- [ ] Test con mock (deviazione WM, finestra morta mid-flight)
+- [ ] Manuali target: finestra singola, dialogo immobile, fullscreen intatto, minimizzata intatta, chiusura durante applicazione, assenza loop
+- [ ] Gate: ≥90% finestre standard entro 2px, altrimenti stop e documentazione
+
+### M6 — Auto-tiling
+- [ ] `daemon.rs` (foreground opt-in), `events.rs` completo, `reconciliation.rs`
+- [ ] Anti-livelock + coalescing; shutdown ≤1 s
+- [ ] Manuali target: sessione ≥2 h; misura RAM/CPU registrata (baseline, niente soglie pre-impostate)
+
+### M7 — Compatibilità Cinnamon
+- [ ] Pannelli: bordi vari, auto-hide, secondo pannello (strut)
+- [ ] Multi-monitor: workspace×monitor, hotplug con rebuild completo
+- [ ] Rivalutazione sticky (ADR-9) con test dedicati
+- [ ] Matrice di compatibilità Muffin interamente verde
+
+### M8 — Packaging utente
+- [ ] `cargo build --release` → `~/.local/bin/ktile`
+- [ ] `config.example.toml`; README utente; autostart opzionale (`~/.config/autostart/ktile.desktop`)
+- [ ] Audit `cargo tree` + licenze; disinstallazione documentata; zero root, zero rete
+
+## 3. Registro decisioni (ADR)
+
+| ADR | Data | Decisione | Motivazione |
+|---|---|---|---|
+| ADR-1 (D1) | 2026-10-17 | Nome progetto/app: **Ktile** | Identità definitiva stabilita dall'utente; sostituisce i nomi provvisori |
+| ADR-2 (D2) | 2026-10-17 | Chiave unica **`outer`** per il gap esterno (coppia `inner`/`outer`) | Elimina l'alias duplicato `gaps_out` del doc originale; nome più breve e regolare |
+| ADR-3 (D3) | 2026-10-17 | Ordine finestre default **`stable`**; focus solo per la foglia target dwindle via `dwindle.split_target = "active"\|"mru"` (default `active`) | Determinismo (stessa sequenza eventi → stesso layout); `focus_first` sostituita |
+| ADR-4 (D4) | 2026-10-17 | "Nessuna finestra eleggibile" → **exit 0 + log informativo** | Successo operativo, non errore; amichevole per scripting |
+| ADR-5 (D5) | 2026-10-17 | Layout core **dwindle + master-stack**; vertical/horizontal/grid solo come test del motore | Allineamento al riferimento UX Hyprland; i layout semplici restano utili come casi di test |
+| ADR-6 (D6) | 2026-10-17 | Exit 6 solo per EWMH essenziale assente; **nessuna whitelist di nomi WM**; proprietà parziali → warn + modalità degradata | Guardrail basati su proprietà, non su nomi: robusto a versioni future e ad altri WM EWMH |
+| ADR-7 (D7) | 2026-10-17 | Master-stack `new_status` default **`slave`** | Parità con Hyprland; la differenza da Cortile (new-is-master) è documentata come scelta voluta; override config disponibile |
+| ADR-8 (D8) | 2026-10-17 | Ripristino finestra sospesa: **posizione originaria se lo slot è identificabile, altrimenti nuova foglia** | Stabilità percettiva senza complessità di prenotazione slot; fallback = regola standard |
+| ADR-9 (D9) | 2026-10-17 | Finestre **sticky escluse nella v1** | Effetti collaterali noti in Cortile con sticky + cambio workspace; rivalutazione obbligatoria in M7 |
+| ADR-10 | 2026-10-17 | Backend X11 unico: **`x11rb`** (`xcb` e `x11-dl` scartati) | API safe, errori tipizzati, zero dipendenze native; build riproducibile; un solo backend per vincolo progettuale |
+| ADR-11 | 2026-10-17 | Su Muffin/Mutter **non riscrivere mai `WM_NORMAL_HINTS`**; hint ICCCM in sola lettura nella v1 | Vincolo emerso dall'analisi del sorgente Cortile (`Compatible("icccm.SizeHintPMinSize")`); da re-verificare sul target in M0/M1 |
+| ADR-12 | 2026-10-17 | Fonte primaria dell'area utile = **strut + RandR**; `_NET_WORKAREA` solo controllo incrociato; vietati offset fissi per pannelli | `_NET_WORKAREA` è per-desktop e approssimata su multi-monitor; gli offset fissi si rompono con pannelli spostabili |
+| ADR-13 | 2026-10-17 | `ARCHITECTURE.md` + `ROADMAP.md` come fonte di verità con aggiornamento contestuale obbligatorio | Tracciabilità del progetto; ogni modifica codice/struttura aggiorna i file di tracciamento |
