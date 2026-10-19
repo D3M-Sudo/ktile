@@ -1,7 +1,7 @@
 # ARCHITECTURE — Ktile
 
 > Fonte di verità architetturale del progetto. **Regola operativa permanente:** ogni decisione architetturale, nuova funzione, cambio di stato di un modulo o riorganizzazione dei file aggiorna **contestualmente** questo file e/o `ROADMAP.md` (entrambi in `docs/`). Ogni proposta di codice include l'aggiornamento corrispondente.
-> Stato redazione: 2026-10-17 — progetto in fase **M0** (baseline da raccogliere sulla macchina target; nessun codice ancora creato).
+> Stato redazione: 2026-10-19 — progetto in fase **M1-prep (no-toolchain)** (M0 completata e committata; codice Rust DRAFT non compilato, gate cargo sospeso).
 
 ## 1. Mappa concettuale e stack tecnologico
 
@@ -59,7 +59,7 @@ Stato attuale (2026-10-19) — M1-prep senza toolchain: codice Rust in `src/`/`t
 │   │   └── 05-roadmap-m0-m8.md
 │   └── milestones/            ← evidenze per milestone
 │       ├── environment-baseline.md    (M0 — verificato 2026-10-19)
-│       └── M1-findings.md             (M1 — da creare)
+│       └── M1-findings.md             (M1-prep + M1-residuals 2026-10-19)
 └── src/  tests/  Cargo.toml  ...  (M1 in poi — non ancora presenti)
 ```
 

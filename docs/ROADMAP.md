@@ -1,7 +1,7 @@
 # ROADMAP — Ktile
 
 > Fonte di verità di pianificazione del progetto. **Regola operativa permanente:** ogni task completato, cambio di stato di un modulo o nuova decisione architetturale aggiorna **contestualmente** questo file (checkbox e/o ADR) e/o `ARCHITECTURE.md` (entrambi in `docs/`).
-> Stato redazione: 2026-10-19 — M1-prep senza toolchain (Rust assente, M0): checklist M1 parziale, gate cargo sospeso.
+> Stato redazione: 2026-10-19 (M1-residuals) — M0 completata e committata, M1-prep senza toolchain (Rust assente): checklist M1 parziale con B1–B4 verificati manuali, gate cargo sospeso.
 
 ## 1. Funzionalità per fasi
 
@@ -18,15 +18,15 @@ Build release in `~/.local/bin` · autostart opzionale · audit dipendenze (`car
 
 Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato oltre il progetto.
 
-### M0 — Baseline e verifica repository (read-only)
-- [ ] Raccogliere baseline: branch, HEAD SHA, working tree (`git status --porcelain`)
-- [ ] Versioni: Mint (`/etc/os-release`), Cinnamon, Muffin, architettura
-- [ ] Sessione: `XDG_SESSION_TYPE`, `DISPLAY`; verifica X11
-- [ ] Rust/Cargo presenti? (se assenti: NON installare, riferire e attendere)
-- [ ] Strumenti diagnostici presenti (`xprop`, `xwininfo`, `xev`, `xrandr`, …)
-- [ ] Matrice EWMH su root + finestre campione (doc 03, §8)
-- [ ] Scrivere `docs/milestones/environment-baseline.md` con marcature verificato/ipotesi
-- [ ] Stop condition verificate: nessuna anomalia bloccante
+### M0 — Baseline e verifica repository (read-only) — ✅ completata e committata (`2c5c9f2`)
+- [x] Raccogliere baseline: branch, HEAD SHA, working tree (`git status --porcelain`)
+- [x] Versioni: Mint (`/etc/os-release`), Cinnamon, Muffin, architettura
+- [x] Sessione: `XDG_SESSION_TYPE`, `DISPLAY`; verifica X11
+- [x] Rust/Cargo presenti? (se assenti: NON installare, riferire e attendere)
+- [x] Strumenti diagnostici presenti (`xprop`, `xwininfo`, `xev`, `xrandr`, …)
+- [x] Matrice EWMH su root + finestre campione (doc 03, §8)
+- [x] Scrivere `docs/milestones/environment-baseline.md` con marcature verificato/ipotesi
+- [x] Stop condition verificate: nessuna anomalia bloccante
 
 ### M1 — POC X11 read-only (M1-prep 2026-10-19: DRAFT non compilato, gate sospeso per assenza toolchain)
 - [x] Progetto Cargo `ktile` con `x11rb` + `thiserror` (DRAFT: `Cargo.toml` scritto, lock non generabile)
@@ -35,9 +35,11 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 - [x] Lettura `_NET_CLIENT_LIST` (fallback stacking) e `_NET_ACTIVE_WINDOW` (verificato manualmente)
 - [ ] Selezione eventi root; log Map/Unmap/Destroy/PropertyNotify (30 s) — DRAFT, non eseguito
 - [x] Stampa client: XID + class + desktop + window type (verificato manualmente M0)
+- [x] Eventi minimize osservati live: HIDDEN + permanenza in client list (verificato manuale 2026-10-19, B4: `0x5000006` FOCUSED→HIDDEN, desktop 0, resta in list)
+- [x] Tipi/stati/transient campionati live: DIALOG (B1), frame SSD non-maximized (B2), FULLSCREEN (B3) (verificato manuale 2026-10-19)
 - [x] Exit codes 4 (no X11) / 6 (no EWMH essenziale); BadWindow → skip+warn (DRAFT `errors.rs` + `DomainEvent::WindowGone`)
 - [x] Test unitari (exit codes, CLI) (DRAFT: `tests/exit_codes.rs`, non eseguiti)
-- [ ] Manuali su Cinnamon reale; `docs/milestones/M1-findings.md` (parziale — vedi file)
+- [ ] Manuali su Cinnamon reale; `docs/milestones/M1-findings.md` (M1-residuals 2026-10-19: B1 dialogo DIALOG ✅, B2 frame SSD ✅, B3 FULLSCREEN ✅, B4 HIDDEN/client-list ✅ — verificato manuale 2026-10-19; B5 xev non eseguito/motivo tecnico, B6 pannello declinato — vedi file)
 - [x] Gate: zero API di scrittura geometrica nel DRAFT (solo lettura)
 
 ### M2 — Core geometrico
