@@ -1,7 +1,7 @@
 # ARCHITECTURE — Ktile
 
 > Fonte di verità architetturale del progetto. **Regola operativa permanente:** ogni decisione architetturale, nuova funzione, cambio di stato di un modulo o riorganizzazione dei file aggiorna **contestualmente** questo file e/o `ROADMAP.md` (entrambi in `docs/`). Ogni proposta di codice include l'aggiornamento corrispondente.
-> Stato redazione: 2026-10-19 — progetto in fase **M1-prep (no-toolchain)** (M0 completata e committata; codice Rust DRAFT non compilato, gate cargo sospeso).
+> Stato redazione: 2026-10-19 — M1 chiuso in cloud (rustc/cargo 1.94.0, build/clippy/test verdi, test Xvfb+openbox); M2 completato in cloud (25/25 fixture verdi); moduli `monitor` ed `eligibility` implementati e testati.
 
 ## 1. Mappa concettuale e stack tecnologico
 
@@ -34,72 +34,62 @@ Ktile è un **tiler X11 esterno, cooperante con Muffin** (Linux Mint Cinnamon, s
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Stack:** Rust (stable recente) · backend X11 **`x11rb`** (unico, decisione presa in analisi) · config TOML (`serde`+`toml`) · CLI (`clap`) · errori (`thiserror`) · test nativi `cargo test` (integrazione X11 dietro feature `x11-tests`, marcata `#[ignore]`).
+**Stack:** Rust (stable recente 1.94.0) · backend X11 **`x11rb`** (unico, feature randr) · config TOML (`serde`+`toml`) · CLI (`clap`) · errori (`thiserror`) · test nativi `cargo test` (unitari + integrazione X11 con Xvfb+openbox).
 
-**Policy tool di sviluppo (ADR-14, 2026-10-19):** host Mint pulito, zero `sudo`.
-- Tool **Python** mancanti → `uvx <tool>` per one-shot, oppure `.venv/` in repo (`uv venv .venv && uv pip install …`) per uso in sessione. `.venv/` è ignorato da git e mai committato; `uv.lock` solo se il tool serve stabilmente al progetto.
-- Tool **X11/di sistema** mancanti (`xprop`, `xwininfo`, `xev`, `xrandr`, …) → **non installare**: registrare `assente` in baseline e chiedere all'utente. `venv`/`uvx` non coprono binari nativi.
+**Policy tool di sviluppo (ADR-14 / ADR-15, 2026-10-19):** toolchain Rust e ambiente X11 di test gestiti in ambiente cloud sandbox; l'host dell'utente fisica resta pulito e senza modifiche non richieste.
 
 ## 2. Albero delle directory
 
-Stato attuale (2026-10-19) — M1-prep senza toolchain: codice Rust in `src/`/`tests/` è **DRAFT non compilato, non testato** (toolchain assente, M0). Baseline in `docs/milestones/` verificata.
+Stato attuale (2026-10-19) — M1/M2 completati in cloud.
 
 ```text
 <repo>/
 ├── README.md                  ← indice documentazione (root)
+├── Cargo.toml, Cargo.lock     ← progetto Rust compilabile
 ├── docs/
 │   ├── ARCHITECTURE.md        ← fonte di verità architetturale (questo file)
 │   ├── ROADMAP.md             ← milestone M0–M8, checklist, ADR
 │   ├── spec/                  ← specifiche di progetto
-│   │   ├── 01-project-overview.md
-│   │   ├── 02-architecture-rust-x11rb.md
-│   │   └── 04-functional-specs-dwindle-master.md
 │   ├── research/              ← ricerca e protocolli di verifica
-│   │   ├── 03-ewmh-muffin-compatibility.md
-│   │   └── 05-roadmap-m0-m8.md
 │   └── milestones/            ← evidenze per milestone
-│       ├── environment-baseline.md    (M0 — verificato 2026-10-19)
-│       └── M1-findings.md             (M1-prep + M1-residuals 2026-10-19)
-└── src/  tests/  Cargo.toml  ...  (M1 in poi — non ancora presenti)
-```
-
-Struttura prevista del codice (dal doc 02, da realizzare milestone per milestone):
-
-```text
-src/
-  main.rs  cli.rs  config.rs  errors.rs  daemon.rs
-  x11/{mod.rs,connection.rs,events.rs,ewmh.rs,icccm.rs,monitor.rs,applier.rs}
-  state/{mod.rs,registry.rs,eligibility.rs,workspace.rs,reconciliation.rs}
-  layout/{mod.rs,geometry.rs,plan.rs,tree.rs,dwindle.rs,master_stack.rs}
-tests/
-  layout_tree.rs  layout_master.rs  geometry_edge.rs  eligibility.rs  fixtures/
+│       ├── environment-baseline.md    (M0)
+│       ├── M1-findings.md             (M1/M2 risultati cloud)
+│       ├── M1-residuals-user.md       (Protocollo residui macchina target)
+│       └── fixtures-geometry.json     (25 fixture di test)
+├── src/
+│   ├── lib.rs, main.rs, cli.rs, errors.rs
+│   ├── x11/  (connection, ewmh, events, monitor)
+│   ├── state/ (registry, eligibility)
+│   └── layout/ (mod, geometry, plan)
+└── tests/
+    ├── exit_codes.rs, geometry.rs, eligibility.rs, x11_integration.rs
 ```
 
 ## 3. Tabella dei moduli
 
 | Path/File | Responsabilità | Funzioni principali | Stato |
 |---|---|---|---|
-| `src/main.rs` | Entry point, wiring, codici d'uscita | `main`, mappatura errori→exit | DRAFT non verificato (M1-prep) |
-| `src/cli.rs` | Argomenti CLI | parsing, `--check-config/--list-windows/--dry-run/--layout/--daemon` | DRAFT non verificato (M1-prep, solo `--version`) |
-| `src/config.rs` | Config TOML validata | default, validazione, limiti (gap, enum, regex) | Pianificato (M4; `docs/spec/config.example.toml` pronto) |
-| `src/errors.rs` | Errori tipizzati | `KtileError`, conversione exit code | DRAFT non verificato (M1-prep) |
+| `src/main.rs` | Entry point, wiring, codici d'uscita | `main`, mappatura errori→exit | ✅ Completato (M1) |
+| `src/cli.rs` | Argomenti CLI | parsing, `--version`, `has_display` | ✅ Implementato (M1/M4) |
+| `src/config.rs` | Config TOML validata | default, validazione, limiti (gap, enum, regex) | Pianificato (M4) |
+| `src/errors.rs` | Errori tipizzati | `KtileError`, conversione exit code (2,4,5,6) | ✅ Completato (M1) |
 | `src/daemon.rs` | Event loop e shutdown | polling eventi, coalescing, stop su segnali ≤1 s | Pianificato (M6) |
-| `src/x11/connection.rs` | Connessione X11 | connect, intern atomi, retry, check estensioni | DRAFT non verificato (M1-prep) |
-| `src/x11/events.rs` | Selezione e traduzione eventi | maschere root/client, `DomainEvent` | DRAFT non verificato (M1-prep) |
-| `src/x11/ewmh.rs` | Lettura proprietà EWMH | `_NET_*` (tabella doc 03), fallback | DRAFT non verificato (M1-prep) |
+| `src/x11/connection.rs` | Connessione X11 | `connect`, `EwmhAtoms::new` | ✅ Completato (M1) |
+| `src/x11/events.rs` | Selezione e traduzione eventi | `DomainEvent`, `select_root_events` | ✅ Implementato (M1) |
+| `src/x11/ewmh.rs` | Lettura proprietà EWMH | `verify_wm`, `client_list` | ✅ Completato (M1) |
 | `src/x11/icccm.rs` | Lettura metadati ICCCM | `WM_CLASS`, `WM_TRANSIENT_FOR`, normal hint (read-only) | Pianificato |
-| `src/x11/monitor.rs` | Monitor e aree | RandR heads, strut → `WorkspaceArea` | Pianificato |
-| `src/x11/applier.rs` | Applicazione geometrie | gate richieste, geometry-in-flight, BadWindow | Pianificato |
-| `src/state/registry.rs` | Stato finestre | `Active/Suspended/Excluded/Gone`, posizioni | DRAFT non verificato (M1-prep, solo modello) |
-| `src/state/eligibility.rs` | Policy di esclusione | tipi/stati/transient, regex config | Pianificato |
+| `src/x11/monitor.rs` | Monitor e aree | `read_workspace_area` (RandR + strut/workarea) | ✅ Completato (M4) |
+| `src/x11/applier.rs` | Applicazione geometrie | gate richieste, geometry-in-flight, BadWindow | Pianificato (M5) |
+| `src/state/registry.rs` | Stato finestre | `WindowId`, `WindowState` | ✅ Implementato (M1) |
+| `src/state/eligibility.rs` | Policy di esclusione | `is_eligible`, `ExcludeConfig` | ✅ Completato (M4) |
 | `src/state/workspace.rs` | Stato per workspace | `WorkspaceId=(desktop,monitor)`, alberi layout | Pianificato |
 | `src/state/reconciliation.rs` | Diff stato↔X11 | ricalcolo selettivo, idempotenza | Pianificato |
-| `src/layout/geometry.rs` | Rettangoli e gap | `Rect`, split, clamp, invarianti | Pianificato |
-| `src/layout/tree.rs` | Albero binario | insert/remove/promote (dwindle) | Pianificato |
-| `src/layout/dwindle.rs` | Policy dwindle | split_mode/target/ratio, fallback minimi | Pianificato |
-| `src/layout/master_stack.rs` | Policy master-stack | `new_status`, promozione, `mfact` | Pianificato |
-| `src/layout/plan.rs` | Piano geometrico | `Plan{moves}`, diff, idempotenza | Pianificato |
-| `docs/` | Documentazione | fonte di verità progettuale | In sviluppo |
+| `src/layout/geometry.rs` | Rettangoli e gap | `Rect`, `Gaps`, `compute_dwindle`, `compute_master_stack` | ✅ Completato (M2) |
+| `src/layout/tree.rs` | Albero binario | insert/remove/promote (dwindle) | Pianificato (M3) |
+| `src/layout/dwindle.rs` | Policy dwindle | split_mode/target/ratio, fallback minimi | Pianificato (M3) |
+| `src/layout/master_stack.rs` | Policy master-stack | `new_status`, promozione, `mfact` | Pianificato (M3) |
+| `src/layout/plan.rs` | Piano geometrico | `Plan`, `WindowMove`, `diff`, idempotenza | ✅ Completato (M2) |
+| `docs/` | Documentazione | fonte di verità progettuale | In continuo aggiornamento |
 
 ## 4. Flusso dei dati e architettura logica
 
@@ -107,5 +97,3 @@ tests/
 2. **Ciclo di vita:** eventi X11 (`x11/events`) → `DomainEvent` → aggiornamento stato (`state/`) → **solo se lo stato cambia in modo rilevante** → piano (`layout/`, motore puro) → diff con stato atteso → richieste controllate (`x11/applier`).
 3. **Sicurezza del flusso:** i ConfigureNotify propri vengono consumati dal filtro anti-feedback; `BadWindow` diventa `WindowGone`; piano identico allo stato atteso → zero richieste (idempotenza); max 3 ricalcoli per burst (anti-livelock).
 4. **Confini invarianti:** `layout/` non conosce X11; `state/` non parla col server; `applier` è l'unico scrittore di geometrie; hint ICCCM mai riscritti (su Muffin/Mutter mai `WM_NORMAL_HINTS`, vincolo da analisi Cortile).
-
-Stati e decisioni architetturali: registro ADR in `ROADMAP.md` (stessa cartella `docs/`), sezione "Registro decisioni (ADR)".

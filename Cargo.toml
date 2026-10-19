@@ -4,12 +4,16 @@ version = "0.1.0"
 edition = "2021"
 description = "Tiler X11 cooperante con Muffin/Cinnamon (Rust + x11rb)"
 
-# DRAFT M1-prep — NON compilato, NON testato: toolchain Rust assente sull'host (verificato M0).
-# Gate cargo (fmt/clippy/test) sospeso. Dipendenze minime M1: x11rb + thiserror.
-
 [dependencies]
-x11rb = { version = "0.13", features = ["allow-unsafe-code"] }
+# Milestone M1: backend X11 unico (con randr per M4 monitor)
+x11rb = { version = "0.13", features = ["allow-unsafe-code", "randr"] }
+# Milestone M1: errori tipizzati
 thiserror = "2"
+
+[dev-dependencies]
+# Milestone M2: caricamento fixture di test per la geometria
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 
 [features]
 x11-tests = []
