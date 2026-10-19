@@ -1,0 +1,14 @@
+{
+  "_comment": "Fixture geometriche M1-prep (DRAFT): casi dei futuri cargo test M2. Area = workarea M0 (1920x1040, pannello 40px). Gaps D2: inner/outer.",
+  "cases": [
+    {"id": "empty", "area": {"x": 0, "y": 0, "w": 1920, "h": 1040}, "n": 0, "inner": 8, "outer": 8, "expected_moves": 0},
+    {"id": "single", "area": {"x": 0, "y": 0, "w": 1920, "h": 1040}, "n": 1, "inner": 8, "outer": 8, "expected": [{"x": 8, "y": 8, "w": 1904, "h": 1024}]},
+    {"id": "two-dwindle-longest", "area": {"x": 0, "y": 0, "w": 1920, "h": 1040}, "n": 2, "inner": 8, "outer": 8, "layout": "dwindle", "expected": [{"x": 8, "y": 8, "w": 948, "h": 1024}, {"x": 964, "y": 8, "w": 948, "h": 1024}]},
+    {"id": "two-master", "area": {"x": 0, "y": 0, "w": 1920, "h": 1040}, "n": 2, "inner": 8, "outer": 8, "layout": "master-stack", "mfact": 0.55, "expected": [{"x": 8, "y": 8, "w": 1042, "h": 1024}, {"x": 1058, "y": 8, "w": 854, "h": 1024}], "expected_note": "verificato via prototipo /tmp/ktile_proto.py (usa-e-getta, stdlib)"},
+    {"id": "tiny-1px", "area": {"x": 0, "y": 0, "w": 1, "h": 1}, "n": 1, "inner": 8, "outer": 8, "expected": "clamp + log, mai panic"},
+    {"id": "area-smaller-than-gap", "area": {"x": 0, "y": 0, "w": 10, "h": 10}, "n": 2, "inner": 8, "outer": 8, "expected": "clamp definito + log"},
+    {"id": "negative-coords", "area": {"x": -200, "y": -200, "w": 1920, "h": 1040}, "n": 2, "inner": 8, "outer": 8, "expected": "coordinate gestite con saturating/checked"},
+    {"id": "n128", "area": {"x": 0, "y": 0, "w": 1920, "h": 1040}, "n": 128, "inner": 8, "outer": 8, "expected": "invarianti: dentro area, >=1px, nessuna sovrapposizione"}
+  ],
+  "invariants": ["ogni Rect dentro area", "lati >= 1px", "nessuna sovrapposizione", "stessa sequenza -> stesso layout (D3)"]
+}

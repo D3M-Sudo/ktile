@@ -42,7 +42,7 @@ Ktile è un **tiler X11 esterno, cooperante con Muffin** (Linux Mint Cinnamon, s
 
 ## 2. Albero delle directory
 
-Stato attuale (2026-10-17) — progetto documentale, codice non ancora inizializzato:
+Stato attuale (2026-10-19) — M1-prep senza toolchain: codice Rust in `src/`/`tests/` è **DRAFT non compilato, non testato** (toolchain assente, M0). Baseline in `docs/milestones/` verificata.
 
 ```text
 <repo>/
@@ -79,18 +79,18 @@ tests/
 
 | Path/File | Responsabilità | Funzioni principali | Stato |
 |---|---|---|---|
-| `src/main.rs` | Entry point, wiring, codici d'uscita | `main`, mappatura errori→exit | Pianificato |
-| `src/cli.rs` | Argomenti CLI | parsing, `--check-config/--list-windows/--dry-run/--layout/--daemon` | Pianificato |
-| `src/config.rs` | Config TOML validata | default, validazione, limiti (gap, enum, regex) | Pianificato |
-| `src/errors.rs` | Errori tipizzati | `KtileError`, conversione exit code | Pianificato |
-| `src/daemon.rs` | Event loop e shutdown | polling eventi, coalescing, stop su segnali ≤1 s | Pianificato |
-| `src/x11/connection.rs` | Connessione X11 | connect, intern atomi, retry, check estensioni | Pianificato |
-| `src/x11/events.rs` | Selezione e traduzione eventi | maschere root/client, `DomainEvent` | Pianificato |
-| `src/x11/ewmh.rs` | Lettura proprietà EWMH | `_NET_*` (tabella doc 03), fallback | Pianificato |
+| `src/main.rs` | Entry point, wiring, codici d'uscita | `main`, mappatura errori→exit | DRAFT non verificato (M1-prep) |
+| `src/cli.rs` | Argomenti CLI | parsing, `--check-config/--list-windows/--dry-run/--layout/--daemon` | DRAFT non verificato (M1-prep, solo `--version`) |
+| `src/config.rs` | Config TOML validata | default, validazione, limiti (gap, enum, regex) | Pianificato (M4; `docs/spec/config.example.toml` pronto) |
+| `src/errors.rs` | Errori tipizzati | `KtileError`, conversione exit code | DRAFT non verificato (M1-prep) |
+| `src/daemon.rs` | Event loop e shutdown | polling eventi, coalescing, stop su segnali ≤1 s | Pianificato (M6) |
+| `src/x11/connection.rs` | Connessione X11 | connect, intern atomi, retry, check estensioni | DRAFT non verificato (M1-prep) |
+| `src/x11/events.rs` | Selezione e traduzione eventi | maschere root/client, `DomainEvent` | DRAFT non verificato (M1-prep) |
+| `src/x11/ewmh.rs` | Lettura proprietà EWMH | `_NET_*` (tabella doc 03), fallback | DRAFT non verificato (M1-prep) |
 | `src/x11/icccm.rs` | Lettura metadati ICCCM | `WM_CLASS`, `WM_TRANSIENT_FOR`, normal hint (read-only) | Pianificato |
 | `src/x11/monitor.rs` | Monitor e aree | RandR heads, strut → `WorkspaceArea` | Pianificato |
 | `src/x11/applier.rs` | Applicazione geometrie | gate richieste, geometry-in-flight, BadWindow | Pianificato |
-| `src/state/registry.rs` | Stato finestre | `Active/Suspended/Excluded/Gone`, posizioni | Pianificato |
+| `src/state/registry.rs` | Stato finestre | `Active/Suspended/Excluded/Gone`, posizioni | DRAFT non verificato (M1-prep, solo modello) |
 | `src/state/eligibility.rs` | Policy di esclusione | tipi/stati/transient, regex config | Pianificato |
 | `src/state/workspace.rs` | Stato per workspace | `WorkspaceId=(desktop,monitor)`, alberi layout | Pianificato |
 | `src/state/reconciliation.rs` | Diff stato↔X11 | ricalcolo selettivo, idempotenza | Pianificato |

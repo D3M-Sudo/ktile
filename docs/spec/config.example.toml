@@ -1,0 +1,30 @@
+# config.example.toml — Ktile v1 (M1-prep, DRAFT non validato: toolchain Rust assente)
+# Ogni chiave riflette le decisioni chiuse D1-D9 (2026-10-17). Validazione via `--check-config` (M4).
+
+[general]
+layout = "dwindle"            # "dwindle" | "master-stack" (D5: core)
+follow_monitor_focus = false  # M7: multi-monitor futuro
+
+[gaps]
+inner = 8                     # gap tra finestre (px)
+outer = 8                     # gap dai bordi area (D2: UNICA chiave, `gaps_out` non riconosciuta)
+
+[dwindle]
+split_mode = "longest-side"   # "longest-side" | "alternating"
+split_ratio = 0.5             # clamp runtime [0.25, 0.75]
+split_target = "active"       # "active" | "mru" (D3: foglia da dividere, default stable)
+
+[master]
+mfact = 0.55                  # clamp [0.25, 0.75]
+new_status = "slave"          # "slave" | "master" (D7)
+
+[behavior]
+new_is_master = false         # alias legacy di new_status="master" (warn se entrambi, D7)
+single_monitor_only = true    # v1: errore chiaro se >1 monitor (M7 rimuove)
+smart_gaps = false
+respect_monitor_reserved = true
+
+[exclude]
+classes = ["kupfer.py", "desktop_window"]
+instances = ["conky"]
+title_regex = ["^np\\.vc\\.virtualbox$"]

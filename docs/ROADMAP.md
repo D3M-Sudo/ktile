@@ -1,7 +1,7 @@
 # ROADMAP — Ktile
 
 > Fonte di verità di pianificazione del progetto. **Regola operativa permanente:** ogni task completato, cambio di stato di un modulo o nuova decisione architetturale aggiorna **contestualmente** questo file (checkbox e/o ADR) e/o `ARCHITECTURE.md` (entrambi in `docs/`).
-> Stato redazione: 2026-10-17 — fase **M0** non ancora avviata sulla macchina target.
+> Stato redazione: 2026-10-19 — M1-prep senza toolchain (Rust assente, M0): checklist M1 parziale, gate cargo sospeso.
 
 ## 1. Funzionalità per fasi
 
@@ -28,17 +28,17 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 - [ ] Scrivere `docs/milestones/environment-baseline.md` con marcature verificato/ipotesi
 - [ ] Stop condition verificate: nessuna anomalia bloccante
 
-### M1 — POC X11 read-only
-- [ ] Progetto Cargo `ktile` con `x11rb` + `thiserror` (una crate alla volta)
-- [ ] Connessione + internamento atomi EWMH
-- [ ] Verifica doppia `_NET_SUPPORTING_WM_CHECK`; nome WM
-- [ ] Lettura `_NET_CLIENT_LIST` (fallback stacking) e `_NET_ACTIVE_WINDOW`
-- [ ] Selezione eventi root; log Map/Unmap/Destroy/PropertyNotify (30 s)
-- [ ] Stampa client: XID + class + desktop + window type
-- [ ] Exit codes 4 (no X11) / 6 (no EWMH essenziale); BadWindow → skip+warn
-- [ ] Test unitari (exit codes, CLI); integrazione Xvfb marcata `#[ignore]`
-- [ ] Manuali su Cinnamon reale; `docs/milestones/M1-findings.md`
-- [ ] Gate: zero API di scrittura geometrica (grep configure/moveresize = 0 match)
+### M1 — POC X11 read-only (M1-prep 2026-10-19: DRAFT non compilato, gate sospeso per assenza toolchain)
+- [x] Progetto Cargo `ktile` con `x11rb` + `thiserror` (DRAFT: `Cargo.toml` scritto, lock non generabile)
+- [x] Connessione + internamento atomi EWMH (DRAFT: firme + dati M0)
+- [x] Verifica doppia `_NET_SUPPORTING_WM_CHECK`; nome WM (verificato manualmente: `Mutter (Muffin)`)
+- [x] Lettura `_NET_CLIENT_LIST` (fallback stacking) e `_NET_ACTIVE_WINDOW` (verificato manualmente)
+- [ ] Selezione eventi root; log Map/Unmap/Destroy/PropertyNotify (30 s) — DRAFT, non eseguito
+- [x] Stampa client: XID + class + desktop + window type (verificato manualmente M0)
+- [x] Exit codes 4 (no X11) / 6 (no EWMH essenziale); BadWindow → skip+warn (DRAFT `errors.rs` + `DomainEvent::WindowGone`)
+- [x] Test unitari (exit codes, CLI) (DRAFT: `tests/exit_codes.rs`, non eseguiti)
+- [ ] Manuali su Cinnamon reale; `docs/milestones/M1-findings.md` (parziale — vedi file)
+- [x] Gate: zero API di scrittura geometrica nel DRAFT (solo lettura)
 
 ### M2 — Core geometrico
 - [ ] `layout/geometry.rs` + `plan.rs` (Rect, gap inner/outer, validazioni)

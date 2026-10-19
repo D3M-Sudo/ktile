@@ -1,0 +1,19 @@
+[package]
+name = "ktile"
+version = "0.1.0"
+edition = "2021"
+description = "Tiler X11 cooperante con Muffin/Cinnamon (Rust + x11rb)"
+
+# DRAFT M1-prep — NON compilato, NON testato: toolchain Rust assente sull'host (verificato M0).
+# Gate cargo (fmt/clippy/test) sospeso. Dipendenze minime M1: x11rb + thiserror.
+
+[dependencies]
+x11rb = { version = "0.13", features = ["allow-unsafe-code"] }
+thiserror = "2"
+
+[features]
+x11-tests = []
+
+[[bin]]
+name = "ktile"
+path = "src/main.rs"
