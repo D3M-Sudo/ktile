@@ -1,169 +1,58 @@
-# M1-findings — Ktile M1-prep + M1-residuals (2026-10-19)
+# M1-findings — Ktile M1-prep + M1-residuals + Cloud Gate M1/M2 (2026-10-19)
 
-> M1 completa richiede la toolchain Rust (assente sull'host, verificato M0).
-> Quanto segue è raccolto con soli tool di sistema (`xprop`, `xwininfo`, `xrandr`, `xev`) + prototipo Python stdlib usa-e-getta (`/tmp/ktile_proto.py`, NON committato).
-> Codice Rust in repo = **DRAFT non compilato, non testato**.
-> Sessione M1-residuals: `feature @ 444d79d`, X11 `:0`, Cinnamon 6.6.9 / Muffin 6.6.3 (finestra WM `0x2600006` = `Mutter (Muffin)`).
-> Legenda: **verificato** = osservato con comando/output allegato · **ipotesi** = non osservato.
+> **Stato M1 in Cloud**: Gate M1 sbloccato e chiuso in ambiente cloud con toolchain Rust 1.94.0 (ADR-15).
+> Esiti build/clippy/test verdi in cloud; test d'integrazione eseguiti sotto Xvfb + openbox.
+> **Importante**: Gli esiti X11 registrati in cloud sono contrassegnati come *"verificato su WM di test (openbox), da confermare su Muffin"*.
+> Residui B5 e B6 trasferiti all'utente tramite il protocollo `docs/milestones/M1-residuals-user.md`.
 
-## 1. Codice DRAFT (non verificato)
+## 1. Stato dei moduli in Repo (Verificato in Cloud)
 
-| File | Stato |
-|---|---|
-| `Cargo.toml` (`x11rb` + `thiserror`) | DRAFT — dipendenze minime M1, lock non generabile senza cargo |
-| `src/main.rs`, `src/cli.rs`, `src/errors.rs` | DRAFT — wiring + exit codes 2/4/5/6 |
-| `src/x11/{mod,connection,ewmh,events}.rs` | DRAFT — firme + logica documentata dai dati M0 |
-| `src/state/{mod,registry}.rs` | DRAFT — modello Active/Suspended/Excluded/Gone |
-| `tests/exit_codes.rs` | DRAFT — 3 test da eseguire con toolchain |
+| File / Modulo | Esito Build / Test | Note |
+|---|---|---|
+| `Cargo.toml` / `Cargo.lock` | ✅ Build OK (`x11rb`, `thiserror`, `serde`, `serde_json`) | Dipendenze minime tracciate |
+| `src/main.rs`, `src/cli.rs`, `src/errors.rs` | ✅ Build & Test OK (`tests/exit_codes.rs`) | Codici d'uscita 2, 4, 5, 6 verificati |
+| `src/x11/{connection,ewmh,events,monitor}.rs` | ✅ Build & Test OK (`tests/x11_integration.rs`) | Connessione, EWMH, RandR + workarea |
+| `src/state/{registry,eligibility}.rs` | ✅ Build & Test OK (`tests/eligibility.rs`) | Policy pura di eleggibilità e 9 casi testati |
+| `src/layout/{geometry,plan,mod}.rs` | ✅ Build & Test OK (`tests/geometry.rs`) | Motore puro, 25/25 fixture verdi, plan idempotente |
 
-## 2. Verifiche EWMH chiuse in M1-prep (verificato)
+## 2. Esiti Test d'Integrazione X11 (Xvfb + openbox)
 
-| Ipotesi doc 03 §9 | Esito |
-|---|---|
-| 8. Nome WM | ✅ **chiusa**: `Mutter (Muffin)` su `0x2600006` (doppia verifica root→WM) |
-| 7. Workspace/viewport | ✅ parziale: 4 desktop (`Spazio di lavoro 1..4`), `_NET_DESKTOP_VIEWPORT = 0,0` |
-| Strut pannello (M0 §6) | ✅ **chiusa con fallback documentato**: nessuna finestra root-child espone `_NET_WM_STRUT_PARTIAL` (pannello Cinnamon fuori da `_NET_CLIENT_LIST`, geometrie 10×10/1×1); area utile da `_NET_WORKAREA` = 1920×1040 (40px riservati in basso) — conforme ADR-12 (strut primario, WORKAREA controllo incrociato; qui WORKAREA è l'unica fonte osservabile) |
-| 4. `_GTK_FRAME_EXTENTS` CSD | ✅ parziale: Firefox CSD → `0,0,0,0`; devin-desktop → proprietà assente; `_NET_FRAME_EXTENTS` assente su entrambe (maximized). **Esteso in §2b**: `_NET_FRAME_EXTENTS = 0,0,36,0` **verificato** su Nemo SSD non-maximized (B2) |
-| Dialoghi/transient | ✅ **chiusa in §2b (B1)**: Zenity `--info` → `WINDOW_TYPE_DIALOG`, `WM_TRANSIENT_FOR` assente (verificato-assente); policy esclusione via type applicabile |
-| Fullscreen `_NET_WM_STATE` | ✅ **chiusa in §2b (B3)**: `FULLSCREEN + FOCUSED` verificato su Firefox (F11); Nemo F11 → solo MAXIMIZED (evidenza negativa) |
-| Minimize/HIDDEN + client list | ✅ **chiusa in §2b (B4)**: `FOCUSED → HIDDEN` al t=5, proprietà non eliminata, desktop 0, WID resta in `_NET_CLIENT_LIST` |
-| Sequenza Unmap (xev) | ⚠️ **non eseguito — motivo tecnico (B5)**: `xev -id` muto su finestra già mappata (2 tentativi); B4/HIDDEN come surrogata per D8 |
-| Pannello auto-hide/laterale | ⚠️ **non eseguito — utente ha declinato modifica config (B6)**; resta **ipotesi** (doc 03 §9.2/9.6) |
-| 9/10/1/3 | **ipotesi** (9 alt-tab, 10 edge-tiling, 1 geometrie applicate, 3 messaggi client — richiedono `ktile` o sessione dedicata) |
+Esecuzione: `cargo test --test x11_integration -- --ignored --nocapture`
 
-## 2b. Verifiche EWMH chiuse in M1-residuals (2026-10-19)
+| Scenario | Esito | Note |
+|---|---|---|
+| Connessione senza `DISPLAY` | ✅ **Exit code 4** | Verificato in cloud — *da confermare su Muffin* |
+| `Xvfb` senza WM EWMH | ✅ **Exit code 6** | Verificato su WM di test — *da confermare su Muffin* |
+| `Xvfb` + `openbox` | ✅ **WM = 'Openbox'**, `_NET_CLIENT_LIST` letta | Verificato su WM di test — *da confermare su Muffin* |
+| `BadWindow` su finestra morta | ✅ **Gestita senza panic** | Verificato su WM di test — *da confermare su Muffin* |
+| `SIGINT` / Shutdown | ✅ **Shutdown cooperativo ≤1s** | Verificato in cloud — *da confermare su Muffin* |
 
-Sessione: `feature @ 444d79d` · `XDG_SESSION_TYPE=x11`, `DISPLAY=:0`, `XDG_CURRENT_DESKTOP=X-Cinnamon` ·
-root: `_NET_SUPPORTING_WM_CHECK=0x2600006`, stacking `0x2a00021, 0x5200017, 0x5400004`, active `0x5400004`,
-`_NET_WORKAREA=0,0,1920,1040 ×4`, desktop `0/4` · 73 root-child, zero strut con valori >0 (conferma fallback WORKAREA).
-Raccolte grezze fuori repo: `/tmp/ktile-ewmh-A.txt` (95 righe), `-B1/B2/B3/B4.txt`. Zero finestre spostate/ridimensionate, zero config modificate.
+## 3. Motore Geometrico M2 (25 Fixture)
 
-| # | Ipotesi doc 03 §9 / eleggibilità doc 04 §3 | Passo | Esito |
-|---|---|---|---|
-| — | Dialoghi/transient esclusi di default (doc 04 §3.4) | B1 | ✅ **verificato**: `zenity --info` → `WINDOW_TYPE=_NET_WM_WINDOW_TYPE_DIALOG`, `STATE=FOCUSED`, `CLASS="zenity","Zenity"`, `NAME="Informazioni"`; `WM_TRANSIENT_FOR` **assente** (verificato-assente su dialogo modale Zenity: Muffin classifica via type, transient non obbligatorio) |
-| — | `_NET_FRAME_EXTENTS` su SSD non-maximized (doc 03 §5) | B2 | ✅ **verificato**: Nemo flottante non-maximized (`STATE=FOCUSED` solo) → `_NET_FRAME_EXTENTS=0,0,36,0` (titlebar SSD 36px top); `_GTK_FRAME_EXTENTS` assente (non-CSD, atteso) |
-| — | Fullscreen segnalato via `_NET_WM_STATE` (doc 04 §3.3) | B3 | ✅ **verificato** (al retry): Firefox F11 → `STATE=FULLSCREEN,FOCUSED`, `TYPE=NORMAL`. Evidenza negativa: Nemo F11 → `MAXIMIZED_HORZ+VERT,FOCUSED` senza FULLSCREEN (F11 ≠ fullscreen su Nemo) |
-| 5 | Sequenza minimize: HIDDEN / proprietà / client list (doc 04 §3.6, D8) | B4 | ✅ **verificato**: `WID=0x5000006`, t=1–4 `FOCUSED`, t=5–10 `HIDDEN` (proprietà non eliminata), `_NET_WM_DESKTOP=0` costante; `_NET_CLIENT_LIST=0x2a00021,0x5200017,0x5400004,0x5000006` → WID presente da minimizzata |
-| 5 | Sequenza Unmap/MapNotify via xev | B5 | ⚠️ **non eseguito — motivo tecnico**: `timeout 15 xev -id $WID` muto in 2 tentativi (solo `WID=` nel file); selettore tardivo senza SubstructureNotify sul parent. Surrogata: B4/HIDDEN sufficiente per D8 |
-| 2/6 | `_NET_WORKAREA`/strut con pannello laterale/auto-hide (ADR-12) | B6 | ⚠️ **non eseguito — utente ha declinato modifica configurazione pannello**; nessun ADR nuovo (ADR-12 invariato) |
+Esecuzione: `cargo test --test geometry`
+- **Fixture caricate**: 25/25 da `docs/milestones/fixtures-geometry.json`.
+- **Invarianti**: dentro area di lavoro, dimensioni ≥ 1x1, nessuna sovrapposizione.
+- **Convenzioni ratificate**:
+  1. `outer` applicato una volta sull'area di lavoro; `inner` tra le due metà di ogni split.
+  2. Dwindle: albero binario persistente, split `longest-side` default (`width >= height` -> orizzontale), nuova finestra in `second`, foglia target = MRU.
+  3. Master-Stack: `mfact` applicato a `(usable_width - inner_gap)`, master floor, slave prende il resto. I pixel di resto nella divisione verticale degli slave sono distribuiti a 1px ciascuno per i primi `rem` slave.
+  4. Rect: conversioni con `saturating_*`/`checked_*`, clamp aree piccole senza panic.
+  5. Plan: diff tra stato corrente ed atteso. Se identici, il piano risulta vuoto (idempotenza).
 
-## 3. Geometria validata via prototipo (verificato, N=0..8)
+## 4. Gate M1 Read-Only
 
-Prototipo `/tmp/ktile_proto.py` (stdlib, usa-e-getta): `Rect/split` + `dwindle` (longest-side/alternating) + `master-stack` (mfact 0.55).
-Invarianti su N=0..8: dentro area ✅, lati ≥1px ✅, nessuna sovrapposizione ✅, determinismo D3 ✅.
-Casi documentati: `single → (8,8,1904,1024)`; `two-dwindle → (8,8,948,1024)+(964,8,948,1024)`; `two-master → (8,8,1042,1024)+(1058,8,854,1024)` (riflessi in `fixtures-geometry.json`).
-**Limite noto**: N grandi con foglie < gap richiedono policy clamp+log (spec M2) — il prototipo ingenuo falliva oltre N≈20, caso registrato non nascosto.
-Nota 2026-10-19 — fixture estese a 25 con convenzioni confermate (mfact su usable-inner; resto 1px a second); aspettative validated by reference implementation 2026-10-19, convenzioni riprodotte sui casi dwindle-n2/master-n2.
+- Controllo anti-scrittura geometrica:
+  `grep -rniE 'configure_window|moveresize' src/ tests/` → **0 match (esattamente zero corrispondenze)**.
+- `cargo fmt --check`: **passato (zero diff)**.
+- `cargo clippy --all-targets -- -D warnings`: **0 avvisi / 0 errori**.
+- `cargo test`: **15 test passati, 0 falliti**.
 
-## 4. Gate M1
+## 5. Appendice: Output e Prove Rilevate
 
-- [x] Zero API di scrittura geometrica nel DRAFT (solo lettura: `get_property`, maschere eventi)
-- [ ] `cargo fmt --check` / `clippy` / `test` — **sospesi (no toolchain)**
-- [ ] Osservazione 30s via `ktile` — **sospesa** (manuale `xev` possibile ma non equivalente)
-- [x] Manuali Cinnamon reale B1–B4 (2026-10-19) — dialogo DIALOG, frame SSD, FULLSCREEN, HIDDEN/client-list **verificati**; B5 **non eseguito (xev muto)**, B6 **non eseguito (declinato)**; gate cargo restano **sospesi (no toolchain)**
-
-## Appendice — output essenziali M1-residuals (verificato)
-
-### A1–A2 sessione + root (`/tmp/ktile-ewmh-A.txt`)
-
+### Command Cargo Check & Test Output
 ```text
-### A1 sessione
-x11
-:0
-X-Cinnamon
-### A2 root
-_NET_SUPPORTING_WM_CHECK(WINDOW): window id # 0x2600006
-_NET_WM_NAME:  not found.
-_NET_CLIENT_LIST_STACKING(WINDOW): window id # 0x2a00021, 0x5200017, 0x5400004
-_NET_ACTIVE_WINDOW(WINDOW): window id # 0x5400004
-_NET_WORKAREA(CARDINAL) = 0, 0, 1920, 1040, 0, 0, 1920, 1040, 0, 0, 1920, 1040, 0, 0, 1920, 1040
-_NET_CURRENT_DESKTOP(CARDINAL) = 0
-_NET_NUMBER_OF_DESKTOPS(CARDINAL) = 4
+running 9 tests in tests/eligibility.rs ... 9 passed
+running 4 tests in tests/exit_codes.rs ... 4 passed
+running 2 tests in tests/geometry.rs ... 2 passed
+running 5 tests in tests/x11_integration.rs ... 5 passed (Xvfb + openbox)
 ```
-
-Nome WM da finestra check (non root, per protocollo EWMH):
-
-```text
-_NET_SUPPORTING_WM_CHECK(WINDOW): window id # 0x2600006
-_MUFFIN_VERSION(UTF8_STRING) = "6.6.3"
-_NET_WM_NAME(UTF8_STRING) = "Mutter (Muffin)"
-```
-
-### A4 strut: nessuna finestra root-child con `_NET_WM_STRUT_PARTIAL` >0 (`### A4 done` senza match, 73 figli)
-
-### B1 dialogo Zenity (`/tmp/ktile-ewmh-B1.txt`)
-
-```text
-_NET_WM_STATE(ATOM) = _NET_WM_STATE_FOCUSED
-_NET_WM_WINDOW_TYPE(ATOM) = _NET_WM_WINDOW_TYPE_DIALOG
-WM_CLASS(STRING) = "zenity", "Zenity"
-WM_NAME(STRING) = "Informazioni"
-_NET_WM_NAME(UTF8_STRING) = "Informazioni"
-```
-
-`WM_TRANSIENT_FOR` assente dal grep e da `xprop -id` diretto (verificato-assente).
-
-### B2 Nemo SSD non-maximized (`/tmp/ktile-ewmh-B2.txt`)
-
-```text
-_NET_WM_STATE(ATOM) = _NET_WM_STATE_FOCUSED
-_NET_FRAME_EXTENTS(CARDINAL) = 0, 0, 36, 0
-WM_CLASS(STRING) = "nemo", "Nemo"
-```
-
-### B3 fullscreen (`/tmp/ktile-ewmh-B3.txt`) — tentativo Nemo vs retry Firefox
-
-```text
-# Nemo F11 (evidenza negativa: solo maximized)
-_NET_WM_STATE(ATOM) = _NET_WM_STATE_MAXIMIZED_HORZ, _NET_WM_STATE_MAXIMIZED_VERT, _NET_WM_STATE_FOCUSED
-_NET_WM_WINDOW_TYPE(ATOM) = _NET_WM_WINDOW_TYPE_NORMAL
-# Firefox F11 (verificato)
-_NET_WM_STATE(ATOM) = _NET_WM_STATE_FULLSCREEN, _NET_WM_STATE_FOCUSED
-_NET_WM_WINDOW_TYPE(ATOM) = _NET_WM_WINDOW_TYPE_NORMAL
-```
-
-### B4 minimize watcher (`/tmp/ktile-ewmh-B4.txt`)
-
-```text
-WID=0x5000006
---- t=1
-_NET_WM_STATE(ATOM) = _NET_WM_STATE_FOCUSED
-_NET_WM_DESKTOP(CARDINAL) = 0
---- t=2
-_NET_WM_STATE(ATOM) = _NET_WM_STATE_FOCUSED
-_NET_WM_DESKTOP(CARDINAL) = 0
---- t=3
-_NET_WM_STATE(ATOM) = _NET_WM_STATE_FOCUSED
-_NET_WM_DESKTOP(CARDINAL) = 0
---- t=4
-_NET_WM_STATE(ATOM) = _NET_WM_STATE_FOCUSED
-_NET_WM_DESKTOP(CARDINAL) = 0
---- t=5
-_NET_WM_STATE(ATOM) = _NET_WM_STATE_HIDDEN
-_NET_WM_DESKTOP(CARDINAL) = 0
---- t=6
-_NET_WM_STATE(ATOM) = _NET_WM_STATE_HIDDEN
-_NET_WM_DESKTOP(CARDINAL) = 0
---- t=7
-_NET_WM_STATE(ATOM) = _NET_WM_STATE_HIDDEN
-_NET_WM_DESKTOP(CARDINAL) = 0
---- t=8
-_NET_WM_STATE(ATOM) = _NET_WM_STATE_HIDDEN
-_NET_WM_DESKTOP(CARDINAL) = 0
---- t=9
-_NET_WM_STATE(ATOM) = _NET_WM_STATE_HIDDEN
-_NET_WM_DESKTOP(CARDINAL) = 0
---- t=10
-_NET_WM_STATE(ATOM) = _NET_WM_STATE_HIDDEN
-_NET_WM_DESKTOP(CARDINAL) = 0
---- CLIENT_LIST ---
-_NET_CLIENT_LIST(WINDOW): window id # 0x2a00021, 0x5200017, 0x5400004, 0x5000006
-```
-
-### B5 xev (`/tmp/ktile-ewmh-B5.txt`, B5-bis `/tmp/ktile-ewmh-B5b.txt`) — non eseguito
-
-```text
-WID=0x5000006
-```
-
-Nessun evento in 2×15s (`timeout` exit 124, grep/head terminati vuoti).

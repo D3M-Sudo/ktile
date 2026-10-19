@@ -1,6 +1,6 @@
-// DRAFT M1-prep — NON compilato, NON testato: toolchain Rust assente sull'host.
-// Strato X11 (unico a toccare la connessione). M1: connection + ewmh + events (read-only).
+// Strato X11 (unico a toccare la connessione). M1: connection + ewmh + events + monitor (read-only).
 
 pub mod connection;
-pub mod ewmh;
 pub mod events;
+pub mod ewmh;
+pub mod monitor;

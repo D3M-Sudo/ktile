@@ -1,12 +1,8 @@
-// DRAFT M1-prep — NON compilato, NON testato: toolchain Rust assente sull'host.
-// Gate cargo (fmt/clippy/test) sospeso. Entry point M1: wiring + exit codes.
-
-mod cli;
-mod errors;
-mod x11;
-mod state;
+// Entry point M1: wiring + exit codes.
 
 use std::process::ExitCode;
+
+use ktile::{cli, errors};
 
 fn main() -> ExitCode {
     match run() {
@@ -23,6 +19,6 @@ fn run() -> Result<u8, errors::KtileError> {
     if !args.has_display() {
         return Err(errors::KtileError::NoDisplay);
     }
-    // M1: connessione + verifica EWMH + elenco client + osservazione 30s (read-only).
+    // M1: connessione + verifica EWMH + elenco client + osservazione (read-only).
     Ok(0)
 }

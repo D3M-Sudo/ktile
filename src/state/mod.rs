@@ -1,4 +1,4 @@
-// DRAFT M1-prep — NON compilato, NON testato: toolchain Rust assente sull'host.
-// Stato finestre (M1: solo modello, nessuna connessione).
+// Stato finestre (M1/M4: modelli e policy di eleggibilità).
 
+pub mod eligibility;
 pub mod registry;

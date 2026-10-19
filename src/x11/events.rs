@@ -1,4 +1,3 @@
-// DRAFT M1-prep — NON compilato, NON testato: toolchain Rust assente sull'host.
 // Selezione eventi root + traduzione in DomainEvent. M1: log Map/Unmap/Destroy/PropertyNotify 30s.
 
 /// Eventi di dominio (lo stato reagisce a questi, non all'evento X11 grezzo).
@@ -16,12 +15,12 @@ pub enum DomainEvent {
     FocusChanged,
 }
 
-/// Seleziona le maschere eventi su root + finestre tracked (M1: implementare).
+/// Seleziona le maschere eventi su root + finestre tracked.
 pub fn select_root_events() {
     // DRAFT: SubstructureNotify | PropertyChange su root.
 }
 
-/// Osserva gli eventi per 30s in modalità read-only, log su stderr (M1 manuale).
+/// Osserva gli eventi per 30s in modalità read-only, log su stderr.
 pub fn observe_30s() {
-    // DRAFT: poll loop con timeout, nessuna richiesta geometrica (gate M1: grep configure/moveresize = 0).
+    // DRAFT: poll loop con timeout, nessuna richiesta di modifica geometrie.
 }

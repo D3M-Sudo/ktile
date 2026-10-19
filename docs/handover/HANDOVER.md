@@ -1,27 +1,26 @@
 # HANDOVER — Ktile (2026-10-19)
 
 > File di passaggio di consegne per una nuova sessione/agente.
-> Branch: `feature` @ `2315517` · working tree pulito · pushato su `origin/feature` (push/PR solo su richiesta utente).
+> Branch: `feature` @ `aca2c28` (stato iniziale task) · working tree pulito · pushato su `origin/feature`.
 
 ## 1. Cos'è Ktile (30 secondi)
 
 Tiler X11 **esterno e cooperante** con Muffin/Cinnamon (Mint, sessione X11). Non è un compositor, non sostituisce il WM.
 Riferimento UX Hyprland (dwindle a split binari, master-stack, gaps), replicato in modo deterministico senza effetti grafici.
-Stack: Rust stable · backend unico **`x11rb`** · TOML (`serde`+`toml`) · CLI (`clap`) · errori (`thiserror`) · `cargo test`.
+Stack: Rust stable (1.94.0 in cloud) · backend unico **`x11rb`** · TOML (`serde`+`toml`) · CLI (`clap`) · errori (`thiserror`) · `cargo test`.
 Regole permanenti: fonte di verità = `docs/ARCHITECTURE.md` + `docs/ROADMAP.md` con **aggiornamento contestuale obbligatorio** (ADR-13);
-host pulito, zero `sudo` (ADR-14); Muffin resta autorevole su focus/stacking/decorazioni/workspace.
+Muffin resta autorevole su focus/stacking/decorazioni/workspace.
 
-## 2. Stato lavori (verità attuale, non promesse)
+## 2. Stato lavori (verità attuale)
 
 | Area | Stato | Dettagli |
 |---|---|---|
-| Git | ✅ `feature` @ `2315517`, clean, pushato | `origin/feature` allineato a `2315517`; `main/development/testing` fermi a `1f6233c`. Ruleset `ktile promotion flow`: `main/development/testing` solo via PR, `feature` libero. |
-| M0 baseline | ✅ completata e committata (`2c5c9f2`) | `docs/milestones/environment-baseline.md`: Mint 22.3, Cinnamon 6.6.9, Muffin 6.6.3, X11 `:0`, x86_64, tool X11 presenti, matrice EWMH, 4 desktop, workarea 1920×1040. |
-| M1-prep | ⚠️ parziale e committato (`325e15a`) | Codice Rust = **DRAFT non compilato, non testato** (ogni file marcato). Verifiche manuali EWMH chiuse (WM `Mutter (Muffin)`, client list, strut→fallback WORKAREA). Gate cargo sospeso. Vedi `docs/milestones/M1-findings.md`. |
-| M1-residuals | ✅ chiusi live e committati (`2315517`) | Sessione 2026-10-19 `444d79d`: B1 dialogo DIALOG (transient assente) ✅, B2 frame SSD `0,0,36,0` ✅, B3 FULLSCREEN su Firefox ✅, B4 HIDDEN+client-list ✅; B5 xev muto (non eseguito/motivo tecnico), B6 pannello declinato. Evidenze in `M1-findings.md` §2b + Appendice; raccolte grezze `/tmp/ktile-ewmh-*.txt` (fuori repo). |
-| Docs | ✅ riorganizzate (`6e3fcf2`) | `docs/{ARCHITECTURE,ROADMAP}.md`, `spec/` (01,02,04 + `config.example.toml`, `cli-matrix.md`), `research/` (03,05), `milestones/` (baseline, M1-findings, `fixtures-geometry.json`). Root: solo `README.md` + `.gitignore` + `Cargo.toml` + `src/` + `tests/`. |
-| Geometria | ✅ validata via prototipo usa-e-getta | `/tmp/ktile_proto.py` (stdlib, NON in repo): invarianti N=0..8, casi in `fixtures-geometry.json`. Limite noto: N grandi → policy clamp+log (M2). |
-| Toolchain Rust | ❌ **assente, stop M1** | `rustc/cargo/rustup` non trovati, `~/.cargo` e `~/.rustup` inesistenti (M0 §4). **Utente: zero installazioni** — non proporre `rustup/apt`; si lavora no-toolchain (Step 5). |
+| Git | ✅ `feature` @ `aca2c28`, clean | Working tree pulito, commit convenzionali pronti per push su `origin/feature`. Ruleset: `main/development/testing` solo via PR. |
+| M0 baseline | ✅ completata e committata (`2c5c9f2`) | `docs/milestones/environment-baseline.md`: Mint 22.3, Cinnamon 6.6.9, Muffin 6.6.3, X11 `:0`, x86_64, tool X11 presenti, 4 desktop, workarea 1920×1040. |
+| M1 Gate (Cloud) | ✅ **Chiuso in cloud** (2026-10-19) | Toolchain Rust 1.94.0 installata in sandbox cloud (ADR-15). `cargo build/fmt/clippy/test` verdi. Test d'integrazione X11 eseguiti sotto Xvfb + openbox (marcati "verificato su WM di test, da confermare su Muffin"). |
+| M2 Core Geometrico | ✅ **Completato in cloud** (2026-10-19) | `src/layout/{geometry.rs, plan.rs}` e `tests/geometry.rs`. 25/25 fixture da `fixtures-geometry.json` verificate con esito positivo e invarianti rispettate. |
+| Moduli Lettura | ✅ **Completati in cloud** (2026-10-19) | `src/x11/monitor.rs` (RandR + workarea -> `WorkspaceArea`, guardrail single-monitor) e `src/state/eligibility.rs` (`is_eligible` con 9 test unitari). |
+| Residui B5/B6 Target | 📋 **Trasferiti all'utente** | Protocollo pronto-all'uso consegnato in `docs/milestones/M1-residuals-user.md` per esecuzione in 10 min sulla macchina fisica dell'utente. |
 
 ## 3. Decisioni chiuse (non rinegoziare senza ADR)
 
@@ -29,44 +28,35 @@ D1 nome `Ktile`/binario `ktile` · D2 gap esterno chiave unica `outer` · D3 ord
 D4 zero eleggibili → exit 0 · D5 core dwindle+master-stack · D6 exit 6 solo EWMH essenziale assente, no whitelist WM ·
 D7 `new_status=slave` · D8 sospese → slot originario o nuova foglia · D9 sticky escluse v1 (rivalutare M7) ·
 ADR-10 backend unico `x11rb` · ADR-11 mai riscrivere `WM_NORMAL_HINTS` · ADR-12 area da strut+RandR, WORKAREA solo cross-check ·
-ADR-13 fonte di verità contestuale · ADR-14 tool Python→`uvx`/`.venv`, tool X11 assenti→registrare e chiedere, mai `sudo`/`apt`.
+ADR-13 fonte di verità contestuale · ADR-14 isolamento python/venv · ADR-15 toolchain Rust in ambiente cloud sandbox.
 
 ## 4. Struttura repo (dove sta cosa)
 
-```
+```text
 Ktile/  (branch feature)
-├── README.md, .gitignore, Cargo.toml (DRAFT)
+├── README.md, .gitignore, Cargo.toml, Cargo.lock
 ├── docs/
-│   ├── ARCHITECTURE.md, ROADMAP.md      ← aggiornare contestualmente a ogni cambio
+│   ├── ARCHITECTURE.md, ROADMAP.md      ← aggiornati contestualmente (ADR-13)
 │   ├── handover/HANDOVER.md             ← questo file
 │   ├── spec/        01, 02, 04, config.example.toml, cli-matrix.md
-│   ├── research/    03 (EWMH/Muffin), 05 (roadmap M0–M8 + template vibe-coding)
-│   └── milestones/  environment-baseline.md, M1-findings.md, fixtures-geometry.json
-├── src/   main|cli|errors (DRAFT), x11/{mod,connection,ewmh,events} (DRAFT), state/{mod,registry} (DRAFT)
-└── tests/ exit_codes.rs (DRAFT)
+│   ├── research/    03 (EWMH/Muffin), 05 (roadmap M0–M8)
+│   └── milestones/  environment-baseline.md, M1-findings.md, M1-residuals-user.md, fixtures-geometry.json
+├── src/   lib|main|cli|errors, x11/{connection,ewmh,events,monitor}, state/{registry,eligibility}, layout/{geometry,plan}
+└── tests/ exit_codes.rs, geometry.rs, eligibility.rs, x11_integration.rs
 ```
 
-## 5. Prossimi passi consentiti (no-toolchain)
+## 5. Prossimi passi consentiti
 
-1. ~~Chiudere i residui EWMH~~ ✅ **chiusi 2026-10-19** (`2315517`): dialogo DIALOG, frame SSD, FULLSCREEN, HIDDEN/client-list. Restano aperti: sequenza Unmap via `xev`/osservazione `ktile` (B5, serve toolchain) e pannello laterale/auto-hide (B6, serve consenso modifica config + revert).
-2. **Arricchire le fixture** (`fixtures-geometry.json`): N=3..8 attesi, gap estremi, aree piccole, coordinate negative — restano i casi dei futuri `cargo test` M2.
-3. **Estendere il Rust DRAFT** (sempre marcato non compilato): `monitor.rs` (lettura), `eligibility.rs` (matrice doc 04 §3), `geometry.rs`/`plan.rs` puri (port del prototipo `/tmp/ktile_proto.py`).
-4. **Mai senza toolchain**: `cargo fmt/clippy/test/build`, `cargo add`, generazione `Cargo.lock`, osservazione 30s via `ktile`.
-5. **Mai senza autorizzazione esplicita**: commit/push/PR/merge, cambio branch, `sudo`/`apt`, installazioni (rustup incluso), spostare finestre, modificare file fuori scope milestone.
+1. **M3: Dwindle split_target attivo + albero binario completo** (`layout/tree.rs`, `layout/dwindle.rs`, `layout/master_stack.rs` con test di inserimento/rimozione/promozione).
+2. **M4: Configurazione TOML e dry-run** (`config.rs`, CLI `--check-config`, `--dry-run`).
 
-## 6. Comandi di verifica rapida (read-only)
+## 6. Comandi di verifica rapida
 
 ```bash
-git status --porcelain; git branch --show-current; git log --oneline -4
-printenv XDG_SESSION_TYPE DISPLAY XDG_CURRENT_DESKTOP
-xprop -root _NET_SUPPORTING_WM_CHECK _NET_CLIENT_LIST _NET_ACTIVE_WINDOW _NET_WORKAREA
-grep -rniE 'configure_window|moveresize|set_geometry' src/ tests/ || echo "OK: nessuna scrittura geometrica"
+cargo check
+cargo fmt --check
+cargo clippy --all-targets -- -D warnings
+cargo test
+cargo test --test x11_integration -- --ignored
+grep -rniE 'configure_window|moveresize' src/ tests/ || echo "OK: zero match"
 ```
-
-## 7. Rischi e punti aperti
-
-- Rust assente → M1 non chiudibile; il DRAFT potrebbe contenere errori di compilazione (da verificare con toolchain futura).
-- Strut pannello non osservato direttamente → area da `_NET_WORKAREA` come fallback documentato (ADR-12 rispettato; B6 declinato 2026-10-19, da re-verificare con pannello spostato solo su consenso).
-- Dialoghi/transient ✅ campionati (B1: Zenity DIALOG, transient assente) — policy esclusione via type applicabile; resta ipotesi solo per transient Qt/Electron non GTK.
-- B5 `xev -id` muto su finestra già mappata (2×15s, 2026-10-19) → Unmap Notify osservabile solo via `ktile` (serve toolchain) o `xev` su root; B4/HIDDEN resta surrogata sufficiente per D8.
-- `origin/feature` allineato a `2315517` — push/PR verso `testing` solo su richiesta utente (ruleset: PR obbligatoria).

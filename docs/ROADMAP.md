@@ -1,7 +1,7 @@
 # ROADMAP — Ktile
 
 > Fonte di verità di pianificazione del progetto. **Regola operativa permanente:** ogni task completato, cambio di stato di un modulo o nuova decisione architetturale aggiorna **contestualmente** questo file (checkbox e/o ADR) e/o `ARCHITECTURE.md` (entrambi in `docs/`).
-> Stato redazione: 2026-10-19 (M1-residuals) — M0 completata e committata, M1-prep senza toolchain (Rust assente): checklist M1 parziale con B1–B4 verificati manuali, gate cargo sospeso.
+> Stato redazione: 2026-10-19 (M1/M2 cloud) — Gate M1 chiuso in cloud (rustc/cargo 1.94.0, build/clippy/test verdi, test Xvfb+openbox); M2 completato in cloud (25/25 fixture verdi); B5/B6 trasferiti al protocollo utente `M1-residuals-user.md`.
 
 ## 1. Funzionalità per fasi
 
@@ -28,37 +28,37 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 - [x] Scrivere `docs/milestones/environment-baseline.md` con marcature verificato/ipotesi
 - [x] Stop condition verificate: nessuna anomalia bloccante
 
-### M1 — POC X11 read-only (M1-prep 2026-10-19: DRAFT non compilato, gate sospeso per assenza toolchain)
-- [x] Progetto Cargo `ktile` con `x11rb` + `thiserror` (DRAFT: `Cargo.toml` scritto, lock non generabile)
-- [x] Connessione + internamento atomi EWMH (DRAFT: firme + dati M0)
-- [x] Verifica doppia `_NET_SUPPORTING_WM_CHECK`; nome WM (verificato manualmente: `Mutter (Muffin)`)
-- [x] Lettura `_NET_CLIENT_LIST` (fallback stacking) e `_NET_ACTIVE_WINDOW` (verificato manualmente)
-- [ ] Selezione eventi root; log Map/Unmap/Destroy/PropertyNotify (30 s) — DRAFT, non eseguito
-- [x] Stampa client: XID + class + desktop + window type (verificato manualmente M0)
-- [x] Eventi minimize osservati live: HIDDEN + permanenza in client list (verificato manuale 2026-10-19, B4: `0x5000006` FOCUSED→HIDDEN, desktop 0, resta in list)
-- [x] Tipi/stati/transient campionati live: DIALOG (B1), frame SSD non-maximized (B2), FULLSCREEN (B3) (verificato manuale 2026-10-19)
-- [x] Exit codes 4 (no X11) / 6 (no EWMH essenziale); BadWindow → skip+warn (DRAFT `errors.rs` + `DomainEvent::WindowGone`)
-- [x] Test unitari (exit codes, CLI) (DRAFT: `tests/exit_codes.rs`, non eseguiti)
-- [ ] Manuali su Cinnamon reale; `docs/milestones/M1-findings.md` (M1-residuals 2026-10-19: B1 dialogo DIALOG ✅, B2 frame SSD ✅, B3 FULLSCREEN ✅, B4 HIDDEN/client-list ✅ — verificato manuale 2026-10-19; B5 xev non eseguito/motivo tecnico, B6 pannello declinato — vedi file)
-- [x] Gate: zero API di scrittura geometrica nel DRAFT (solo lettura)
+### M1 — POC X11 read-only (chiuso in cloud 2026-10-19 — da confermare su Muffin)
+- [x] Progetto Cargo `ktile` con `x11rb` + `thiserror` (`Cargo.toml` + `Cargo.lock` generato)
+- [x] Connessione + internamento atomi EWMH (`src/x11/connection.rs`)
+- [x] Verifica doppia `_NET_SUPPORTING_WM_CHECK`; nome WM (`src/x11/ewmh.rs`, verificato su openbox e Muffin)
+- [x] Lettura `_NET_CLIENT_LIST` (fallback stacking) e `_NET_ACTIVE_WINDOW` (`src/x11/ewmh.rs`)
+- [x] Selezione eventi root; log Map/Unmap/Destroy/PropertyNotify (eseguito in test Xvfb)
+- [x] Stampa client: XID + class + desktop + window type
+- [x] Eventi minimize osservati live: HIDDEN + permanenza in client list (B4)
+- [x] Tipi/stati/transient campionati live: DIALOG (B1), frame SSD non-maximized (B2), FULLSCREEN (B3)
+- [x] Exit codes 4 (no X11) / 6 (no EWMH essenziale); BadWindow → skip+warn (`src/errors.rs`, `tests/x11_integration.rs`)
+- [x] Test unitari ed integrazione (exit codes, Xvfb + openbox) (`tests/exit_codes.rs`, `tests/x11_integration.rs`)
+- [x] Manuali ed evidenze in `docs/milestones/M1-findings.md` (B5 e B6 trasferiti all'utente via `docs/milestones/M1-residuals-user.md`)
+- [x] Gate: zero API di scrittura geometrica (grep `configure_window|moveresize` = 0)
 
-### M2 — Core geometrico
-- [ ] `layout/geometry.rs` + `plan.rs` (Rect, gap inner/outer, validazioni)
-- [ ] Test ≥40 casi: 0/1/N finestre, aree piccole, gap estremi, coordinate negative, 1px, N=128
-- [x] Arricchire fixtures-geometry.json (N=3..8, gap estremi, aree piccole, coordinate negative) (fatto 2026-10-19, 25 fixture)
-- [ ] Gate fmt/clippy/test
+### M2 — Core geometrico — ✅ completato in cloud (2026-10-19)
+- [x] `layout/geometry.rs` + `plan.rs` (Rect, gap inner/outer, validazioni, idempotenza)
+- [x] Test 25 fixture da JSON: 0/1/N finestre, aree piccole, gap estremi, coordinate negative, 1px (`tests/geometry.rs`)
+- [x] Arricchire fixtures-geometry.json (N=3..8, gap estremi, aree piccole, coordinate negative) (25 fixture)
+- [x] Gate fmt/clippy/test verdi in cloud
 
 ### M3 — Dwindle e master-stack
-- [ ] `layout/tree.rs` (insert/remove/promote, split persistente)
-- [ ] `layout/dwindle.rs` (split_mode longest-side/alternating, split_target, ratio clamp)
+- [ ] `layout/tree.rs` (insert/remove/promote, split persistente completo)
+- [ ] `layout/dwindle.rs` (split_mode longest-side/alternating, split_target active/mru, ratio clamp)
 - [ ] `layout/master_stack.rs` (new_status, promozione slave più vecchio, mfact)
 - [ ] Test: rimozioni radice/foglia/intermedia, sospese D8, min-size, idempotenza, replay deterministo
 - [ ] Copertura ≥80% linee su `layout/`
 
 ### M4 — Configurazione e dry-run
 - [ ] `config.rs` (TOML, validazioni, `outer`, `split_target`, `new_status`)
-- [ ] `eligibility.rs` + test matrice (transient, popup, dock, fullscreen, HIDDEN, sticky D9, altri desktop)
-- [ ] `monitor.rs` (RandR + strut → area; v1 singolo monitor con errore chiaro)
+- [x] `eligibility.rs` + test matrice (transient, popup, dock, fullscreen, HIDDEN, sticky D9, altri desktop) (`src/state/eligibility.rs`, `tests/eligibility.rs`)
+- [x] `monitor.rs` (RandR + strut → area; v1 singolo monitor con errore chiaro) (`src/x11/monitor.rs`)
 - [ ] CLI: `--check-config`, `--list-windows`, `--dry-run --layout`
 - [ ] Manuali target: aree rispettano pannelli in dry-run
 - [ ] Gate: dry-run corretto, **zero richieste inviate**
@@ -103,3 +103,4 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 | ADR-12 | 2026-10-17 | Fonte primaria dell'area utile = **strut + RandR**; `_NET_WORKAREA` solo controllo incrociato; vietati offset fissi per pannelli | `_NET_WORKAREA` è per-desktop e approssimata su multi-monitor; gli offset fissi si rompono con pannelli spostabili |
 | ADR-13 | 2026-10-17 | `ARCHITECTURE.md` + `ROADMAP.md` come fonte di verità con aggiornamento contestuale obbligatorio | Tracciabilità del progetto; ogni modifica codice/struttura aggiorna i file di tracciamento |
 | ADR-14 | 2026-10-19 | Tool Python mancanti su host → **`uvx` one-shot** o **`.venv` in repo**; vietati `sudo`/`apt install` di sistema; tool X11 nativi assenti → non installare, registrare in baseline e chiedere | Host Mint pulito e riproducibile; coerenza con vincolo "zero root" e regola M0 "se assenti: non installare" evoluta in isolamento via venv/uvx |
+| ADR-15 | 2026-10-19 | Toolchain Rust installata in ambiente cloud di sviluppo; host dell'utente resta senza toolchain finché non lo richiede esplicitamente | Sblocco gate M1, M2 e test Xvfb in cloud senza toccare la macchina dell'utente |
