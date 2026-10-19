@@ -1,6 +1,6 @@
 # ROADMAP — Ktile
 
-> Fonte di verità di pianificazione del progetto. **Regola operativa permanente:** ogni task completato, cambio di stato di un modulo o nuova decisione architetturale aggiorna **contestualmente** questo file (checkbox e/o ADR) e/o `ARCHITECTURE.md`.
+> Fonte di verità di pianificazione del progetto. **Regola operativa permanente:** ogni task completato, cambio di stato di un modulo o nuova decisione architetturale aggiorna **contestualmente** questo file (checkbox e/o ADR) e/o `ARCHITECTURE.md` (entrambi in `docs/`).
 > Stato redazione: 2026-10-17 — fase **M0** non ancora avviata sulla macchina target.
 
 ## 1. Funzionalità per fasi
@@ -25,7 +25,7 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 - [ ] Rust/Cargo presenti? (se assenti: NON installare, riferire e attendere)
 - [ ] Strumenti diagnostici presenti (`xprop`, `xwininfo`, `xev`, `xrandr`, …)
 - [ ] Matrice EWMH su root + finestre campione (doc 03, §8)
-- [ ] Scrivere `docs/environment-baseline.md` con marcature verificato/ipotesi
+- [ ] Scrivere `docs/milestones/environment-baseline.md` con marcature verificato/ipotesi
 - [ ] Stop condition verificate: nessuna anomalia bloccante
 
 ### M1 — POC X11 read-only
@@ -37,7 +37,7 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 - [ ] Stampa client: XID + class + desktop + window type
 - [ ] Exit codes 4 (no X11) / 6 (no EWMH essenziale); BadWindow → skip+warn
 - [ ] Test unitari (exit codes, CLI); integrazione Xvfb marcata `#[ignore]`
-- [ ] Manuali su Cinnamon reale; `docs/M1-findings.md`
+- [ ] Manuali su Cinnamon reale; `docs/milestones/M1-findings.md`
 - [ ] Gate: zero API di scrittura geometrica (grep configure/moveresize = 0 match)
 
 ### M2 — Core geometrico

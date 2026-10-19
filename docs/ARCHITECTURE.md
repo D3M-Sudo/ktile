@@ -1,6 +1,6 @@
 # ARCHITECTURE — Ktile
 
-> Fonte di verità architetturale del progetto. **Regola operativa permanente:** ogni decisione architetturale, nuova funzione, cambio di stato di un modulo o riorganizzazione dei file aggiorna **contestualmente** questo file e/o `ROADMAP.md`. Ogni proposta di codice include l'aggiornamento corrispondente.
+> Fonte di verità architetturale del progetto. **Regola operativa permanente:** ogni decisione architetturale, nuova funzione, cambio di stato di un modulo o riorganizzazione dei file aggiorna **contestualmente** questo file e/o `ROADMAP.md` (entrambi in `docs/`). Ogni proposta di codice include l'aggiornamento corrispondente.
 > Stato redazione: 2026-10-17 — progetto in fase **M0** (baseline da raccogliere sulla macchina target; nessun codice ancora creato).
 
 ## 1. Mappa concettuale e stack tecnologico
@@ -46,17 +46,20 @@ Stato attuale (2026-10-17) — progetto documentale, codice non ancora inizializ
 
 ```text
 <repo>/
-├── ARCHITECTURE.md            ← questo file
-├── ROADMAP.md                 ← milestone M0–M8, checklist, ADR
-├── README.md                  ← documentazione progettuale (indice)
+├── README.md                  ← indice documentazione (root)
 ├── docs/
-│   ├── 01-project-overview.md
-│   ├── 02-architecture-rust-x11rb.md
-│   ├── 03-ewmh-muffin-compatibility.md
-│   ├── 04-functional-specs-dwindle-master.md
-│   ├── 05-roadmap-m0-m8.md
-│   ├── environment-baseline.md    (M0 — da creare)
-│   └── M1-findings.md             (M1 — da creare)
+│   ├── ARCHITECTURE.md        ← fonte di verità architetturale (questo file)
+│   ├── ROADMAP.md             ← milestone M0–M8, checklist, ADR
+│   ├── spec/                  ← specifiche di progetto
+│   │   ├── 01-project-overview.md
+│   │   ├── 02-architecture-rust-x11rb.md
+│   │   └── 04-functional-specs-dwindle-master.md
+│   ├── research/              ← ricerca e protocolli di verifica
+│   │   ├── 03-ewmh-muffin-compatibility.md
+│   │   └── 05-roadmap-m0-m8.md
+│   └── milestones/            ← evidenze per milestone
+│       ├── environment-baseline.md    (M0 — verificato 2026-10-19)
+│       └── M1-findings.md             (M1 — da creare)
 └── src/  tests/  Cargo.toml  ...  (M1 in poi — non ancora presenti)
 ```
 
@@ -105,4 +108,4 @@ tests/
 3. **Sicurezza del flusso:** i ConfigureNotify propri vengono consumati dal filtro anti-feedback; `BadWindow` diventa `WindowGone`; piano identico allo stato atteso → zero richieste (idempotenza); max 3 ricalcoli per burst (anti-livelock).
 4. **Confini invarianti:** `layout/` non conosce X11; `state/` non parla col server; `applier` è l'unico scrittore di geometrie; hint ICCCM mai riscritti (su Muffin/Mutter mai `WM_NORMAL_HINTS`, vincolo da analisi Cortile).
 
-Stati e decisioni architetturali: registro ADR in `ROADMAP.md`, sezione "Registro decisioni (ADR)".
+Stati e decisioni architetturali: registro ADR in `ROADMAP.md` (stessa cartella `docs/`), sezione "Registro decisioni (ADR)".

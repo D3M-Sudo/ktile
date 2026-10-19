@@ -5,7 +5,7 @@ Roadmap autorizzata dal rapporto di analisi (sezione 8), allineata alle decision
 ## M0 — Baseline e verifica del repository
 
 - **Obiettivo misurabile:** baseline documentata (branch, HEAD SHA, working tree, versioni Mint/Cinnamon/Muffin, sessione X11, Rust, strumenti, esiti EWMH).
-- **File ammessi:** `docs/environment-baseline.md` (unica scrittura).
+- **File ammessi:** `docs/milestones/environment-baseline.md` (unica scrittura).
 - **Test:** nessuno (sola ispezione: comandi read-only sezione 2.1 e matrice EWMH del doc 03).
 - **Stop condition:** working tree sporco, sessione non X11, Rust assente, repository assente → fermarsi e riferire.
 
@@ -13,7 +13,7 @@ Roadmap autorizzata dal rapporto di analisi (sezione 8), allineata alle decision
 
 - **Prerequisiti:** M0 ok; autorizzazione a creare il progetto Cargo.
 - **Obiettivo misurabile:** `ktile` si connette, identifica il WM via `_NET_SUPPORTING_WM_CHECK`, elenca i client EWMH, osserva Map/Unmap/Destroy/PropertyNotify per 30 s; **zero richieste geometriche**; exit 4 senza DISPLAY, 6 senza EWMH essenziale.
-- **File ammessi:** `Cargo.toml`, `Cargo.lock`, `.gitignore`, `src/main.rs`, `src/cli.rs`, `src/errors.rs`, `src/x11/{mod.rs,connection.rs,events.rs,ewmh.rs}`, `src/state/{mod.rs,registry.rs}` (solo modello), `tests/exit_codes.rs`, `docs/M1-findings.md`.
+- **File ammessi:** `Cargo.toml`, `Cargo.lock`, `.gitignore`, `src/main.rs`, `src/cli.rs`, `src/errors.rs`, `src/x11/{mod.rs,connection.rs,events.rs,ewmh.rs}`, `src/state/{mod.rs,registry.rs}` (solo modello), `tests/exit_codes.rs`, `docs/milestones/M1-findings.md`.
 - **Test automatici:** unitari errori→exit code, parsing argomenti; integrazione Xvfb/Xephyr marcata `#[ignore]`.
 - **Manuali (target):** avvio su Cinnamon reale, apertura/chiusura finestre osservata, Ctrl-C pulito, avvio senza DISPLAY.
 - **Stop condition:** EWMH parzialmente assente su Muffin con impatto di design → riferire prima di procedere.
@@ -70,9 +70,9 @@ Roadmap autorizzata dal rapporto di analisi (sezione 8), allineata alle decision
 
 ```text
 Obiettivo: <un solo obiettivo misurabile>
-Contesto: leggi docs/01-project-overview.md, docs/02-architecture-rust-x11rb.md,
-docs/03-ewmh-muffin-compatibility.md, docs/04-functional-specs-dwindle-master.md,
-docs/05-roadmap-m0-m8.md e docs/environment-baseline.md.
+Contesto: leggi docs/spec/01-project-overview.md, docs/spec/02-architecture-rust-x11rb.md,
+docs/research/03-ewmh-muffin-compatibility.md, docs/spec/04-functional-specs-dwindle-master.md,
+docs/research/05-roadmap-m0-m8.md e docs/milestones/environment-baseline.md.
 Vincoli:
 - non eseguire git commit/push/merge/tag né cambiare branch;
 - non installare pacchetti di sistema e non usare sudo;
@@ -88,4 +88,4 @@ Output finale: file modificati, test eseguiti, risultati, rischi e prossima mile
 
 ## Primo task concreto
 
-**M0 + M1**: M0 raccoglie la baseline read-only sulla macchina target (script di ispezione nel doc 03 e sezione 2.1 del rapporto) e scrive `docs/environment-baseline.md`; M1 crea il POC Cargo con il solo backend `x11rb` (dipendenze minime: `x11rb`, `thiserror`), connessione + verifica EWMH + elenco client + osservazione eventi, con exit 4/6 e nessuna API di scrittura geometrica. I due prompt operativi dettagliati (file ammessi/esclusi, test, criteri) sono già stati consegnati in sessione. Gate: osservazione ripetibile documentata in `docs/M1-findings.md` prima di autorizzare M2.
+**M0 + M1**: M0 raccoglie la baseline read-only sulla macchina target (script di ispezione nel doc 03 e sezione 2.1 del rapporto) e scrive `docs/milestones/environment-baseline.md`; M1 crea il POC Cargo con il solo backend `x11rb` (dipendenze minime: `x11rb`, `thiserror`), connessione + verifica EWMH + elenco client + osservazione eventi, con exit 4/6 e nessuna API di scrittura geometrica. I due prompt operativi dettagliati (file ammessi/esclusi, test, criteri) sono già stati consegnati in sessione. Gate: osservazione ripetibile documentata in `docs/milestones/M1-findings.md` prima di autorizzare M2.

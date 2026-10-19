@@ -86,7 +86,7 @@ xrandr --listmonitors
 
 Casi manuali: pannello alto/basso/laterale/auto-hide; dialogo GTK e Qt; app Electron; finestra CSD vs SSD; minimize/restore; spostamento tra workspace; fullscreen; chiusura durante operazioni; app che resistono alle dimensioni.
 
-Output in `docs/environment-baseline.md` (M0) e `docs/M1-findings.md` (M1), con marcatura "verificato/ipotesi".
+Output in `docs/milestones/environment-baseline.md` (M0) e `docs/milestones/M1-findings.md` (M1), con marcatura "verificato/ipotesi".
 
 ## 9. Ipotesi non confermate (elenco da chiudere con i test)
 
