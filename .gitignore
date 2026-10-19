@@ -45,3 +45,7 @@ dist/
 .env
 .env.*
 !.env.example
+
+# --- Python venv locale (ADR-14: tool diagnostici isolati, mai committare) ---
+.venv/
+uv.lock

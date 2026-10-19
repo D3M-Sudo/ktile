@@ -36,6 +36,10 @@ Ktile è un **tiler X11 esterno, cooperante con Muffin** (Linux Mint Cinnamon, s
 
 **Stack:** Rust (stable recente) · backend X11 **`x11rb`** (unico, decisione presa in analisi) · config TOML (`serde`+`toml`) · CLI (`clap`) · errori (`thiserror`) · test nativi `cargo test` (integrazione X11 dietro feature `x11-tests`, marcata `#[ignore]`).
 
+**Policy tool di sviluppo (ADR-14, 2026-10-19):** host Mint pulito, zero `sudo`.
+- Tool **Python** mancanti → `uvx <tool>` per one-shot, oppure `.venv/` in repo (`uv venv .venv && uv pip install …`) per uso in sessione. `.venv/` è ignorato da git e mai committato; `uv.lock` solo se il tool serve stabilmente al progetto.
+- Tool **X11/di sistema** mancanti (`xprop`, `xwininfo`, `xev`, `xrandr`, …) → **non installare**: registrare `assente` in baseline e chiedere all'utente. `venv`/`uvx` non coprono binari nativi.
+
 ## 2. Albero delle directory
 
 Stato attuale (2026-10-17) — progetto documentale, codice non ancora inizializzato:
