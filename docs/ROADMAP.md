@@ -45,6 +45,7 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 ### M2 — Core geometrico
 - [ ] `layout/geometry.rs` + `plan.rs` (Rect, gap inner/outer, validazioni)
 - [ ] Test ≥40 casi: 0/1/N finestre, aree piccole, gap estremi, coordinate negative, 1px, N=128
+- [x] Arricchire fixtures-geometry.json (N=3..8, gap estremi, aree piccole, coordinate negative) (fatto 2026-10-19, 25 fixture)
 - [ ] Gate fmt/clippy/test
 
 ### M3 — Dwindle e master-stack

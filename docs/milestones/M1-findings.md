@@ -53,6 +53,7 @@ Prototipo `/tmp/ktile_proto.py` (stdlib, usa-e-getta): `Rect/split` + `dwindle` 
 Invarianti su N=0..8: dentro area ✅, lati ≥1px ✅, nessuna sovrapposizione ✅, determinismo D3 ✅.
 Casi documentati: `single → (8,8,1904,1024)`; `two-dwindle → (8,8,948,1024)+(964,8,948,1024)`; `two-master → (8,8,1042,1024)+(1058,8,854,1024)` (riflessi in `fixtures-geometry.json`).
 **Limite noto**: N grandi con foglie < gap richiedono policy clamp+log (spec M2) — il prototipo ingenuo falliva oltre N≈20, caso registrato non nascosto.
+Nota 2026-10-19 — fixture estese a 25 con convenzioni confermate (mfact su usable-inner; resto 1px a second); aspettative validated by reference implementation 2026-10-19, convenzioni riprodotte sui casi dwindle-n2/master-n2.
 
 ## 4. Gate M1
 
