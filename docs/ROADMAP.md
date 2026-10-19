@@ -1,7 +1,7 @@
 # ROADMAP — Ktile
 
 > Fonte di verità di pianificazione del progetto. **Regola operativa permanente:** ogni task completato, cambio di stato di un modulo o nuova decisione architetturale aggiorna **contestualmente** questo file (checkbox e/o ADR) e/o `ARCHITECTURE.md` (entrambi in `docs/`).
-> Stato redazione: 2026-10-19 (M1/M2 cloud) — Gate M1 chiuso in cloud (rustc/cargo 1.94.0, build/clippy/test verdi, test Xvfb+openbox); M2 completato in cloud (25/25 fixture verdi); B5/B6 trasferiti al protocollo utente `M1-residuals-user.md`.
+> Stato redazione: 2026-10-20 — Gate M1 chiuso in cloud (2026-10-19, rustc/cargo 1.94.0, build/clippy/test verdi, test Xvfb+openbox) e **confermato su target 2026-10-20** (B5+B6 eseguite, M1-findings §2c); M2 completato in cloud (25/25 fixture verdi).
 
 ## 1. Funzionalità per fasi
 
@@ -28,7 +28,7 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 - [x] Scrivere `docs/milestones/environment-baseline.md` con marcature verificato/ipotesi
 - [x] Stop condition verificate: nessuna anomalia bloccante
 
-### M1 — POC X11 read-only (chiuso in cloud 2026-10-19 — da confermare su Muffin)
+### M1 — POC X11 read-only — ✅ chiuso in cloud 2026-10-19, confermato su target 2026-10-20
 - [x] Progetto Cargo `ktile` con `x11rb` + `thiserror` (`Cargo.toml` + `Cargo.lock` generato)
 - [x] Connessione + internamento atomi EWMH (`src/x11/connection.rs`)
 - [x] Verifica doppia `_NET_SUPPORTING_WM_CHECK`; nome WM (`src/x11/ewmh.rs`, verificato su openbox e Muffin)
@@ -39,7 +39,9 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 - [x] Tipi/stati/transient campionati live: DIALOG (B1), frame SSD non-maximized (B2), FULLSCREEN (B3)
 - [x] Exit codes 4 (no X11) / 6 (no EWMH essenziale); BadWindow → skip+warn (`src/errors.rs`, `tests/x11_integration.rs`)
 - [x] Test unitari ed integrazione (exit codes, Xvfb + openbox) (`tests/exit_codes.rs`, `tests/x11_integration.rs`)
-- [x] Manuali ed evidenze in `docs/milestones/M1-findings.md` (B5 e B6 trasferiti all'utente via `docs/milestones/M1-residuals-user.md`)
+- [x] Manuali ed evidenze in `docs/milestones/M1-findings.md` (B5 e B6 eseguite su target 2026-10-20 — vedi §2c)
+- [x] Residuo B5: sequenza Unmap/HIDDEN su Muffin reale — verificato su target 2026-10-20 (HIDDEN in `_NET_WM_STATE`, nessun Unmap/Map, permanenza in `_NET_CLIENT_LIST`)
+- [x] Residuo B6: `_NET_WORKAREA` con pannello laterale + revert — verificato su target 2026-10-20 (transizioni ≤1 s, revert = baseline; nessun strut esposto → ADR-12 da re-verificare, vedi nota §3)
 - [x] Gate: zero API di scrittura geometrica (grep `configure_window|moveresize` = 0)
 
 ### M2 — Core geometrico — ✅ completato in cloud (2026-10-19)
@@ -104,3 +106,5 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 | ADR-13 | 2026-10-17 | `ARCHITECTURE.md` + `ROADMAP.md` come fonte di verità con aggiornamento contestuale obbligatorio | Tracciabilità del progetto; ogni modifica codice/struttura aggiorna i file di tracciamento |
 | ADR-14 | 2026-10-19 | Tool Python mancanti su host → **`uvx` one-shot** o **`.venv` in repo**; vietati `sudo`/`apt install` di sistema; tool X11 nativi assenti → non installare, registrare in baseline e chiedere | Host Mint pulito e riproducibile; coerenza con vincolo "zero root" e regola M0 "se assenti: non installare" evoluta in isolamento via venv/uvx |
 | ADR-15 | 2026-10-19 | Toolchain Rust installata in ambiente cloud di sviluppo; host dell'utente resta senza toolchain finché non lo richiede esplicitamente | Sblocco gate M1, M2 e test Xvfb in cloud senza toccare la macchina dell'utente |
+
+> **Nota 2026-10-20 (B6 — non un nuovo ADR):** sul target nessun cliente X espone `_NET_WM_STRUT(_PARTIAL)` (scansione completa dei figli root, pannello in basso e laterale) mentre `_NET_WORKAREA` si aggiorna in tempo reale e accuratamente (laterale `40,0,1880,1080`, revert `0,0,1920,1040`). La fonte primaria "strut + RandR" di **ADR-12 non è alimentata su questo target** → **ADR-12 da re-verificare in M6/M7**. ADR-12 **non modificato**.

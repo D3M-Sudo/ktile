@@ -1,7 +1,8 @@
-# HANDOVER — Ktile (2026-10-19)
+# HANDOVER — Ktile (2026-10-20)
 
 > File di passaggio di consegne per una nuova sessione/agente.
-> Branch: `feature` @ `aca2c28` (stato iniziale task) · working tree pulito · pushato su `origin/feature`.
+> Branch: `feature` @ `99cda17` · working tree pulito (stato al momento della stesura; il commit di documentazione di chiusura M1 si appoggia a questo HEAD) · pushato su `origin/feature`.
+> Fase: **M1 completato anche sul target (2026-10-20)** · Prossima: **M3 (Dwindle e master-stack)**.
 
 ## 1. Cos'è Ktile (30 secondi)
 
@@ -15,12 +16,12 @@ Muffin resta autorevole su focus/stacking/decorazioni/workspace.
 
 | Area | Stato | Dettagli |
 |---|---|---|
-| Git | ✅ `feature` @ `aca2c28`, clean | Working tree pulito, commit convenzionali pronti per push su `origin/feature`. Ruleset: `main/development/testing` solo via PR. |
+| Git | ✅ `feature` @ `99cda17`, clean | Working tree pulito al momento della stesura; commit di chiusura M1 (B5/B6) **autorizzato dall'utente il 2026-10-20**: `docs(milestones): close M1 with target runtime observations B5/B6 (2026-10-20)`. Ruleset: `main/development/testing` solo via PR. |
 | M0 baseline | ✅ completata e committata (`2c5c9f2`) | `docs/milestones/environment-baseline.md`: Mint 22.3, Cinnamon 6.6.9, Muffin 6.6.3, X11 `:0`, x86_64, tool X11 presenti, 4 desktop, workarea 1920×1040. |
-| M1 Gate (Cloud) | ✅ **Chiuso in cloud** (2026-10-19) | Toolchain Rust 1.94.0 installata in sandbox cloud (ADR-15). `cargo build/fmt/clippy/test` verdi. Test d'integrazione X11 eseguiti sotto Xvfb + openbox (marcati "verificato su WM di test, da confermare su Muffin"). |
+| M1 Gate | ✅ **Chiuso in cloud** (2026-10-19) **e confermato su target** (2026-10-20) | Cloud: toolchain Rust 1.94.0 (ADR-15), `cargo build/fmt/clippy/test` verdi, integrazione Xvfb + openbox. Target: osservazioni residue B5/B6 eseguite (M1-findings §2c), grep 0 match rieseguito; conteggi test: 15 suite plain / 20 totali con `--ignored` (9+4+2+5). |
 | M2 Core Geometrico | ✅ **Completato in cloud** (2026-10-19) | `src/layout/{geometry.rs, plan.rs}` e `tests/geometry.rs`. 25/25 fixture da `fixtures-geometry.json` verificate con esito positivo e invarianti rispettate. |
 | Moduli Lettura | ✅ **Completati in cloud** (2026-10-19) | `src/x11/monitor.rs` (RandR + workarea -> `WorkspaceArea`, guardrail single-monitor) e `src/state/eligibility.rs` (`is_eligible` con 9 test unitari). |
-| Residui B5/B6 Target | 📋 **Trasferiti all'utente** | Protocollo pronto-all'uso consegnato in `docs/milestones/M1-residuals-user.md` per esecuzione in 10 min sulla macchina fisica dell'utente. |
+| Residui B5/B6 Target | ✅ **Completati su target** (2026-10-20) | Eseguiti con il protocollo `docs/milestones/M1-residuals-user.md` su Mint 22.3 / Cinnamon 6.6.9 / Muffin 6.6.3 (X11 `:0`). B5: HIDDEN in `_NET_WM_STATE`, nessun Unmap/Map al minimize, permanenza in `_NET_CLIENT_LIST` (verificato). B6: pannello laterale + revert = baseline (verificato); nessun strut esposto → ADR-12 da re-verificare. Output grezzi: M1-findings §2c. |
 
 ## 3. Decisioni chiuse (non rinegoziare senza ADR)
 
@@ -46,6 +47,8 @@ Ktile/  (branch feature)
 ```
 
 ## 5. Prossimi passi consentiti
+
+> Stato 2026-10-20: residui M1 (B5/B6) **chiusi** — nessun residuo M1 aperto; si prosegue da M3.
 
 1. **M3: Dwindle split_target attivo + albero binario completo** (`layout/tree.rs`, `layout/dwindle.rs`, `layout/master_stack.rs` con test di inserimento/rimozione/promozione).
 2. **M4: Configurazione TOML e dry-run** (`config.rs`, CLI `--check-config`, `--dry-run`).
