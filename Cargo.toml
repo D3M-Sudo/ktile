@@ -6,7 +6,7 @@ description = "Tiler X11 cooperante con Muffin/Cinnamon (Rust + x11rb)"
 
 [dependencies]
 # Milestone M1: backend X11 unico (con randr per M4 monitor)
-x11rb = { version = "0.13", features = ["allow-unsafe-code", "randr"] }
+x11rb = { version = "0.13", default-features = false, features = ["allow-unsafe-code", "randr"] }
 # Milestone M1: errori tipizzati
 thiserror = "2"
 # Milestone M4: configurazione e CLI

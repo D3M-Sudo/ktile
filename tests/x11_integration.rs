@@ -6,8 +6,11 @@
 // e sono da confermare su Muffin (sessione Cinnamon fisica dell'utente).
 
 use std::process::Command;
+use std::sync::Mutex;
 
 use ktile::errors::KtileError;
+
+static DISPLAY_LOCK: Mutex<()> = Mutex::new(());
 use ktile::x11::connection::{connect, EwmhAtoms};
 use ktile::x11::ewmh::{client_list, verify_wm};
 use x11rb::connection::Connection;
@@ -16,6 +19,7 @@ use x11rb::protocol::xproto::ConnectionExt;
 #[test]
 #[ignore]
 fn test_no_display_exit_4() {
+    let _lock = DISPLAY_LOCK.lock().unwrap();
     // Verificato su ambiente cloud (senza DISPLAY) — da confermare su Muffin
     let old = std::env::var("DISPLAY");
     std::env::remove_var("DISPLAY");
@@ -38,6 +42,7 @@ fn test_no_display_exit_4() {
 #[test]
 #[ignore]
 fn test_xvfb_no_ewmh_wm_exit_6() {
+    let _lock = DISPLAY_LOCK.lock().unwrap();
     // Avvia Xvfb isolato su :98 senza WM
     let mut xvfb = Command::new("Xvfb")
         .args([":98", "-screen", "0", "1024x768x24"])
@@ -85,6 +90,7 @@ fn test_xvfb_no_ewmh_wm_exit_6() {
 #[test]
 #[ignore]
 fn test_xvfb_openbox_reading_and_events() {
+    let _lock = DISPLAY_LOCK.lock().unwrap();
     // Avvia Xvfb isolato su :99 con Openbox
     let mut xvfb = Command::new("Xvfb")
         .args([":99", "-screen", "0", "1920x1080x24"])
@@ -158,6 +164,7 @@ fn test_xvfb_openbox_reading_and_events() {
 #[test]
 #[ignore]
 fn test_bad_window_ephemeral_skip_warn() {
+    let _lock = DISPLAY_LOCK.lock().unwrap();
     let mut xvfb = Command::new("Xvfb")
         .args([":97", "-screen", "0", "1024x768x24"])
         .spawn()
