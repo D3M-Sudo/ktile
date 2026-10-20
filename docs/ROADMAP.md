@@ -64,6 +64,7 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 - [ ] CLI: `--check-config`, `--list-windows`, `--dry-run --layout`
 - [ ] Manuali target: aree rispettano pannelli in dry-run
 - [ ] Gate: dry-run corretto, **zero richieste inviate**
+- Nota design (PR #2): `reconcile_read_only` M4 count-based (sequenza standard di inserimento); piano incrementale su albero con `split_target=active` atteso in M6.
 
 ### M5 — Applicazione manuale
 - [ ] `x11/applier.rs` (gate richieste, geometry-in-flight, BadWindow, max 3 per burst)
@@ -72,7 +73,7 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 - [ ] Gate: ≥90% finestre standard entro 2px, altrimenti stop e documentazione
 
 ### M6 — Auto-tiling
-- [ ] `daemon.rs` (foreground opt-in), `events.rs` completo, `reconciliation.rs`
+- [ ] `daemon.rs` (foreground opt-in), `events.rs` completo, `reconciliation.rs` (piano incrementale su albero con `split_target=active`, evoluzione del count-based M4)
 - [ ] Anti-livelock + coalescing; shutdown ≤1 s
 - [ ] Manuali target: sessione ≥2 h; misura RAM/CPU registrata (baseline, niente soglie pre-impostate)
 

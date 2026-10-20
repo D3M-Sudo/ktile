@@ -83,7 +83,7 @@ Stato attuale (2026-10-19) — M1/M2 completati in cloud.
 | `src/state/registry.rs` | Stato finestre | `WindowId`, `WindowState` | ✅ Implementato (M1) |
 | `src/state/eligibility.rs` | Policy di esclusione | `is_eligible`, `ExcludeConfig` | ✅ Completato (M4) |
 | `src/state/workspace.rs` | Stato per workspace | `WorkspaceId=(desktop,monitor)`, alberi layout | Pianificato |
-| `src/state/reconciliation.rs` | Diff stato↔X11 | ricalcolo selettivo, idempotenza | Pianificato |
+| `src/state/reconciliation.rs` | Diff stato↔X11 | ricalcolo selettivo, idempotenza; M4 `reconcile_read_only` count-based (sequenza standard di inserimento, nessuna pianificazione su albero) | ✅ Read-only M4; piano incrementale su albero con `split_target=active` atteso in M6 (daemon) |
 | `src/layout/geometry.rs` | Rettangoli e gap | `Rect`, `Gaps`, `compute_dwindle`, `compute_master_stack` | ✅ Completato (M2) |
 | `src/layout/tree.rs` | Albero binario | insert/remove/promote (dwindle) | ✅ Completato (M3) |
 | `src/layout/dwindle.rs` | Policy dwindle | split_mode/target/ratio, fallback minimi | ✅ Completato (M3) |
@@ -95,5 +95,6 @@ Stato attuale (2026-10-19) — M1/M2 completati in cloud.
 
 1. **Bootstrap:** `cli` → `config` → connessione X11 (`x11/connection`) → sanity check EWMH (`_NET_SUPPORTING_WM_CHECK`, exit 6 se essenziale assente — D6) → snapshot client/workspace/monitor (`x11/ewmh`, `x11/monitor`) → stato iniziale (`state/`).
 2. **Ciclo di vita:** eventi X11 (`x11/events`) → `DomainEvent` → aggiornamento stato (`state/`) → **solo se lo stato cambia in modo rilevante** → piano (`layout/`, motore puro) → diff con stato atteso → richieste controllate (`x11/applier`).
+   - **Nota design M4 (PR #2):** `reconcile_read_only` usa pianificazione count-based (sequenza standard di inserimento: `eligible_windows.len()` → `compute_dwindle`/`compute_master_stack` → zip in ordine snapshot). Il piano incrementale basato sull'albero persistente con `split_target=active` è atteso in M6 (daemon); nessuna modifica codice in M4.
 3. **Sicurezza del flusso:** i ConfigureNotify propri vengono consumati dal filtro anti-feedback; `BadWindow` diventa `WindowGone`; piano identico allo stato atteso → zero richieste (idempotenza); max 3 ricalcoli per burst (anti-livelock).
 4. **Confini invarianti:** `layout/` non conosce X11; `state/` non parla col server; `applier` è l'unico scrittore di geometrie; hint ICCCM mai riscritti (su Muffin/Mutter mai `WM_NORMAL_HINTS`, vincolo da analisi Cortile).

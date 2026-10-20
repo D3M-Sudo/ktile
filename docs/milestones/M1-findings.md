@@ -406,6 +406,7 @@ Esecuzione: `cargo test --test geometry`
   3. Master-Stack: `mfact` applicato a `(usable_width - inner_gap)`, master floor, slave prende il resto. I pixel di resto nella divisione verticale degli slave sono distribuiti a 1px ciascuno per i primi `rem` slave.
   4. Rect: conversioni con `saturating_*`/`checked_*`, clamp aree piccole senza panic.
   5. Plan: diff tra stato corrente ed atteso. Se identici, il piano risulta vuoto (idempotenza).
+  6. `Tree::leaf_for` (D3, ratifica M4/PR #2): ordine di selezione foglia `active` se in tiling → `mru` param se in tiling → `mru_head` dell'albero → prima finestra DFS. Il fallback finale DFS scatta solo ad albero senza MRU valida; coperto da `leaf_for_attiva_vince_sulla_mru` in `tests/layout_tree.rs`.
 
 ## 4. Gate M1 Read-Only
 
