@@ -76,8 +76,8 @@ fn leaf_for_attiva_vince_sulla_mru() {
     assert_eq!(t.leaf_for(Some(w(1)), Some(w(2))), Some(w(1)));
     // Nessuna attiva in tiling → MRU.
     assert_eq!(t.leaf_for(Some(w(999)), Some(w(2))), Some(w(2)));
-    // Né attiva né MRU valide → prima finestra DFS.
-    assert_eq!(t.leaf_for(Some(w(999)), Some(w(888))), Some(w(1)));
+    // Né attiva né MRU valide → mru_head dell'albero (w2).
+    assert_eq!(t.leaf_for(Some(w(999)), Some(w(888))), Some(w(2)));
 }
 
 #[test]
@@ -207,7 +207,7 @@ fn dwindle_chiusura_promuove_il_fratello() {
 fn dwindle_chiusura_master_tree_vuoto() {
     let mut d = dwindle_with(1);
     assert!(d.close(w(1)));
-    assert!(d.tree().is_empty() || d.tree().len() == 0);
+    assert!(d.tree().is_empty());
     assert!(d.compute_rects(area(), &gaps()).is_empty());
     // Chiusura due volte: la seconda non falliscepanic.
     assert!(!d.close(w(1)));
@@ -270,7 +270,11 @@ fn dwindle_min_side_fallback_area_piccola() {
     // 60x60 meno outer 8*2 = 44x44: uno split darebbe ~18px < MIN_SIDE → floating.
     let outcome = d.insert(w(2), Some(w(2)), None, tiny, &gaps());
     assert_eq!(outcome, InsertOutcome::Floating);
-    assert_eq!(d.tree().windows_dfs(), vec![w(1)], "w2 resta fuori dal tiling");
+    assert_eq!(
+        d.tree().windows_dfs(),
+        vec![w(1)],
+        "w2 resta fuori dal tiling"
+    );
 }
 
 #[test]

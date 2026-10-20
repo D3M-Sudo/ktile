@@ -129,3 +129,92 @@ pub fn client_list(
         "_NET_CLIENT_LIST and _NET_CLIENT_LIST_STACKING are missing or empty".to_string(),
     ))
 }
+
+/// Legge `_NET_ACTIVE_WINDOW` su root.
+pub fn get_active_window(
+    conn: &RustConnection,
+    root: Window,
+    atoms: &EwmhAtoms,
+) -> Result<Option<Window>, KtileError> {
+    let reply = match conn.get_property(false, root, atoms.active_window, AtomEnum::WINDOW, 0, 1) {
+        Ok(cookie) => match cookie.reply() {
+            Ok(r) => r,
+            Err(_) => return Ok(None),
+        },
+        Err(_) => return Ok(None),
+    };
+
+    Ok(reply
+        .value32()
+        .and_then(|mut i| i.next())
+        .filter(|&w| w != 0))
+}
+
+/// Legge `_NET_CURRENT_DESKTOP` su root.
+pub fn get_current_desktop(
+    conn: &RustConnection,
+    root: Window,
+    atoms: &EwmhAtoms,
+) -> Result<u32, KtileError> {
+    let reply = conn
+        .get_property(false, root, atoms.current_desktop, AtomEnum::CARDINAL, 0, 1)
+        .map_err(|e| KtileError::X11(e.to_string()))?
+        .reply()
+        .map_err(|e| KtileError::X11(e.to_string()))?;
+
+    Ok(reply.value32().and_then(|mut i| i.next()).unwrap_or(0))
+}
+
+/// Legge `_NET_WM_WINDOW_TYPE` per una finestra.
+pub fn get_wm_window_type(
+    conn: &RustConnection,
+    atoms: &EwmhAtoms,
+    window: Window,
+) -> Result<Option<Atom>, KtileError> {
+    let reply = match conn.get_property(false, window, atoms.wm_window_type, AtomEnum::ATOM, 0, 1) {
+        Ok(cookie) => match cookie.reply() {
+            Ok(r) => r,
+            Err(_) => return Ok(None),
+        },
+        Err(_) => return Ok(None),
+    };
+
+    Ok(reply.value32().and_then(|mut i| i.next()))
+}
+
+/// Legge `_NET_WM_STATE` per una finestra.
+pub fn get_wm_state(
+    conn: &RustConnection,
+    atoms: &EwmhAtoms,
+    window: Window,
+) -> Result<Vec<Atom>, KtileError> {
+    let reply = match conn.get_property(false, window, atoms.wm_state, AtomEnum::ATOM, 0, 32) {
+        Ok(cookie) => match cookie.reply() {
+            Ok(r) => r,
+            Err(_) => return Ok(Vec::new()),
+        },
+        Err(_) => return Ok(Vec::new()),
+    };
+
+    Ok(reply
+        .value32()
+        .map(|iter| iter.collect())
+        .unwrap_or_default())
+}
+
+/// Legge `_NET_WM_DESKTOP` per una finestra.
+pub fn get_wm_desktop(
+    conn: &RustConnection,
+    atoms: &EwmhAtoms,
+    window: Window,
+) -> Result<Option<u32>, KtileError> {
+    let reply = match conn.get_property(false, window, atoms.wm_desktop, AtomEnum::CARDINAL, 0, 1) {
+        Ok(cookie) => match cookie.reply() {
+            Ok(r) => r,
+            Err(_) => return Ok(None),
+        },
+        Err(_) => return Ok(None),
+    };
+
+    Ok(reply.value32().and_then(|mut i| i.next()))
+}

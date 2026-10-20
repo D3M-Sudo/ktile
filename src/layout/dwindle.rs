@@ -62,7 +62,12 @@ fn min_side(rect: &Rect) -> u32 {
 }
 
 /// Direzione di split per la foglia `target` secondo la config (doc 04 §4).
-fn choose_dir(config: &DwindleConfig, tree: &Tree, target: WindowId, target_rect: Rect) -> SplitDir {
+fn choose_dir(
+    config: &DwindleConfig,
+    tree: &Tree,
+    target: WindowId,
+    target_rect: Rect,
+) -> SplitDir {
     let longest = if target_rect.width >= target_rect.height {
         SplitDir::Horizontal
     } else {
@@ -71,9 +76,7 @@ fn choose_dir(config: &DwindleConfig, tree: &Tree, target: WindowId, target_rect
     match config.split_mode {
         SplitMode::LongestSide => longest,
         // Alternanza: direzione opposta al padre; la radice cade sul longest-side.
-        SplitMode::Alternating => tree
-            .parent_dir_of(target)
-            .map_or(longest, SplitDir::flip),
+        SplitMode::Alternating => tree.parent_dir_of(target).map_or(longest, SplitDir::flip),
     }
 }
 
@@ -120,7 +123,8 @@ impl Dwindle {
 
         // Prima finestra: foglia intera.
         if self.tree.is_empty() {
-            self.tree.insert_split(window, window, SplitDir::Horizontal, ratio_milli);
+            self.tree
+                .insert_split(window, window, SplitDir::Horizontal, ratio_milli);
             return InsertOutcome::Tiled;
         }
 
@@ -143,8 +147,7 @@ impl Dwindle {
             let dir = choose_dir(&self.config, &self.tree, target, target_rect);
             let second = prospective_second(&target_rect, dir, ratio, gaps.inner);
             if min_side(&second) >= MIN_SIDE {
-                self.tree
-                    .insert_split(window, target, dir, ratio_milli);
+                self.tree.insert_split(window, target, dir, ratio_milli);
                 return InsertOutcome::Tiled;
             }
         }
@@ -243,16 +246,10 @@ impl Dwindle {
         } else {
             SplitDir::Horizontal
         };
-        self.tree.resume(
-            window,
-            active,
-            mru,
-            dir,
-            self.config.ratio_milli(),
-        )
+        self.tree
+            .resume(window, active, mru, dir, self.config.ratio_milli())
     }
 }
-
 
 /// Esito di un'inserimento Dwindle (nessuna dipendenza dal logger: il chiamante decide).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

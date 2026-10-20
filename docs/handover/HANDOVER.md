@@ -1,8 +1,8 @@
 # HANDOVER — Ktile (2026-10-20)
 
 > File di passaggio di consegne per una nuova sessione/agente.
-> Branch: `feature` @ `99cda17` · working tree pulito (stato al momento della stesura; il commit di documentazione di chiusura M1 si appoggia a questo HEAD) · pushato su `origin/feature`.
-> Fase: **M1 completato anche sul target (2026-10-20)** · Prossima: **M3 (Dwindle e master-stack)**.
+> Branch: `feature` @ `d628c32` · working tree pulito · pushato su `origin/feature`.
+> Fase: **M0–M3 completati e chiusi (2026-10-20)** · Prossima: **M4 (Configurazione TOML, CLI e Reconciliation Read-Only)**.
 
 ## 1. Cos'è Ktile (30 secondi)
 
@@ -16,11 +16,12 @@ Muffin resta autorevole su focus/stacking/decorazioni/workspace.
 
 | Area | Stato | Dettagli |
 |---|---|---|
-| Git | ✅ `feature` @ `99cda17`, clean | Working tree pulito al momento della stesura; commit di chiusura M1 (B5/B6) **autorizzato dall'utente il 2026-10-20**: `docs(milestones): close M1 with target runtime observations B5/B6 (2026-10-20)`. Ruleset: `main/development/testing` solo via PR. |
+| Git | ✅ `feature` @ `d628c32`, clean | Working tree pulito. Ruleset: `main/development/testing` solo via PR. |
 | M0 baseline | ✅ completata e committata (`2c5c9f2`) | `docs/milestones/environment-baseline.md`: Mint 22.3, Cinnamon 6.6.9, Muffin 6.6.3, X11 `:0`, x86_64, tool X11 presenti, 4 desktop, workarea 1920×1040. |
 | M1 Gate | ✅ **Chiuso in cloud** (2026-10-19) **e confermato su target** (2026-10-20) | Cloud: toolchain Rust 1.94.0 (ADR-15), `cargo build/fmt/clippy/test` verdi, integrazione Xvfb + openbox. Target: osservazioni residue B5/B6 eseguite (M1-findings §2c), grep 0 match rieseguito; conteggi test: 15 suite plain / 20 totali con `--ignored` (9+4+2+5). |
 | M2 Core Geometrico | ✅ **Completato in cloud** (2026-10-19) | `src/layout/{geometry.rs, plan.rs}` e `tests/geometry.rs`. 25/25 fixture da `fixtures-geometry.json` verificate con esito positivo e invarianti rispettate. |
 | Moduli Lettura | ✅ **Completati in cloud** (2026-10-19) | `src/x11/monitor.rs` (RandR + workarea -> `WorkspaceArea`, guardrail single-monitor) e `src/state/eligibility.rs` (`is_eligible` con 9 test unitari). |
+| M4 Config/CLI/Reconcile | 🟡 **PR #2 aperta, CI verde** (2026-10-20) | Branch `feature-12655789238683274081` @ `6a194e3`: config TOML, CLI `clap`, `reconcile_read_only` count-based, lettore ICCCM. CI GitHub Actions ripristinata (ADR-16): run `39489421383` ✅ (`check`, `test` con Xvfb+openbox 5/5). Nessun merge effettuato: attende approvazione. |
 | Residui B5/B6 Target | ✅ **Completati su target** (2026-10-20) | Eseguiti con il protocollo `docs/milestones/M1-residuals-user.md` su Mint 22.3 / Cinnamon 6.6.9 / Muffin 6.6.3 (X11 `:0`). B5: HIDDEN in `_NET_WM_STATE`, nessun Unmap/Map al minimize, permanenza in `_NET_CLIENT_LIST` (verificato). B6: pannello laterale + revert = baseline (verificato); nessun strut esposto → ADR-12 da re-verificare. Output grezzi: M1-findings §2c. |
 
 ## 3. Decisioni chiuse (non rinegoziare senza ADR)
@@ -29,7 +30,8 @@ D1 nome `Ktile`/binario `ktile` · D2 gap esterno chiave unica `outer` · D3 ord
 D4 zero eleggibili → exit 0 · D5 core dwindle+master-stack · D6 exit 6 solo EWMH essenziale assente, no whitelist WM ·
 D7 `new_status=slave` · D8 sospese → slot originario o nuova foglia · D9 sticky escluse v1 (rivalutare M7) ·
 ADR-10 backend unico `x11rb` · ADR-11 mai riscrivere `WM_NORMAL_HINTS` · ADR-12 area da strut+RandR, WORKAREA solo cross-check ·
-ADR-13 fonte di verità contestuale · ADR-14 isolamento python/venv · ADR-15 toolchain Rust in ambiente cloud sandbox.
+ADR-13 fonte di verità contestuale · ADR-14 isolamento python/venv · ADR-15 toolchain Rust in ambiente cloud sandbox ·
+ADR-16 build/test Rust prima scelta in CI (fallback `cargo` su host solo se toolchain già autorizzata, mai installazioni di sistema).
 
 ## 4. Struttura repo (dove sta cosa)
 
@@ -50,16 +52,18 @@ Ktile/  (branch feature)
 
 > Stato 2026-10-20: residui M1 (B5/B6) **chiusi** — nessun residuo M1 aperto; si prosegue da M3.
 
-1. **M3: Dwindle split_target attivo + albero binario completo** (`layout/tree.rs`, `layout/dwindle.rs`, `layout/master_stack.rs` con test di inserimento/rimozione/promozione).
-2. **M4: Configurazione TOML e dry-run** (`config.rs`, CLI `--check-config`, `--dry-run`).
+1. **M4: Configurazione TOML (`ktile.toml`), CLI e Reconciliation Read-Only** (`config.rs`, CLI `--check-config`, `--dry-run`, `x11/icccm.rs`, `state/workspace.rs`, `state/reconciliation.rs`).
 
 ## 6. Comandi di verifica rapida
 
+> **ADR-16: prima scelta la CI GitHub Actions** (`.github/workflows/ci.yml`).
+> Build, fmt, clippy e test girano sui runner (job `check` + `test` con Xvfb+openbox):
+> verificare con `gh run list` / `gh pr checks` oppure attendere i check sulla PR.
+> Fallback `cargo` su host solo se toolchain user-level già installata/autorizzata
+> (amendment ADR-15); mai proporre `sudo`/`apt install`.
+
 ```bash
-cargo check
-cargo fmt --check
-cargo clippy --all-targets -- -D warnings
-cargo test
-cargo test --test x11_integration -- --ignored
+gh pr checks 2
+gh run list --branch feature-12655789238683274081 --limit 5
 grep -rniE 'configure_window|moveresize' src/ tests/ || echo "OK: zero match"
 ```

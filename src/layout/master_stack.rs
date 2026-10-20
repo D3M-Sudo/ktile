@@ -5,8 +5,8 @@
 // Nota: anche con 1 finestra il master resta a mfact (coerente con la fixture M2 `master-n1`);
 // la coincidenza con Dwindle a n=1 del doc 04 §5 è documentata come divergenza nota.
 
-use crate::layout::tree::{count_windows, Node, ResumeOutcome, SplitDir, Tree};
 use crate::layout::geometry::{Gaps, Rect};
+use crate::layout::tree::ResumeOutcome;
 use crate::state::registry::WindowId;
 
 /// Soglia inferiore/superiore di mfact (doc 04 §5, come millesimi).
@@ -290,5 +290,3 @@ impl MasterStack {
         out
     }
 }
-
-

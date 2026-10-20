@@ -1,10 +1,8 @@
 // Test M3: layout Master-Stack — master/stack, promozione, mfact clamp, D8. Senza X11.
 
-use ktile::layout::tree::{Dwindle, DwindleConfig, InsertOutcome, ResumeOutcome, SplitDir, SplitMode, SplitTarget, Tree};
 use ktile::layout::geometry::{compute_master_stack, Gaps, Rect};
-use ktile::layout::master_stack::{
-    MasterStack, MasterStackConfig, NewWindowPlacement,
-};
+use ktile::layout::master_stack::{MasterStack, MasterStackConfig, NewWindowPlacement};
+use ktile::layout::tree::ResumeOutcome;
 use ktile::state::registry::WindowId;
 
 fn w(n: u32) -> WindowId {
@@ -54,7 +52,6 @@ fn new_master_spinge_il_vecchio_in_stack() {
     assert_eq!(ms.stack(), &[w(2), w(1)]);
 }
 
-
 #[test]
 fn chiusura_master_promuove_il_primo_dello_stack() {
     let mut ms = ms_with(3);
@@ -88,13 +85,21 @@ fn chiusura_ultima_finestra_svuota() {
 #[test]
 fn mfact_clamp_250_750() {
     // Fuori range → clamp, nessun panic.
-    let mut cfg = MasterStackConfig::default();
-    cfg.mfact = 0.90;
-    assert_eq!(cfg.mfact_milli(), 750);
-    cfg.mfact = 0.10;
-    assert_eq!(cfg.mfact_milli(), 250);
-    cfg.mfact = 0.55;
-    assert_eq!(cfg.mfact_milli(), 550);
+    let cfg_high = MasterStackConfig {
+        mfact: 0.90,
+        ..Default::default()
+    };
+    assert_eq!(cfg_high.mfact_milli(), 750);
+    let cfg_low = MasterStackConfig {
+        mfact: 0.10,
+        ..Default::default()
+    };
+    assert_eq!(cfg_low.mfact_milli(), 250);
+    let cfg_normal = MasterStackConfig {
+        mfact: 0.55,
+        ..Default::default()
+    };
+    assert_eq!(cfg_normal.mfact_milli(), 550);
 }
 
 #[test]
@@ -132,7 +137,11 @@ fn d8_sospensione_master_rientro_in_posizione() {
     // Rientro: slot identificabile (nessuna variazione di lista) → posizione originaria.
     let outcome = ms.resume(w(3), None, None);
     assert_eq!(outcome, ResumeOutcome::InPlace);
-    assert_eq!(ms.windows_dfs(), prima, "rientro D8 = stessa sequenza di partenza");
+    assert_eq!(
+        ms.windows_dfs(),
+        prima,
+        "rientro D8 = stessa sequenza di partenza"
+    );
 }
 
 #[test]
