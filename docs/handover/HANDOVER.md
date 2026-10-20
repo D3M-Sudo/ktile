@@ -29,7 +29,8 @@ D1 nome `Ktile`/binario `ktile` · D2 gap esterno chiave unica `outer` · D3 ord
 D4 zero eleggibili → exit 0 · D5 core dwindle+master-stack · D6 exit 6 solo EWMH essenziale assente, no whitelist WM ·
 D7 `new_status=slave` · D8 sospese → slot originario o nuova foglia · D9 sticky escluse v1 (rivalutare M7) ·
 ADR-10 backend unico `x11rb` · ADR-11 mai riscrivere `WM_NORMAL_HINTS` · ADR-12 area da strut+RandR, WORKAREA solo cross-check ·
-ADR-13 fonte di verità contestuale · ADR-14 isolamento python/venv · ADR-15 toolchain Rust in ambiente cloud sandbox.
+ADR-13 fonte di verità contestuale · ADR-14 isolamento python/venv · ADR-15 toolchain Rust in ambiente cloud sandbox ·
+ADR-16 build/test Rust prima scelta in CI (fallback `cargo` su host solo se toolchain già autorizzata, mai installazioni di sistema).
 
 ## 4. Struttura repo (dove sta cosa)
 
@@ -54,11 +55,14 @@ Ktile/  (branch feature)
 
 ## 6. Comandi di verifica rapida
 
+> **ADR-16: prima scelta la CI GitHub Actions** (`.github/workflows/ci.yml`).
+> Build, fmt, clippy e test girano sui runner (job `check` + `test` con Xvfb+openbox):
+> verificare con `gh run list` / `gh pr checks` oppure attendere i check sulla PR.
+> Fallback `cargo` su host solo se toolchain user-level già installata/autorizzata
+> (amendment ADR-15); mai proporre `sudo`/`apt install`.
+
 ```bash
-cargo check
-cargo fmt --check
-cargo clippy --all-targets -- -D warnings
-cargo test
-cargo test --test x11_integration -- --ignored
+gh pr checks 2
+gh run list --branch feature-12655789238683274081 --limit 5
 grep -rniE 'configure_window|moveresize' src/ tests/ || echo "OK: zero match"
 ```

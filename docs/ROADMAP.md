@@ -64,6 +64,7 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 - [ ] CLI: `--check-config`, `--list-windows`, `--dry-run --layout`
 - [ ] Manuali target: aree rispettano pannelli in dry-run
 - [ ] Gate: dry-run corretto, **zero richieste inviate**
+- Nota design (PR #2): `reconcile_read_only` M4 count-based (sequenza standard di inserimento); piano incrementale su albero con `split_target=active` atteso in M6.
 
 ### M5 — Applicazione manuale
 - [ ] `x11/applier.rs` (gate richieste, geometry-in-flight, BadWindow, max 3 per burst)
@@ -72,7 +73,7 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 - [ ] Gate: ≥90% finestre standard entro 2px, altrimenti stop e documentazione
 
 ### M6 — Auto-tiling
-- [ ] `daemon.rs` (foreground opt-in), `events.rs` completo, `reconciliation.rs`
+- [ ] `daemon.rs` (foreground opt-in), `events.rs` completo, `reconciliation.rs` (piano incrementale su albero con `split_target=active`, evoluzione del count-based M4)
 - [ ] Anti-livelock + coalescing; shutdown ≤1 s
 - [ ] Manuali target: sessione ≥2 h; misura RAM/CPU registrata (baseline, niente soglie pre-impostate)
 
@@ -106,5 +107,6 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 | ADR-13 | 2026-10-17 | `ARCHITECTURE.md` + `ROADMAP.md` come fonte di verità con aggiornamento contestuale obbligatorio | Tracciabilità del progetto; ogni modifica codice/struttura aggiorna i file di tracciamento |
 | ADR-14 | 2026-10-19 | Tool Python mancanti su host → **`uvx` one-shot** o **`.venv` in repo**; vietati `sudo`/`apt install` di sistema; tool X11 nativi assenti → non installare, registrare in baseline e chiedere | Host Mint pulito e riproducibile; coerenza con vincolo "zero root" e regola M0 "se assenti: non installare" evoluta in isolamento via venv/uvx |
 | ADR-15 | 2026-10-19 | Toolchain Rust installata in ambiente cloud di sviluppo; host dell'utente resta senza toolchain finché non lo richiede esplicitamente. *(Amended 2026-10-20: toolchain user-level autorizzata dall'utente sull'host per esecuzione diretta di `cargo run` e `cargo test`)* | Sblocco gate M1, M2 e test Xvfb in cloud; esecuzione diretta su host abilitata per test utente |
+| ADR-16 | 2026-10-20 | Build/test/clippy/fmt Rust **preferibilmente in CI GitHub Actions** (`.github/workflows/ci.yml`); fallback toolchain user-level su host solo se già installata/autorizzata (amendment ADR-15) | CI = via deterministica e verificabile via `gh run` / check PR (runner con Xvfb+openbox, replica gate M1). Istruzione operativa per agenti: prima scelta sempre la CI, mai proporre installazioni di sistema |
 
 > **Nota 2026-10-20 (B6 — non un nuovo ADR):** sul target nessun cliente X espone `_NET_WM_STRUT(_PARTIAL)` (scansione completa dei figli root, pannello in basso e laterale) mentre `_NET_WORKAREA` si aggiorna in tempo reale e accuratamente (laterale `40,0,1880,1080`, revert `0,0,1920,1040`). La fonte primaria "strut + RandR" di **ADR-12 non è alimentata su questo target** → **ADR-12 da re-verificare in M6/M7**. ADR-12 **non modificato**.

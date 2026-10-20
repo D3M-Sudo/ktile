@@ -54,7 +54,30 @@ fn test_xvfb_no_ewmh_wm_exit_6() {
     let old_disp = std::env::var("DISPLAY");
     std::env::set_var("DISPLAY", ":98");
 
-    let conn_res = connect();
+    let conn_res = {
+        // Retry: Xvfb impiega qualche centinaio di ms prima di accettare connessioni.
+        let mut found = None;
+        for _ in 0..20 {
+            std::thread::sleep(std::time::Duration::from_millis(250));
+            match connect() {
+                Ok((c, s)) => {
+                    found = Some(Ok((c, s)));
+                    break;
+                }
+                Err(e) => {
+                    // Solo gli errori transitori (display non ancora pronto) meritano retry.
+                    if !matches!(&e, KtileError::NoDisplay) {
+                        found = Some(Err(e));
+                        break;
+                    }
+                }
+            }
+        }
+        match found {
+            Some(v) => v,
+            None => Err(KtileError::NoDisplay),
+        }
+    };
     let res = match conn_res {
         Ok((conn, screen)) => {
             let setup = conn.setup();
@@ -114,10 +137,31 @@ fn test_xvfb_openbox_reading_and_events() {
     let old_disp = std::env::var("DISPLAY");
     std::env::set_var("DISPLAY", ":99");
 
-    let (conn, screen) = connect().expect("Xvfb + openbox dev'essere attivo su :99");
+    // Retry: openbox impiega ~1s per pubblicare _NET_SUPPORTING_WM_CHECK.
+    // Senza attesa attiva il test è flaky in CI (EwmhMissing "absent or empty").
+    let (conn, screen, atoms) = {
+        let mut last_err = "timeout connessione Xvfb+openbox :99".to_string();
+        let mut found = None;
+        for _ in 0..40 {
+            std::thread::sleep(std::time::Duration::from_millis(250));
+            match connect() {
+                Ok((c, s)) => match EwmhAtoms::new(&c) {
+                    Ok(a) => {
+                        found = Some((c, s, a));
+                        break;
+                    }
+                    Err(e) => last_err = format!("{:?}", e),
+                },
+                Err(e) => last_err = format!("{:?}", e),
+            }
+        }
+        match found {
+            Some(v) => v,
+            None => panic!("Xvfb+openbox su :99 dopo retry: {}", last_err),
+        }
+    };
     let setup = conn.setup();
     let root = setup.roots[screen].root;
-    let atoms = EwmhAtoms::new(&conn).expect("intern atomi fallito");
 
     let mut wm_name = None;
     for _ in 0..10 {
@@ -175,10 +219,30 @@ fn test_bad_window_ephemeral_skip_warn() {
     let old_disp = std::env::var("DISPLAY");
     std::env::set_var("DISPLAY", ":97");
 
-    let (conn, screen) = connect().expect("Xvfb attivo su :97");
+    // Retry: Xvfb impiega qualche centinaio di ms prima di accettare connessioni.
+    let (conn, screen, atoms) = {
+        let mut last_err = "timeout connessione Xvfb :97".to_string();
+        let mut found = None;
+        for _ in 0..20 {
+            std::thread::sleep(std::time::Duration::from_millis(250));
+            match connect() {
+                Ok((c, s)) => match EwmhAtoms::new(&c) {
+                    Ok(a) => {
+                        found = Some((c, s, a));
+                        break;
+                    }
+                    Err(e) => last_err = format!("{:?}", e),
+                },
+                Err(e) => last_err = format!("{:?}", e),
+            }
+        }
+        match found {
+            Some(v) => v,
+            None => panic!("Xvfb attivo su :97 dopo retry: {}", last_err),
+        }
+    };
     let setup = conn.setup();
     let _root = setup.roots[screen].root;
-    let atoms = EwmhAtoms::new(&conn).expect("intern atomi fallito");
 
     // Finestra XID fittizia non esistente (ephemera morta)
     let bad_wid: u32 = 0x9999999;
