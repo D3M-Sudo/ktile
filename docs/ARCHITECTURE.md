@@ -36,7 +36,7 @@ Ktile è un **tiler X11 esterno, cooperante con Muffin** (Linux Mint Cinnamon, s
 
 **Stack:** Rust (stable recente 1.94.0) · backend X11 **`x11rb`** (unico, feature randr) · config TOML (`serde`+`toml`) · CLI (`clap`) · errori (`thiserror`) · test nativi `cargo test` (unitari + integrazione X11 con Xvfb+openbox).
 
-**Policy tool di sviluppo (ADR-14 / ADR-15, 2026-10-19):** toolchain Rust e ambiente X11 di test gestiti in ambiente cloud sandbox; l'host dell'utente fisica resta pulito e senza modifiche non richieste.
+**Policy tool di sviluppo (ADR-14 / ADR-15 / ADR-16, 2026-10-19/20):** toolchain Rust e ambiente X11 di test gestiti in ambiente cloud sandbox e in CI GitHub Actions (`.github/workflows/ci.yml`); toolchain user-level su host solo se già installata/autorizzata (amendment ADR-15). **Regola operativa per agenti: prima scelta sempre la CI (`gh run`, check PR) — mai proporre installazioni di sistema; `cargo` su host solo come fallback esplicito.**
 
 ## 2. Albero delle directory
 

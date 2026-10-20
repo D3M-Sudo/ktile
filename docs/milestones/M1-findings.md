@@ -3,6 +3,7 @@
 > **Stato M1 in Cloud**: Gate M1 sbloccato e chiuso in ambiente cloud con toolchain Rust 1.94.0 (ADR-15).
 > Esiti build/clippy/test verdi in cloud; test d'integrazione eseguiti sotto Xvfb + openbox.
 > **Importante**: Gli esiti X11 registrati in cloud sono contrassegnati come *"verificato su WM di test (openbox), da confermare su Muffin"*.
+> **Dal 2026-10-20 il gate è verificato anche in CI GitHub Actions** (`.github/workflows/ci.yml`, ADR-16): job `check` (fmt, clippy `-D warnings`, build) + job `test` (`cargo test` e `x11_integration --ignored` sotto Xvfb+openbox); gli esiti storici cloud/target restano validi e non riscritti.
 > Residui B5 e B6 trasferiti all'utente tramite il protocollo `docs/milestones/M1-residuals-user.md`.
 > **2026-10-20 — M1 chiuso anche sul target**: B5 (obbligatoria) e B6 (opzionale, consenso utente) eseguite su Mint 22.3 / Cinnamon 6.6.9 / Muffin 6.6.3, X11 `:0` — vedi **§2c**; gate read-only rieseguito (0 match geometrici). HEAD al momento delle osservazioni: `99cda17`.
 

@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [feature, main, development]
+  pull_request:
+    branches: [feature, main, development]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo build
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install X11 test deps
+        run: sudo apt-get update && sudo apt-get install -y xvfb openbox libxcb1-dev
+      - run: cargo test
+      - name: X11 integration (Xvfb + openbox)
+        run: xvfb-run -a cargo test --test x11_integration -- --ignored --nocapture
