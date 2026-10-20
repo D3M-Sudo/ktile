@@ -31,6 +31,7 @@ Thumbs.db
 
 # --- Diagnostica M0/M1 (log X11, non sporcare il repo) ---
 *.log
+ktile.log
 xev.log
 *.pcap
 /tmp/

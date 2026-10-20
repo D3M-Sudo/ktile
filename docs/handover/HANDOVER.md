@@ -1,8 +1,8 @@
 # HANDOVER — Ktile (2026-10-20)
 
 > File di passaggio di consegne per una nuova sessione/agente.
-> Branch: `feature` @ `99cda17` · working tree pulito (stato al momento della stesura; il commit di documentazione di chiusura M1 si appoggia a questo HEAD) · pushato su `origin/feature`.
-> Fase: **M1 completato anche sul target (2026-10-20)** · Prossima: **M3 (Dwindle e master-stack)**.
+> Branch: `feature` @ `d628c32` · working tree pulito · pushato su `origin/feature`.
+> Fase: **M0–M3 completati e chiusi (2026-10-20)** · Prossima: **M4 (Configurazione TOML, CLI e Reconciliation Read-Only)**.
 
 ## 1. Cos'è Ktile (30 secondi)
 
@@ -16,7 +16,7 @@ Muffin resta autorevole su focus/stacking/decorazioni/workspace.
 
 | Area | Stato | Dettagli |
 |---|---|---|
-| Git | ✅ `feature` @ `99cda17`, clean | Working tree pulito al momento della stesura; commit di chiusura M1 (B5/B6) **autorizzato dall'utente il 2026-10-20**: `docs(milestones): close M1 with target runtime observations B5/B6 (2026-10-20)`. Ruleset: `main/development/testing` solo via PR. |
+| Git | ✅ `feature` @ `d628c32`, clean | Working tree pulito. Ruleset: `main/development/testing` solo via PR. |
 | M0 baseline | ✅ completata e committata (`2c5c9f2`) | `docs/milestones/environment-baseline.md`: Mint 22.3, Cinnamon 6.6.9, Muffin 6.6.3, X11 `:0`, x86_64, tool X11 presenti, 4 desktop, workarea 1920×1040. |
 | M1 Gate | ✅ **Chiuso in cloud** (2026-10-19) **e confermato su target** (2026-10-20) | Cloud: toolchain Rust 1.94.0 (ADR-15), `cargo build/fmt/clippy/test` verdi, integrazione Xvfb + openbox. Target: osservazioni residue B5/B6 eseguite (M1-findings §2c), grep 0 match rieseguito; conteggi test: 15 suite plain / 20 totali con `--ignored` (9+4+2+5). |
 | M2 Core Geometrico | ✅ **Completato in cloud** (2026-10-19) | `src/layout/{geometry.rs, plan.rs}` e `tests/geometry.rs`. 25/25 fixture da `fixtures-geometry.json` verificate con esito positivo e invarianti rispettate. |
@@ -50,8 +50,7 @@ Ktile/  (branch feature)
 
 > Stato 2026-10-20: residui M1 (B5/B6) **chiusi** — nessun residuo M1 aperto; si prosegue da M3.
 
-1. **M3: Dwindle split_target attivo + albero binario completo** (`layout/tree.rs`, `layout/dwindle.rs`, `layout/master_stack.rs` con test di inserimento/rimozione/promozione).
-2. **M4: Configurazione TOML e dry-run** (`config.rs`, CLI `--check-config`, `--dry-run`).
+1. **M4: Configurazione TOML (`ktile.toml`), CLI e Reconciliation Read-Only** (`config.rs`, CLI `--check-config`, `--dry-run`, `x11/icccm.rs`, `state/workspace.rs`, `state/reconciliation.rs`).
 
 ## 6. Comandi di verifica rapida
 

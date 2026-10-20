@@ -5,27 +5,24 @@ use x11rb::rust_connection::RustConnection;
 
 use crate::errors::KtileError;
 
-/// Atomi EWMH internati al bootstrap (sottoinsieme M1 read-only).
+/// Atomi EWMH internati al bootstrap.
 #[derive(Debug, Clone, Copy)]
 pub struct EwmhAtoms {
-    /// `_NET_SUPPORTING_WM_CHECK` (verifica EWMH, doppia lettura root→WM).
     pub supporting_wm_check: Atom,
-    /// `_NET_WM_NAME`.
     pub wm_name: Atom,
-    /// `_NET_CLIENT_LIST` (+ fallback `_NET_CLIENT_LIST_STACKING`).
     pub client_list: Atom,
-    /// `_NET_CLIENT_LIST_STACKING`.
     pub client_list_stacking: Atom,
-    /// `_NET_ACTIVE_WINDOW`.
     pub active_window: Atom,
-    /// `_NET_WORKAREA`.
     pub workarea: Atom,
-    /// `_NET_WM_DESKTOP`.
+    pub current_desktop: Atom,
     pub wm_desktop: Atom,
-    /// `_NET_WM_STATE`.
     pub wm_state: Atom,
-    /// `_NET_WM_WINDOW_TYPE`.
     pub wm_window_type: Atom,
+    pub wm_window_type_normal: Atom,
+    pub wm_window_type_dialog: Atom,
+    pub wm_window_type_dock: Atom,
+    pub wm_state_fullscreen: Atom,
+    pub wm_state_hidden: Atom,
 }
 
 impl EwmhAtoms {
@@ -45,9 +42,15 @@ impl EwmhAtoms {
             client_list_stacking: intern(b"_NET_CLIENT_LIST_STACKING")?,
             active_window: intern(b"_NET_ACTIVE_WINDOW")?,
             workarea: intern(b"_NET_WORKAREA")?,
+            current_desktop: intern(b"_NET_CURRENT_DESKTOP")?,
             wm_desktop: intern(b"_NET_WM_DESKTOP")?,
             wm_state: intern(b"_NET_WM_STATE")?,
             wm_window_type: intern(b"_NET_WM_WINDOW_TYPE")?,
+            wm_window_type_normal: intern(b"_NET_WM_WINDOW_TYPE_NORMAL")?,
+            wm_window_type_dialog: intern(b"_NET_WM_WINDOW_TYPE_DIALOG")?,
+            wm_window_type_dock: intern(b"_NET_WM_WINDOW_TYPE_DOCK")?,
+            wm_state_fullscreen: intern(b"_NET_WM_STATE_FULLSCREEN")?,
+            wm_state_hidden: intern(b"_NET_WM_STATE_HIDDEN")?,
         })
     }
 }

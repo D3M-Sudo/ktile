@@ -77,7 +77,6 @@ pub struct Tree {
     parked: Vec<ParkedSlot>,
 }
 
-
 /// Conta le finestre assegnate in un sottolbero.
 pub(crate) fn count_windows(node: &Node) -> usize {
     match node {
@@ -193,7 +192,6 @@ fn node_at<'a>(node: &'a Node, path: &[bool]) -> Option<&'a Node> {
     Some(current)
 }
 
-
 impl Tree {
     /// Albero vuoto.
     pub fn new() -> Self {
@@ -212,7 +210,7 @@ impl Tree {
 
     /// True se non contiene finestre.
     pub fn is_empty(&self) -> bool {
-        self.root.is_none()
+        self.len() == 0
     }
 
     /// Finestre in ordine DFS: ordine stabile D3.

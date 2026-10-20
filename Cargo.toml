@@ -9,6 +9,11 @@ description = "Tiler X11 cooperante con Muffin/Cinnamon (Rust + x11rb)"
 x11rb = { version = "0.13", features = ["allow-unsafe-code", "randr"] }
 # Milestone M1: errori tipizzati
 thiserror = "2"
+# Milestone M4: configurazione e CLI
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
+regex = "1.10"
+clap = { version = "4.4", features = ["derive"] }
 
 [dev-dependencies]
 # Milestone M2: caricamento fixture di test per la geometria
