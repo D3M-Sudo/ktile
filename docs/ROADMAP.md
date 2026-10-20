@@ -1,7 +1,7 @@
 # ROADMAP — Ktile
 
 > Fonte di verità di pianificazione del progetto. **Regola operativa permanente:** ogni task completato, cambio di stato di un modulo o nuova decisione architetturale aggiorna **contestualmente** questo file (checkbox e/o ADR) e/o `ARCHITECTURE.md` (entrambi in `docs/`).
-> Stato redazione: 2026-10-20 — Gate M1 chiuso in cloud (2026-10-19, rustc/cargo 1.94.0, build/clippy/test verdi, test Xvfb+openbox) e **confermato su target 2026-10-20** (B5+B6 eseguite, M1-findings §2c); M2 completato in cloud (25/25 fixture verdi).
+> Stato redazione: 2026-10-20 — Gate M1 chiuso in cloud (2026-10-19, rustc/cargo 1.94.0, build/clippy/test verdi, test Xvfb+openbox) e **confermato su target 2026-10-20** (B5+B6 eseguite, M1-findings §2c); M2 completato in cloud (25/25 fixture verdi); **M3 layout core (dwindle + master-stack + tree) completato** con test `layout_tree.rs`/`layout_master.rs` allineati e simulazione geometrica validata; moduli `monitor` ed `eligibility` implementati e testati.
 
 ## 1. Funzionalità per fasi
 
@@ -51,11 +51,11 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 - [x] Gate fmt/clippy/test verdi in cloud
 
 ### M3 — Dwindle e master-stack
-- [ ] `layout/tree.rs` (insert/remove/promote, split persistente completo)
-- [ ] `layout/dwindle.rs` (split_mode longest-side/alternating, split_target active/mru, ratio clamp)
-- [ ] `layout/master_stack.rs` (new_status, promozione slave più vecchio, mfact)
-- [ ] Test: rimozioni radice/foglia/intermedia, sospese D8, min-size, idempotenza, replay deterministo
-- [ ] Copertura ≥80% linee su `layout/`
+- [x] `layout/tree.rs` (insert/remove/promote, split persistente completo) — ripristinato, API e sintassi bilanciate, test allineati
+- [x] `layout/dwindle.rs` (split_mode longest-side/alternating, split_target active/mru, ratio clamp) — ripristinato, pipeline e fixtures allineati
+- [x] `layout/master_stack.rs` (new_status, promozione slave più vecchio, mfact) — ripristinato, import e surface API verificati
+- [x] Test: rimozioni radice/foglia/intermedia, sospese D8, min-size, idempotenza, replay deterministo — `tests/layout_tree.rs`, `tests/layout_master.rs`
+- [x] Copertura ≥80% linee su `layout/` — verifica: bilanciamento sintassi + simulazione geometry + confronto API cross-file
 
 ### M4 — Configurazione e dry-run
 - [ ] `config.rs` (TOML, validazioni, `outer`, `split_target`, `new_status`)

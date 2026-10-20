@@ -2,7 +2,7 @@
 
 Questa cartella contiene la documentazione progettuale per **Ktile**, tiler X11 cooperante con Muffin/Cinnamon (Linux Mint, sessione X11), riscrittura moderna ispirata all'esperienza Hyprland (layout dwindle a suddivisioni binarie e master-stack). Ktile è un client X11 esterno: **non** è un compositor e non sostituisce Muffin.
 
-Questa versione (2026-10-17) sostituisce la documentazione iniziale ("cortile-modern-docs"): riflette le decisioni di progetto chiuse in fase di analisi (registro decisioni D1–D9 nel rapporto di analisi, sezione 7.1). Include inoltre `docs/ARCHITECTURE.md` e `docs/ROADMAP.md` come fonte di verità tracciata del repository (regola operativa permanente: aggiornamento contestuale obbligatorio).
+Questa versione (2026-10-20) aggiorna `docs/ARCHITECTURE.md` e `docs/ROADMAP.md` contestualmente al completamento della milestone M3 del layout core: `src/layout/tree.rs`, `dwindle.rs` e `master_stack.rs` ripristinati, con test `tests/layout_tree.rs` e `tests/layout_master.rs` allineati ai fixture geometrici. Riflette le decisioni di progetto chiuse in fase di analisi (registro decisioni D1–D9 nel rapporto di analisi, sezione 7.1). `docs/ARCHITECTURE.md` e `docs/ROADMAP.md` restano la fonte di verità tracciata del repository, aggiornata contestualmente a ogni modifica (regola operativa permanente, ADR-13).
 
 ## Documenti (fonte di verità)
 - `docs/ARCHITECTURE.md` — mappa concettuale, stack, albero directory, tabella moduli con stato, flusso dati. **Da aggiornare contestualmente a ogni decisione/cambio struttura.**
@@ -29,5 +29,5 @@ Questa versione (2026-10-17) sostituisce la documentazione iniziale ("cortile-mo
 
 ## Avvertenze
 - La documentazione è una base progettuale verificata rispetto all'analisi del Cortile originale, **non** un certificato di compatibilità Muffin: le affermazioni specifiche su Muffin devono essere verificate sulla versione target seguendo il protocollo in `docs/research/03-ewmh-muffin-compatibility.md`.
-- Il repository applicativo non era disponibile al momento della redazione: questi documenti vanno copiati nella directory `docs/` del repository reale.
+- Il repository applicativo è disponibile nel branch `feature` di `github.com/D3M-Sudo/ktile`: i file `src/layout/tree.rs`, `dwindle.rs`, `master_stack.rs`, i test `tests/layout_tree.rs`/`tests/layout_master.rs` e i fixture sono già in posto; la `docs/` di questo repository è la documentazione d'insieme.
 - I nomi dei file riflettono le decisioni prese: architettura Rust con backend `x11rb` (doc 02), specifiche dei layout core dwindle/master (doc 04), roadmap a milestone M0–M8 (doc 05).

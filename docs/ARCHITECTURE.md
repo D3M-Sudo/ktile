@@ -1,7 +1,7 @@
 # ARCHITECTURE — Ktile
 
 > Fonte di verità architetturale del progetto. **Regola operativa permanente:** ogni decisione architetturale, nuova funzione, cambio di stato di un modulo o riorganizzazione dei file aggiorna **contestualmente** questo file e/o `ROADMAP.md` (entrambi in `docs/`). Ogni proposta di codice include l'aggiornamento corrispondente.
-> Stato redazione: 2026-10-19 — M1 chiuso in cloud (rustc/cargo 1.94.0, build/clippy/test verdi, test Xvfb+openbox); M2 completato in cloud (25/25 fixture verdi); moduli `monitor` ed `eligibility` implementati e testati.
+> Stato redazione: 2026-10-20 — M1 chiuso in cloud (rustc/cargo 1.94.0, build/clippy/test verdi, test Xvfb+openbox); M2 completato in cloud (25/25 fixture verdi); **M3 layout core (tree.rs, dwindle.rs, master_stack.rs) completato** con test allineati e simulazione geometrica validata; moduli `monitor` ed `eligibility` implementati e testati.
 
 ## 1. Mappa concettuale e stack tecnologico
 
@@ -60,7 +60,7 @@ Stato attuale (2026-10-19) — M1/M2 completati in cloud.
 │   ├── lib.rs, main.rs, cli.rs, errors.rs
 │   ├── x11/  (connection, ewmh, events, monitor)
 │   ├── state/ (registry, eligibility)
-│   └── layout/ (mod, geometry, plan)
+│   └── layout/ (mod, geometry, tree, dwindle, master_stack, plan)
 └── tests/
     ├── exit_codes.rs, geometry.rs, eligibility.rs, x11_integration.rs
 ```
@@ -85,9 +85,9 @@ Stato attuale (2026-10-19) — M1/M2 completati in cloud.
 | `src/state/workspace.rs` | Stato per workspace | `WorkspaceId=(desktop,monitor)`, alberi layout | Pianificato |
 | `src/state/reconciliation.rs` | Diff stato↔X11 | ricalcolo selettivo, idempotenza | Pianificato |
 | `src/layout/geometry.rs` | Rettangoli e gap | `Rect`, `Gaps`, `compute_dwindle`, `compute_master_stack` | ✅ Completato (M2) |
-| `src/layout/tree.rs` | Albero binario | insert/remove/promote (dwindle) | Pianificato (M3) |
-| `src/layout/dwindle.rs` | Policy dwindle | split_mode/target/ratio, fallback minimi | Pianificato (M3) |
-| `src/layout/master_stack.rs` | Policy master-stack | `new_status`, promozione, `mfact` | Pianificato (M3) |
+| `src/layout/tree.rs` | Albero binario | insert/remove/promote (dwindle) | ✅ Completato (M3) |
+| `src/layout/dwindle.rs` | Policy dwindle | split_mode/target/ratio, fallback minimi | ✅ Completato (M3) |
+| `src/layout/master_stack.rs` | Policy master-stack | `new_status`, promozione, `mfact` | ✅ Completato (M3) |
 | `src/layout/plan.rs` | Piano geometrico | `Plan`, `WindowMove`, `diff`, idempotenza | ✅ Completato (M2) |
 | `docs/` | Documentazione | fonte di verità progettuale | In continuo aggiornamento |
 
