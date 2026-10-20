@@ -12,10 +12,7 @@ fn test_default_config_validation() {
     assert_eq!(config.dwindle.split_ratio, 0.5);
     assert_eq!(config.dwindle.split_target, SplitTarget::Active);
     assert_eq!(config.master.mfact, 0.55);
-    assert_eq!(
-        config.master.resolved_new_status(),
-        MasterNewStatus::Slave
-    );
+    assert_eq!(config.master.resolved_new_status(), MasterNewStatus::Slave);
 }
 
 #[test]
@@ -43,10 +40,7 @@ fn test_new_is_master_alias_and_conflict() {
     let mut config = Config::default();
     config.behavior.new_is_master = Some(true);
     assert!(config.validate().is_ok());
-    assert_eq!(
-        config.master.resolved_new_status(),
-        MasterNewStatus::Master
-    );
+    assert_eq!(config.master.resolved_new_status(), MasterNewStatus::Master);
 
     let mut config_conflict = Config::default();
     config_conflict.master.new_status = Some(MasterNewStatus::Slave);

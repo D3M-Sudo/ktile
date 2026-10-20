@@ -1,6 +1,6 @@
-use std::collections::HashMap;
 use crate::layout::tree::Tree;
 use crate::x11::monitor::WorkspaceArea;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct WorkspaceId {

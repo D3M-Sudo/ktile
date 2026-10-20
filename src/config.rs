@@ -186,11 +186,10 @@ impl Config {
             path: path_str.clone(),
             source: e,
         })?;
-        let mut config: Config =
-            toml::from_str(&content).map_err(|e| ConfigError::ParseError {
-                path: path_str,
-                source: e,
-            })?;
+        let mut config: Config = toml::from_str(&content).map_err(|e| ConfigError::ParseError {
+            path: path_str,
+            source: e,
+        })?;
         config.validate()?;
         Ok(config)
     }
