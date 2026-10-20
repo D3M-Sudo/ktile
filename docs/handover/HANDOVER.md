@@ -1,8 +1,8 @@
 # HANDOVER — Ktile (2026-10-20)
 
 > File di passaggio di consegne per una nuova sessione/agente.
-> Branch: `feature` @ `d628c32` · working tree pulito · pushato su `origin/feature`.
-> Fase: **M0–M3 completati e chiusi (2026-10-20)** · Prossima: **M4 (Configurazione TOML, CLI e Reconciliation Read-Only)**.
+> Branch: `feature` @ `661305e` · working tree pulito · pushato su `origin/feature`.
+> Fase: **M0–M3 completati e chiusi (2026-10-20)** · Prossima: **M5**.
 
 ## 1. Cos'è Ktile (30 secondi)
 
@@ -16,12 +16,12 @@ Muffin resta autorevole su focus/stacking/decorazioni/workspace.
 
 | Area | Stato | Dettagli |
 |---|---|---|
-| Git | ✅ `feature` @ `d628c32`, clean | Working tree pulito. Ruleset: `main/development/testing` solo via PR. |
+| Git | ✅ `feature` @ `661305e`, clean | Working tree pulito. Ruleset: `main/development/testing` solo via PR. Merge commit (come PR #1). |
 | M0 baseline | ✅ completata e committata (`2c5c9f2`) | `docs/milestones/environment-baseline.md`: Mint 22.3, Cinnamon 6.6.9, Muffin 6.6.3, X11 `:0`, x86_64, tool X11 presenti, 4 desktop, workarea 1920×1040. |
 | M1 Gate | ✅ **Chiuso in cloud** (2026-10-19) **e confermato su target** (2026-10-20) | Cloud: toolchain Rust 1.94.0 (ADR-15), `cargo build/fmt/clippy/test` verdi, integrazione Xvfb + openbox. Target: osservazioni residue B5/B6 eseguite (M1-findings §2c), grep 0 match rieseguito; conteggi test: 15 suite plain / 20 totali con `--ignored` (9+4+2+5). |
 | M2 Core Geometrico | ✅ **Completato in cloud** (2026-10-19) | `src/layout/{geometry.rs, plan.rs}` e `tests/geometry.rs`. 25/25 fixture da `fixtures-geometry.json` verificate con esito positivo e invarianti rispettate. |
 | Moduli Lettura | ✅ **Completati in cloud** (2026-10-19) | `src/x11/monitor.rs` (RandR + workarea -> `WorkspaceArea`, guardrail single-monitor) e `src/state/eligibility.rs` (`is_eligible` con 9 test unitari). |
-| M4 Config/CLI/Reconcile | 🟡 **PR #2 aperta, CI verde** (2026-10-20) | Branch `feature-12655789238683274081` @ `6a194e3`: config TOML, CLI `clap`, `reconcile_read_only` count-based, lettore ICCCM. CI GitHub Actions ripristinata (ADR-16): run `39489421383` ✅ (`check`, `test` con Xvfb+openbox 5/5). Nessun merge effettuato: attende approvazione. |
+| M4 Config/CLI/Reconcile | ✅ **Merged in `feature`** (2026-10-20) | PR #2 merged, merge commit `661305e` (branch `feature-12655789238683274081`, eliminata). Deliverable: config TOML (`src/config.rs`), CLI `clap` (`src/cli.rs`), `reconcile_read_only` count-based (`src/state/reconciliation.rs`), lettore ICCCM (`src/x11/icccm.rs`), workspace (`src/state/workspace.rs`). CI GitHub Actions ripristinata (ADR-16). Gate: `cargo test` 48 verdi, `x11_integration` 5/5 sotto Xvfb+openbox. |
 | Residui B5/B6 Target | ✅ **Completati su target** (2026-10-20) | Eseguiti con il protocollo `docs/milestones/M1-residuals-user.md` su Mint 22.3 / Cinnamon 6.6.9 / Muffin 6.6.3 (X11 `:0`). B5: HIDDEN in `_NET_WM_STATE`, nessun Unmap/Map al minimize, permanenza in `_NET_CLIENT_LIST` (verificato). B6: pannello laterale + revert = baseline (verificato); nessun strut esposto → ADR-12 da re-verificare. Output grezzi: M1-findings §2c. |
 
 ## 3. Decisioni chiuse (non rinegoziare senza ADR)
@@ -44,15 +44,17 @@ Ktile/  (branch feature)
 │   ├── spec/        01, 02, 04, config.example.toml, cli-matrix.md
 │   ├── research/    03 (EWMH/Muffin), 05 (roadmap M0–M8)
 │   └── milestones/  environment-baseline.md, M1-findings.md, M1-residuals-user.md, fixtures-geometry.json
-├── src/   lib|main|cli|errors, x11/{connection,ewmh,events,monitor}, state/{registry,eligibility}, layout/{geometry,plan}
-└── tests/ exit_codes.rs, geometry.rs, eligibility.rs, x11_integration.rs
+├── src/   lib|main|cli|errors|config, x11/{connection,ewmh,events,monitor,icccm}, state/{registry,eligibility,workspace,reconciliation}, layout/{geometry,plan,dwindle,master_stack,tree}
+└── tests/ exit_codes.rs, geometry.rs, eligibility.rs, layout_tree.rs, layout_master.rs, cli_tests.rs, config_validation.rs, x11_integration.rs
 ```
 
 ## 5. Prossimi passi consentiti
 
-> Stato 2026-10-20: residui M1 (B5/B6) **chiusi** — nessun residuo M1 aperto; si prosegue da M3.
+> Stato 2026-10-20: M1 (B5/B6) **chiusi** e **M4 merged** (PR #2 → `661305e`) — nessun residuo M1 né M4 aperto; si prosegue da M5.
 
-1. **M4: Configurazione TOML (`ktile.toml`), CLI e Reconciliation Read-Only** (`config.rs`, CLI `--check-config`, `--dry-run`, `x11/icccm.rs`, `state/workspace.rs`, `state/reconciliation.rs`).
+1. **M5: prossimo milestone** — definire l'ambito in `docs/ROADMAP.md` prima di implementare (ADR-13).
+2. **Verificare il gate read-only sul target** dopo il merge: `grep -rniE 'configure_window|moveresize' src/ tests/` → 0 match.
+3. **Promuovere `feature` verso `main`/`development`** solo via PR, se previsto dal ruleset del repository.
 
 ## 6. Comandi di verifica rapida
 
@@ -63,7 +65,7 @@ Ktile/  (branch feature)
 > (amendment ADR-15); mai proporre `sudo`/`apt install`.
 
 ```bash
-gh pr checks 2
-gh run list --branch feature-12655789238683274081 --limit 5
+gh run list --branch feature --limit 5
+gh pr checks <n>
 grep -rniE 'configure_window|moveresize' src/ tests/ || echo "OK: zero match"
 ```

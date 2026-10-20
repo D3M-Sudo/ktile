@@ -57,13 +57,14 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 - [x] Test: rimozioni radice/foglia/intermedia, sospese D8, min-size, idempotenza, replay deterministo — `tests/layout_tree.rs`, `tests/layout_master.rs`
 - [x] Copertura ≥80% linee su `layout/` — verifica: bilanciamento sintassi + simulazione geometry + confronto API cross-file
 
-### M4 — Configurazione e dry-run
-- [ ] `config.rs` (TOML, validazioni, `outer`, `split_target`, `new_status`)
+### M4 — Configurazione e dry-run ✅ (merged 2026-10-20, PR #2 → `661305e`)
+- [x] `config.rs` (TOML, validazioni, `outer`, `split_target`, `new_status`) — `src/config.rs`, `tests/config_validation.rs`
 - [x] `eligibility.rs` + test matrice (transient, popup, dock, fullscreen, HIDDEN, sticky D9, altri desktop) (`src/state/eligibility.rs`, `tests/eligibility.rs`)
 - [x] `monitor.rs` (RandR + strut → area; v1 singolo monitor con errore chiaro) (`src/x11/monitor.rs`)
-- [ ] CLI: `--check-config`, `--list-windows`, `--dry-run --layout`
-- [ ] Manuali target: aree rispettano pannelli in dry-run
-- [ ] Gate: dry-run corretto, **zero richieste inviate**
+- [x] CLI: `--check-config`, `--list-windows`, `--dry-run --layout` — `src/cli.rs`, `tests/cli_tests.rs`
+- [x] Reconciliation read-only count-based + lettore ICCCM — `src/state/reconciliation.rs`, `src/x11/icccm.rs`, `src/state/workspace.rs`
+- [ ] Manuali target: aree rispettano pannelli in dry-run — **residuo, richiede target**
+- [x] Gate: dry-run corretto, **zero richieste inviate** — CI run `39490611198` su `feature` ✅ (`check`, `test` con Xvfb+openbox 5/5; `cargo test` 48 verdi)
 - Nota design (PR #2): `reconcile_read_only` M4 count-based (sequenza standard di inserimento); piano incrementale su albero con `split_target=active` atteso in M6.
 
 ### M5 — Applicazione manuale
