@@ -30,7 +30,7 @@ Ktile è un **tiler X11 esterno, cooperante con Muffin** (Linux Mint Cinnamon, s
 │              │ dwindle/master │                             │
 │              └──────▲─────────┘                             │
 │                     │ Plan { moves }                         │
-│              x11/applier.rs (gate + anti-feedback + BadWindow)│
+│              x11/applier.rs (EWMH gate + readback + BadWindow) │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -78,8 +78,8 @@ Stato attuale (2026-10-19) — M1/M2 completati in cloud.
 | `src/x11/events.rs` | Selezione e traduzione eventi | `DomainEvent`, `select_root_events` | ✅ Implementato (M1) |
 | `src/x11/ewmh.rs` | Lettura proprietà EWMH | `verify_wm`, `client_list` | ✅ Completato (M1) |
 | `src/x11/icccm.rs` | Lettura metadati ICCCM | `WM_CLASS`, `WM_TRANSIENT_FOR`, normal hint (read-only) | Pianificato |
-| `src/x11/monitor.rs` | Monitor e aree | `read_workspace_area` (RandR + strut/workarea) | ✅ Completato (M4) |
-| `src/x11/applier.rs` | Applicazione geometrie | gate richieste, geometry-in-flight, BadWindow | Pianificato (M5) |
+| `src/x11/monitor.rs` | Monitor e aree | `read_workspace_area` (RandR + strut/workarea) | ✅ Completato (M4); residuo Muffin locale aperto |
+| `src/x11/applier.rs` | Applicazione geometrie | `_NET_MOVERESIZE_WINDOW`, gate live, frame-aware readback, report deviazioni, no retry | Implementato (M5); gate Cinnamon/Muffin reale ancora aperto |
 | `src/state/registry.rs` | Stato finestre | `WindowId`, `WindowState` | ✅ Implementato (M1) |
 | `src/state/eligibility.rs` | Policy di esclusione | `is_eligible`, `ExcludeConfig` | ✅ Completato (M4) |
 | `src/state/workspace.rs` | Stato per workspace | `WorkspaceId=(desktop,monitor)`, alberi layout | Pianificato |
