@@ -1,8 +1,8 @@
-# HANDOVER — Ktile (2026-10-20)
+# HANDOVER — Ktile (2026-10-22)
 
 > File di passaggio di consegne per una nuova sessione/agente.
-> Branch: `feature` @ `661305e` · working tree pulito · pushato su `origin/feature`.
-> Fase: **M0–M3 completati e chiusi (2026-10-20)** · Prossima: **M5**.
+> Branch di lavoro: `feature-complete-roadmap` (sviluppo M5 e aggiornamento documentazione). La CI dell'ultimo aggiornamento è stata confermata verde dall'utente il 2026-10-22.
+> Fase: **M0–M4 implementati; M5 implementata con gate target ancora aperto**. Non creare PR né fare merge senza richiesta esplicita.
 
 ## 1. Cos'è Ktile (30 secondi)
 
@@ -16,12 +16,12 @@ Muffin resta autorevole su focus/stacking/decorazioni/workspace.
 
 | Area | Stato | Dettagli |
 |---|---|---|
-| Git | ✅ `feature` @ `661305e`, clean | Working tree pulito. Ruleset: `main/development/testing` solo via PR. Merge commit (come PR #1). |
+| Git | ramo corrente `feature-complete-roadmap` | Lavoro su ramo dedicato; verificare sempre HEAD/CI live prima di altri interventi. Nessuna PR o merge autorizzati automaticamente. |
 | M0 baseline | ✅ completata e committata (`2c5c9f2`) | `docs/milestones/environment-baseline.md`: Mint 22.3, Cinnamon 6.6.9, Muffin 6.6.3, X11 `:0`, x86_64, tool X11 presenti, 4 desktop, workarea 1920×1040. |
 | M1 Gate | ✅ **Chiuso in cloud** (2026-10-19) **e confermato su target** (2026-10-20) | Cloud: toolchain Rust 1.94.0 (ADR-15), `cargo build/fmt/clippy/test` verdi, integrazione Xvfb + openbox. Target: osservazioni residue B5/B6 eseguite (M1-findings §2c), grep 0 match rieseguito; conteggi test: 15 suite plain / 20 totali con `--ignored` (9+4+2+5). |
 | M2 Core Geometrico | ✅ **Completato in cloud** (2026-10-19) | `src/layout/{geometry.rs, plan.rs}` e `tests/geometry.rs`. 25/25 fixture da `fixtures-geometry.json` verificate con esito positivo e invarianti rispettate. |
 | Moduli Lettura | ✅ **Completati in cloud** (2026-10-19) | `src/x11/monitor.rs` (RandR + workarea -> `WorkspaceArea`, guardrail single-monitor) e `src/state/eligibility.rs` (`is_eligible` con 9 test unitari). |
-| M4 Config/CLI/Reconcile | ✅ **Merged in `feature`** (2026-10-20) | PR #2 merged, merge commit `661305e` (branch `feature-12655789238683274081`, eliminata). Deliverable: config TOML (`src/config.rs`), CLI `clap` (`src/cli.rs`), `reconcile_read_only` count-based (`src/state/reconciliation.rs`), lettore ICCCM (`src/x11/icccm.rs`), workspace (`src/state/workspace.rs`). CI GitHub Actions ripristinata (ADR-16). Gate: `cargo test` 48 verdi, `x11_integration` 5/5 sotto Xvfb+openbox. |
+| M4 Config/CLI/Reconcile | ✅ implementata | Config TOML (`src/config.rs`), CLI (`src/cli.rs`), reconciliation read-only count-based, lettore ICCCM e modelli workspace. La verifica target del calcolo area/pannelli resta da eseguire. |
 | Residui B5/B6 Target | ✅ **Completati su target** (2026-10-20) | Eseguiti con il protocollo `docs/milestones/M1-residuals-user.md` su Mint 22.3 / Cinnamon 6.6.9 / Muffin 6.6.3 (X11 `:0`). B5: HIDDEN in `_NET_WM_STATE`, nessun Unmap/Map al minimize, permanenza in `_NET_CLIENT_LIST` (verificato). B6: pannello laterale + revert = baseline (verificato); nessun strut esposto → ADR-12 da re-verificare. Output grezzi: M1-findings §2c. |
 
 ## 3. Decisioni chiuse (non rinegoziare senza ADR)
@@ -50,11 +50,11 @@ Ktile/  (branch feature)
 
 ## 5. Prossimi passi consentiti
 
-> Stato 2026-10-20: M1 (B5/B6) **chiusi** e **M4 merged** (PR #2 → `661305e`) — nessun residuo M1 né M4 aperto; si prosegue da M5.
-
-1. **M5: prossimo milestone** — definire l'ambito in `docs/ROADMAP.md` prima di implementare (ADR-13).
-2. **Verificare il gate read-only sul target** dopo il merge: `grep -rniE 'configure_window|moveresize' src/ tests/` → 0 match.
-3. **Promuovere `feature` verso `main`/`development`** solo via PR, se previsto dal ruleset del repository.
+1. **M5 — test target:** seguire `docs/ROADMAP.md` in una sessione Cinnamon/X11 reale. La CI Xvfb/Openbox è verde, ma non sostituisce l'accettazione su Muffin. Registrare PASS/FAIL e versione Cinnamon/Muffin.
+2. **M5 — test race deterministico:** verificare se il test della distruzione fra controllo live e risposta WM può essere reso deterministico; non dichiararlo coperto solo perché è gestito l'errore `BadWindow`.
+3. **M4 residuo:** testare in locale l'area utile con pannello laterale/auto-hide; la baseline osservata non mostrava `_NET_WM_STRUT(_PARTIAL)`, quindi ADR-12 resta da rivalutare.
+4. **Documentazione:** risolvere la divergenza del percorso config (`~/.config/ktile/config.toml` nella specifica vs `~/.config/ktile/ktile.toml` e `./ktile.toml` nel codice) con decisione esplicita prima di modificare il contratto.
+5. Non creare PR o fare merge senza richiesta esplicita dell'utente.
 
 ## 6. Comandi di verifica rapida
 
