@@ -1,5 +1,6 @@
-# config.example.toml — Ktile v1 (M1-prep, DRAFT non validato: toolchain Rust assente)
-# Ogni chiave riflette le decisioni chiuse D1-D9 (2026-10-17). Validazione via `--check-config` (M4).
+# Esempio TOML per Ktile v1. Validare con `ktile --check-config --config PATH`.
+# Nota: il percorso canonico resta da decidere; src/main.rs cerca ./ktile.toml e poi
+# ~/.config/ktile/ktile.toml, mentre alcune specifiche storiche indicano config.toml.
 
 [general]
 layout = "dwindle"            # "dwindle" | "master-stack" (D5: core)
@@ -12,7 +13,7 @@ outer = 8                     # gap dai bordi area (D2: UNICA chiave, `gaps_out`
 [dwindle]
 split_mode = "longest-side"   # "longest-side" | "alternating"
 split_ratio = 0.5             # clamp runtime [0.25, 0.75]
-split_target = "active"       # "active" | "mru" (D3: foglia da dividere, default stable)
+split_target = "active"       # "active" | "mru" (D3: foglia da dividere; default active)
 
 [master]
 mfact = 0.55                  # clamp [0.25, 0.75]
