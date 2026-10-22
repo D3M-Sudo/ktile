@@ -29,7 +29,7 @@ impl Drop for XvfbGuard {
 #[test]
 #[ignore = "requires Xvfb; executed explicitly by CI"]
 fn applies_live_window_and_safely_skips_window_destroyed_before_request() {
-    let mut child = Command::new("Xvfb")
+    let child = Command::new("Xvfb")
         .args([":96", "-screen", "0", "1280x800x24", "-nolisten", "tcp"])
         .spawn()
         .expect("Xvfb must be installed in the CI test runner");
