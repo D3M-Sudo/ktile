@@ -16,6 +16,10 @@ Ktile è un tiler X11 leggero per Linux Mint Cinnamon, progettato per funzionare
 - Configurazione leggibile, log diagnostici, modalità `--dry-run`/`--check-config`.
 - Test unitari per la geometria; test d'integrazione separati per X11 reale.
 
+## Drift da risolvere: percorso canonico della configurazione
+
+Questa panoramica conserva la decisione progettuale `~/.config/ktile/config.toml`, ma il codice corrente (`src/main.rs`) cerca `./ktile.toml` e poi `~/.config/ktile/ktile.toml`; se non trova un file usa i default in memoria. Il percorso canonico è quindi **non allineato**: non assumere che codice o documento rappresentino automaticamente l'intento corretto. Prima di cambiare uno dei due, confermare il contratto desiderato e poi sincronizzare codice, esempio TOML, README e CLI docs.
+
 ## 2. Fuori scope iniziale
 
 - Sostituire Muffin o implementare un window manager completo.
