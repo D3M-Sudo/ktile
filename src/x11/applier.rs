@@ -122,26 +122,39 @@ pub fn apply_plan(
     let mut seen = HashSet::new();
 
     for batch in plan.moves.chunks(MAX_REQUESTS_PER_BURST) {
-        let mut pending: Vec<(WindowMove, x11rb::cookie::VoidCookie<'_, RustConnection>)> = Vec::new();
+        let mut pending: Vec<(WindowMove, x11rb::cookie::VoidCookie<'_, RustConnection>)> =
+            Vec::new();
 
         for movement in batch {
             let id = movement.window_id;
             let window = id.0;
 
             if !seen.insert(id) {
-                report.outcomes.push(outcome(id, movement.target_rect, ApplyStatus::Skipped {
-                    reason: "duplicated window id in plan".to_string(),
-                }));
+                report.outcomes.push(outcome(
+                    id,
+                    movement.target_rect,
+                    ApplyStatus::Skipped {
+                        reason: "duplicated window id in plan".to_string(),
+                    },
+                ));
                 continue;
             }
             if !allowed_windows.contains(&id) {
-                report.outcomes.push(outcome(id, movement.target_rect, ApplyStatus::Skipped {
-                    reason: "window is no longer eligible in the fresh snapshot".to_string(),
-                }));
+                report.outcomes.push(outcome(
+                    id,
+                    movement.target_rect,
+                    ApplyStatus::Skipped {
+                        reason: "window is no longer eligible in the fresh snapshot".to_string(),
+                    },
+                ));
                 continue;
             }
             if let Err(reason) = validate_target(movement.target_rect) {
-                report.outcomes.push(outcome(id, movement.target_rect, ApplyStatus::Skipped { reason }));
+                report.outcomes.push(outcome(
+                    id,
+                    movement.target_rect,
+                    ApplyStatus::Skipped { reason },
+                ));
                 continue;
             }
             if let Err(reason) = live_safety_check(conn, window, active_desktop, atoms) {
@@ -152,12 +165,20 @@ pub fn apply_plan(
             let current = match read_geometry(conn, window) {
                 Ok(rect) => rect,
                 Err(reason) => {
-                    report.outcomes.push(outcome(id, movement.target_rect, ApplyStatus::Skipped { reason }));
+                    report.outcomes.push(outcome(
+                        id,
+                        movement.target_rect,
+                        ApplyStatus::Skipped { reason },
+                    ));
                     continue;
                 }
             };
             if current == movement.target_rect {
-                report.outcomes.push(outcome(id, movement.target_rect, ApplyStatus::AlreadyCorrect));
+                report.outcomes.push(outcome(
+                    id,
+                    movement.target_rect,
+                    ApplyStatus::AlreadyCorrect,
+                ));
                 continue;
             }
 
@@ -174,9 +195,13 @@ pub fn apply_plan(
                 }
                 Err(error) => {
                     in_flight.finish(id);
-                    report.outcomes.push(outcome(id, movement.target_rect, ApplyStatus::Failed {
-                        reason: format!("could not queue ConfigureWindow: {error}"),
-                    }));
+                    report.outcomes.push(outcome(
+                        id,
+                        movement.target_rect,
+                        ApplyStatus::Failed {
+                            reason: format!("could not queue ConfigureWindow: {error}"),
+                        },
+                    ));
                 }
             }
         }
@@ -184,7 +209,8 @@ pub fn apply_plan(
         if pending.is_empty() {
             continue;
         }
-        conn.flush().map_err(|error| KtileError::X11(format!("flush geometry requests: {error}")))?;
+        conn.flush()
+            .map_err(|error| KtileError::X11(format!("flush geometry requests: {error}")))?;
 
         for (movement, cookie) in pending {
             let id = movement.window_id;
@@ -199,15 +225,25 @@ pub fn apply_plan(
                 Ok(()) => match read_geometry(conn, id.0) {
                     Err(reason) => {
                         in_flight.finish(id);
-                        report.outcomes.push(outcome(id, target, ApplyStatus::Failed { reason }));
+                        report
+                            .outcomes
+                            .push(outcome(id, target, ApplyStatus::Failed { reason }));
                     }
                     Ok(actual) => {
                         let matches_request = in_flight.matches(id, actual);
                         in_flight.finish(id);
                         if matches_request {
-                            report.outcomes.push(outcome(id, target, ApplyStatus::Applied { actual }));
+                            report.outcomes.push(outcome(
+                                id,
+                                target,
+                                ApplyStatus::Applied { actual },
+                            ));
                         } else {
-                            report.outcomes.push(outcome(id, target, ApplyStatus::Deviated { actual }));
+                            report.outcomes.push(outcome(
+                                id,
+                                target,
+                                ApplyStatus::Deviated { actual },
+                            ));
                         }
                     }
                 },
@@ -220,7 +256,11 @@ pub fn apply_plan(
 }
 
 fn outcome(window_id: WindowId, target: Rect, status: ApplyStatus) -> ApplyOutcome {
-    ApplyOutcome { window_id, target, status }
+    ApplyOutcome {
+        window_id,
+        target,
+        status,
+    }
 }
 
 fn validate_target(rect: Rect) -> Result<(), String> {
@@ -230,8 +270,10 @@ fn validate_target(rect: Rect) -> Result<(), String> {
     if rect.width > u16::MAX as u32 || rect.height > u16::MAX as u32 {
         return Err("target dimensions exceed the X11 protocol limit (65535)".to_string());
     }
-    if rect.x < i16::MIN as i32 || rect.x > i16::MAX as i32
-        || rect.y < i16::MIN as i32 || rect.y > i16::MAX as i32
+    if rect.x < i16::MIN as i32
+        || rect.x > i16::MAX as i32
+        || rect.y < i16::MIN as i32
+        || rect.y > i16::MAX as i32
     {
         return Err("target coordinates exceed the X11 protocol limit (-32768..32767)".to_string());
     }
@@ -244,7 +286,8 @@ fn live_safety_check(
     active_desktop: u32,
     atoms: &EwmhAtoms,
 ) -> Result<(), String> {
-    let attrs = conn.get_window_attributes(window)
+    let attrs = conn
+        .get_window_attributes(window)
         .map_err(|error| format!("window disappeared before request: {error}"))?
         .reply()
         .map_err(|error| format!("window disappeared before request: {error}"))?;
@@ -288,7 +331,8 @@ fn live_safety_check(
 }
 
 fn read_geometry(conn: &RustConnection, window: Window) -> Result<Rect, String> {
-    let reply = conn.get_geometry(window)
+    let reply = conn
+        .get_geometry(window)
         .map_err(|error| format!("window is gone: {error}"))?
         .reply()
         .map_err(|error| format!("window is gone: {error}"))?;
@@ -317,8 +361,18 @@ mod tests {
     #[test]
     fn in_flight_geometry_matches_only_the_expected_rectangle() {
         let id = WindowId(42);
-        let expected = Rect { x: -100, y: 10, width: 800, height: 600 };
-        let other = Rect { x: -99, y: 10, width: 800, height: 600 };
+        let expected = Rect {
+            x: -100,
+            y: 10,
+            width: 800,
+            height: 600,
+        };
+        let other = Rect {
+            x: -99,
+            y: 10,
+            width: 800,
+            height: 600,
+        };
         let mut flight = GeometryInFlight::default();
         flight.begin(id, expected);
         assert!(flight.matches(id, expected));
