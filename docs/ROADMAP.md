@@ -1,7 +1,7 @@
 # ROADMAP — Ktile
 
 > Fonte di verità di pianificazione del progetto. **Regola operativa permanente:** ogni task completato, cambio di stato di un modulo o nuova decisione architetturale aggiorna **contestualmente** questo file (checkbox e/o ADR) e/o `ARCHITECTURE.md` (entrambi in `docs/`).
-> Stato redazione: 2026-10-20 — Gate M1 chiuso in cloud (2026-10-19, rustc/cargo 1.94.0, build/clippy/test verdi, test Xvfb+openbox) e **confermato su target 2026-10-20** (B5+B6 eseguite, M1-findings §2c); M2 completato in cloud (25/25 fixture verdi); **M3 layout core (dwindle + master-stack + tree) completato** con test `layout_tree.rs`/`layout_master.rs` allineati e simulazione geometrica validata; moduli `monitor` ed `eligibility` implementati e testati.
+> Stato redazione: 2026-10-22 — M1 chiuso in cloud e confermato su target (M1-findings §2c); M2 (25 fixture), M3 (dwindle/master-stack/tree) e M4 (config/CLI/reconciliation read-only) implementati. M5: applicazione manuale con opt-in, gate live, geometria frame-aware e report deviazioni implementata; **CI dell'ultimo aggiornamento confermata verde dall'utente**. Restano aperti test race deterministico e accettazione Cinnamon/Muffin reale, oltre al residuo M4 pannelli/workarea.
 
 ## 1. Funzionalità per fasi
 
@@ -97,12 +97,12 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 > I test CI con Xvfb/Openbox verificano il comportamento nel WM di test e **non sostituiscono** le verifiche con Muffin.
 > Le attività qui sotto devono restare esplicitamente "da verificare in locale" finché l'utente non comunica l'esito.
 > Per ogni prova registrare: data, versione Cinnamon/Muffin, scenario, risultato osservato e log/evidenze utili.
-> Non eseguire prove che muovono o ridimensionano finestre reali finché M5 non implementa e supera i propri guardrail.
+> M5 è implementata e la CI è verde; le prove che muovono/ridimensionano finestre reali restano riservate al target Cinnamon/Muffin, dopo aver letto il piano e mantenendo aperto il gate fino alla verifica manuale.
 
 ### Checklist locale
 
 - [ ] **M4 — dry-run e pannelli:** verificare che l'area utile riportata rispetti la posizione e l'altezza/larghezza dei pannelli, compresi pannello laterale e ripristino della configurazione iniziale. Il dry-run deve restare read-only e non spostare finestre.
-- [ ] **M5 — applicazione manuale:** dopo l'implementazione e i test automatici, verificare una finestra standard, dialoghi/transient immobili, fullscreen intatto, finestra minimizzata intatta, chiusura durante l'applicazione e assenza di loop/riposizionamenti continui. Misurare lo scarto geometrico: almeno il 90% delle finestre standard entro 2 px.
+- [ ] **M5 — applicazione manuale (gate target ancora aperto):** dopo i test automatici verdi, verificare una finestra standard, dialoghi/transient immobili, fullscreen intatto, finestra minimizzata intatta, chiusura durante l'applicazione e assenza di loop/riposizionamenti continui. Misurare lo scarto geometrico: almeno il 90% delle finestre standard entro 2 px.
 - [ ] **M6 — daemon:** dopo l'implementazione, lasciare il daemon in foreground opt-in per almeno 2 ore; verificare coalescing degli eventi, assenza di livelock e shutdown entro 1 secondo. Registrare consumo RAM/CPU e anomalie.
 - [ ] **M7 — pannelli e workspace:** provare pannello su bordi diversi, auto-hide, due pannelli, passaggio tra workspace, finestre sticky (secondo la policy definita) e cambiamenti di monitor/hotplug, quando l'hardware lo consente.
 - [ ] **M7 — matrice Muffin:** ripetere su Muffin gli scenari supportati e registrare separatamente ogni scenario non applicabile o non verificato.
@@ -110,7 +110,7 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 
 ### Procedura operativa M5 per il test locale
 
-Eseguire in una sessione **Cinnamon/X11** reale, dopo aver compilato il ramo corrente. Salvare il lavoro e iniziare in un workspace di prova con una sola finestra normale eleggibile; il comando di applicazione può agire su tutte le finestre eleggibili.
+Eseguire in una sessione **Cinnamon/X11** reale, dopo aver compilato il ramo corrente. Nota: il gate automatico CI è verde, ma questo non dimostra la compatibilità con Muffin. Salvare il lavoro e iniziare in un workspace di prova con una sola finestra normale eleggibile; il comando di applicazione può agire su tutte le finestre eleggibili.
 
 ```bash
 cargo test
