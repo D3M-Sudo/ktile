@@ -13,7 +13,6 @@ use x11rb::rust_connection::RustConnection;
 use crate::errors::KtileError;
 use crate::layout::geometry::Rect;
 use crate::layout::plan::{Plan, WindowMove};
-use crate::state::eligibility::WindowStateAtom;
 use crate::state::registry::WindowId;
 use crate::x11::connection::EwmhAtoms;
 use crate::x11::{ewmh, icccm};
