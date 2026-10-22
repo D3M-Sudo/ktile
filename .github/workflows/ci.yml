@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [feature, main, development]
+    branches: [feature, feature-complete-roadmap, main, development]
   pull_request:
     branches: [feature, main, development]
 
