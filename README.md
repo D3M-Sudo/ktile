@@ -31,7 +31,11 @@ Il comportamento predefinito e `--dry-run` sono read-only. Per applicare geometr
 | D8 | Ripristino finestre sospese | posizione originaria se lo slot è identificabile, altrimenti nuova foglia |
 | D9 | Finestre sticky | escluse nella v1; rivalutazione obbligatoria in M7 |
 
+## Divergenza da risolvere prima di aggiornare il contratto
+
+La documentazione storica dichiara `~/.config/ktile/config.toml`, ma `src/main.rs` cerca `./ktile.toml` e poi `~/.config/ktile/ktile.toml`; se nessuno dei due esiste, usa i default in memoria. Non uniformare questo percorso solo per far combaciare i file: decidere prima quale percorso è quello corretto, quindi aggiornare codice, README, esempi e specifiche insieme.
+
 ## Avvertenze
 - La documentazione è una base progettuale verificata rispetto all'analisi del Cortile originale, **non** un certificato di compatibilità Muffin: le affermazioni specifiche su Muffin devono essere verificate sulla versione target seguendo il protocollo in `docs/research/03-ewmh-muffin-compatibility.md`.
-- Il repository applicativo è disponibile nel branch `feature` di `github.com/D3M-Sudo/ktile`: i file `src/layout/tree.rs`, `dwindle.rs`, `master_stack.rs`, i test `tests/layout_tree.rs`/`tests/layout_master.rs` e i fixture sono già in posto; la `docs/` di questo repository è la documentazione d'insieme.
+- Il codice e questa documentazione sono aggiornati sul ramo di lavoro `feature-complete-roadmap` di `github.com/D3M-Sudo/ktile`: i file `src/layout/tree.rs`, `dwindle.rs`, `master_stack.rs`, i test `tests/layout_tree.rs`/`tests/layout_master.rs` e i fixture sono già in posto; la `docs/` di questo repository è la documentazione d'insieme.
 - I nomi dei file riflettono le decisioni prese: architettura Rust con backend `x11rb` (doc 02), specifiche dei layout core dwindle/master (doc 04), roadmap a milestone M0–M8 (doc 05).
