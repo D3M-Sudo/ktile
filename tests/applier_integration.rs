@@ -32,7 +32,7 @@ impl Drop for XvfbGuard {
 
 #[test]
 #[ignore = "requires Xvfb; executed explicitly by CI"]
-fn applies_live_window_and_safely_skips_window_destroyed_before_request() {
+fn applies_ewmh_geometry_skips_vanished_window_and_reports_wm_deviation() {
     let child = Command::new("Xvfb")
         .args([":96", "-screen", "0", "1280x800x24", "-nolisten", "tcp"])
         .spawn()
@@ -108,6 +108,63 @@ fn applies_live_window_and_safely_skips_window_destroyed_before_request() {
     conn.flush().expect("flush test setup");
     thread::sleep(Duration::from_millis(500));
 
+    let constrained = conn.generate_id().expect("allocate constrained XID");
+    conn.create_window(
+        0,
+        constrained,
+        root,
+        100,
+        100,
+        600,
+        500,
+        0,
+        WindowClass::INPUT_OUTPUT,
+        screen.root_visual,
+        &CreateWindowAux::new().event_mask(EventMask::STRUCTURE_NOTIFY),
+    )
+    .expect("create constrained test window")
+    .check()
+    .expect("constrained window creation should succeed");
+    conn.change_property32(
+        PropMode::REPLACE,
+        constrained,
+        atoms.wm_window_type,
+        AtomEnum::ATOM,
+        &[atoms.wm_window_type_normal],
+    )
+    .expect("set constrained window type")
+    .check()
+    .expect("constrained window type property should succeed");
+    conn.change_property32(
+        PropMode::REPLACE,
+        constrained,
+        atoms.wm_desktop,
+        AtomEnum::CARDINAL,
+        &[0],
+    )
+    .expect("set constrained window desktop")
+    .check()
+    .expect("constrained desktop property should succeed");
+    // ICCCM PMinSize: Openbox must not shrink the client below 400x300.
+    conn.change_property32(
+        PropMode::REPLACE,
+        constrained,
+        AtomEnum::WM_NORMAL_HINTS,
+        AtomEnum::WM_SIZE_HINTS,
+        &[
+            1 << 4, 0, 0, 600, 500, 400, 300, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        ],
+    )
+    .expect("set minimum size hints")
+    .check()
+    .expect("minimum size hints should succeed");
+    conn.map_window(constrained)
+        .expect("map constrained window")
+        .check()
+        .expect("constrained window mapping should succeed");
+    conn.flush().expect("flush constrained window setup");
+    thread::sleep(Duration::from_millis(500));
+
     // Allocate an XID but deliberately never create the corresponding window.
     let dead = conn.generate_id().expect("allocate dead XID");
     let plan = Plan::new(vec![
@@ -121,7 +178,7 @@ fn applies_live_window_and_safely_skips_window_destroyed_before_request() {
             },
         },
         WindowMove {
-            window_id: WindowId(dead),
+            window_id: WindowId(constrained),
             target_rect: Rect {
                 x: 300,
                 y: 200,
@@ -129,18 +186,31 @@ fn applies_live_window_and_safely_skips_window_destroyed_before_request() {
                 height: 150,
             },
         },
+        WindowMove {
+            window_id: WindowId(dead),
+            target_rect: Rect {
+                x: 700,
+                y: 500,
+                width: 200,
+                height: 150,
+            },
+        },
     ]);
-    let allowed = HashSet::from([WindowId(live), WindowId(dead)]);
+    let allowed = HashSet::from([
+        WindowId(live),
+        WindowId(constrained),
+        WindowId(dead),
+    ]);
     let report = apply_plan(&conn, &plan, &allowed, 0, root, &atoms)
         .expect("per-window X errors should be reported without aborting the batch");
 
-    assert_eq!(
-        report.requests_sent, 1,
-        "only the live window may receive a request"
-    );
-    assert_eq!(report.outcomes.len(), 2);
+    assert_eq!(report.requests_sent, 2);
+    assert_eq!(report.outcomes.len(), 3);
     assert!(report.outcomes.iter().any(|o| {
         o.window_id == WindowId(live) && matches!(o.status, ApplyStatus::Applied { .. })
+    }));
+    assert!(report.outcomes.iter().any(|o| {
+        o.window_id == WindowId(constrained) && matches!(o.status, ApplyStatus::Deviated { .. })
     }));
     assert!(report.outcomes.iter().any(|o| {
         o.window_id == WindowId(dead) && matches!(o.status, ApplyStatus::Skipped { .. })
