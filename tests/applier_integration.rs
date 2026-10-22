@@ -15,9 +15,7 @@ use ktile::state::registry::WindowId;
 use ktile::x11::applier::{apply_plan, ApplyStatus};
 use ktile::x11::connection::{connect, EwmhAtoms};
 use x11rb::connection::Connection;
-use x11rb::protocol::xproto::{
-    ConnectionExt, CreateWindowAux, EventMask, WindowClass,
-};
+use x11rb::protocol::xproto::{ConnectionExt, CreateWindowAux, EventMask, WindowClass};
 
 struct XvfbGuard(Child);
 
