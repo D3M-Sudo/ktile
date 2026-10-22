@@ -350,12 +350,48 @@ mod tests {
 
     #[test]
     fn target_validation_rejects_zero_dimensions_and_unrepresentable_values() {
-        assert!(validate_target(Rect { x: 0, y: 0, width: 0, height: 10 }).is_err());
-        assert!(validate_target(Rect { x: 0, y: 0, width: 10, height: 0 }).is_err());
-        assert!(validate_target(Rect { x: 0, y: 0, width: 65_536, height: 10 }).is_err());
-        assert!(validate_target(Rect { x: 32_768, y: 0, width: 10, height: 10 }).is_err());
-        assert!(validate_target(Rect { x: -32_769, y: 0, width: 10, height: 10 }).is_err());
-        assert!(validate_target(Rect { x: -10, y: -10, width: 10, height: 10 }).is_ok());
+        assert!(validate_target(Rect {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 10
+        })
+        .is_err());
+        assert!(validate_target(Rect {
+            x: 0,
+            y: 0,
+            width: 10,
+            height: 0
+        })
+        .is_err());
+        assert!(validate_target(Rect {
+            x: 0,
+            y: 0,
+            width: 65_536,
+            height: 10
+        })
+        .is_err());
+        assert!(validate_target(Rect {
+            x: 32_768,
+            y: 0,
+            width: 10,
+            height: 10
+        })
+        .is_err());
+        assert!(validate_target(Rect {
+            x: -32_769,
+            y: 0,
+            width: 10,
+            height: 10
+        })
+        .is_err());
+        assert!(validate_target(Rect {
+            x: -10,
+            y: -10,
+            width: 10,
+            height: 10
+        })
+        .is_ok());
     }
 
     #[test]
