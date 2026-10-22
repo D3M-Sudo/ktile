@@ -4,6 +4,10 @@ Questa cartella contiene la documentazione progettuale per **Ktile**, tiler X11 
 
 Questa versione (2026-10-20) aggiorna `docs/ARCHITECTURE.md` e `docs/ROADMAP.md` contestualmente al completamento della milestone M3 del layout core: `src/layout/tree.rs`, `dwindle.rs` e `master_stack.rs` ripristinati, con test `tests/layout_tree.rs` e `tests/layout_master.rs` allineati ai fixture geometrici. Riflette le decisioni di progetto chiuse in fase di analisi (registro decisioni D1–D9 nel rapporto di analisi, sezione 7.1). `docs/ARCHITECTURE.md` e `docs/ROADMAP.md` restano la fonte di verità tracciata del repository, aggiornata contestualmente a ogni modifica (regola operativa permanente, ADR-13).
 
+## Uso CLI M5
+
+Il comportamento predefinito e `--dry-run` sono read-only. Per applicare geometrie occorre il flag esplicito `--allow-apply`. Prima di provarlo su Cinnamon/Muffin, controllare il piano e seguire la checklist locale in `docs/ROADMAP.md`; i test Xvfb/Openbox non certificano il WM reale.
+
 ## Documenti (fonte di verità)
 - `docs/ARCHITECTURE.md` — mappa concettuale, stack, albero directory, tabella moduli con stato, flusso dati. **Da aggiornare contestualmente a ogni decisione/cambio struttura.**
 - `docs/ROADMAP.md` — fasi (MVP/Fase 2/Optimization), checklist task M0–M8, registro ADR con date e motivazioni. **Da aggiornare contestualmente a ogni task completato.**
