@@ -36,7 +36,7 @@ ADR-16 build/test Rust prima scelta in CI (fallback `cargo` su host solo se tool
 ## 4. Struttura repo (dove sta cosa)
 
 ```text
-Ktile/  (branch feature)
+Ktile/  (branch feature-complete-roadmap)
 ├── README.md, .gitignore, Cargo.toml, Cargo.lock
 ├── docs/
 │   ├── ARCHITECTURE.md, ROADMAP.md      ← aggiornati contestualmente (ADR-13)
@@ -44,8 +44,8 @@ Ktile/  (branch feature)
 │   ├── spec/        01, 02, 04, config.example.toml, cli-matrix.md
 │   ├── research/    03 (EWMH/Muffin), 05 (roadmap M0–M8)
 │   └── milestones/  environment-baseline.md, M1-findings.md, M1-residuals-user.md, fixtures-geometry.json
-├── src/   lib|main|cli|errors|config, x11/{connection,ewmh,events,monitor,icccm}, state/{registry,eligibility,workspace,reconciliation}, layout/{geometry,plan,dwindle,master_stack,tree}
-└── tests/ exit_codes.rs, geometry.rs, eligibility.rs, layout_tree.rs, layout_master.rs, cli_tests.rs, config_validation.rs, x11_integration.rs
+├── src/   lib|main|cli|errors|config, x11/{connection,ewmh,events,monitor,icccm,applier}, state/{registry,eligibility,workspace,reconciliation}, layout/{geometry,plan,dwindle,master_stack,tree}
+└── tests/ applier_integration.rs, exit_codes.rs, geometry.rs, eligibility.rs, layout_tree.rs, layout_master.rs, cli_tests.rs, config_validation.rs, x11_integration.rs
 ```
 
 ## 5. Prossimi passi consentiti
