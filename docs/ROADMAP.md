@@ -89,7 +89,28 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 - [ ] `config.example.toml`; README utente; autostart opzionale (`~/.config/autostart/ktile.desktop`)
 - [ ] Audit `cargo tree` + licenze; disinstallazione documentata; zero root, zero rete
 
-## 3. Registro decisioni (ADR)
+## 3. Verifiche manuali richieste sul target Cinnamon/Muffin
+
+> **IMPORTANTE — da completare dall'utente su Linux Mint, sessione Cinnamon/X11 reale.**
+> I test CI con Xvfb/Openbox verificano il comportamento nel WM di test e **non sostituiscono** le verifiche con Muffin.
+> Le attività qui sotto devono restare esplicitamente "da verificare in locale" finché l'utente non comunica l'esito.
+> Per ogni prova registrare: data, versione Cinnamon/Muffin, scenario, risultato osservato e log/evidenze utili.
+> Non eseguire prove che muovono o ridimensionano finestre reali finché M5 non implementa e supera i propri guardrail.
+
+### Checklist locale
+
+- [ ] **M4 — dry-run e pannelli:** verificare che l'area utile riportata rispetti la posizione e l'altezza/larghezza dei pannelli, compresi pannello laterale e ripristino della configurazione iniziale. Il dry-run deve restare read-only e non spostare finestre.
+- [ ] **M5 — applicazione manuale:** dopo l'implementazione e i test automatici, verificare una finestra standard, dialoghi/transient immobili, fullscreen intatto, finestra minimizzata intatta, chiusura durante l'applicazione e assenza di loop/riposizionamenti continui. Misurare lo scarto geometrico: almeno il 90% delle finestre standard entro 2 px.
+- [ ] **M6 — daemon:** dopo l'implementazione, lasciare il daemon in foreground opt-in per almeno 2 ore; verificare coalescing degli eventi, assenza di livelock e shutdown entro 1 secondo. Registrare consumo RAM/CPU e anomalie.
+- [ ] **M7 — pannelli e workspace:** provare pannello su bordi diversi, auto-hide, due pannelli, passaggio tra workspace, finestre sticky (secondo la policy definita) e cambiamenti di monitor/hotplug, quando l'hardware lo consente.
+- [ ] **M7 — matrice Muffin:** ripetere su Muffin gli scenari supportati e registrare separatamente ogni scenario non applicabile o non verificato.
+- [ ] **M8 — installazione utente:** verificare installazione e avvio da `~/.local/bin/ktile`, configurazione, autostart se abilitato, disinstallazione e assenza di necessità di privilegi root o rete a runtime.
+
+### Come riportare l'esito
+
+Per ogni elemento usare uno dei seguenti stati: **PASS locale**, **FAIL locale**, **non eseguito**, **non applicabile**. Per un FAIL allegare il comportamento atteso/effettivo e i log; correggere e rieseguire prima di dichiarare la milestone completata. L'agente deve lasciare nel riepilogo finale una sezione "Test locali richiesti" con gli elementi ancora aperti, anche se tutti i controlli CI sono verdi.
+
+## 4. Registro decisioni (ADR)
 
 | ADR | Data | Decisione | Motivazione |
 |---|---|---|---|
