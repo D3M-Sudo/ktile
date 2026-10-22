@@ -5,9 +5,13 @@
 //! back once per window and WM deviations are reported, never retried.
 
 use std::collections::{HashMap, HashSet};
+use std::thread;
+use std::time::Duration;
 
 use x11rb::connection::Connection;
-use x11rb::protocol::xproto::{ConfigureWindowAux, ConnectionExt, MapState, Window};
+use x11rb::protocol::xproto::{
+    ClientMessageData, ClientMessageEvent, ConnectionExt, EventMask, MapState, Window,
+};
 use x11rb::rust_connection::RustConnection;
 
 use crate::errors::KtileError;
@@ -114,6 +118,7 @@ pub fn apply_plan(
     plan: &Plan,
     allowed_windows: &HashSet<WindowId>,
     active_desktop: u32,
+    root: Window,
     atoms: &EwmhAtoms,
 ) -> Result<ApplyReport, KtileError> {
     let mut report = ApplyReport::default();
@@ -165,7 +170,7 @@ pub fn apply_plan(
                 continue;
             }
 
-            let current = match read_geometry(conn, window) {
+            let current = match read_geometry(conn, window, root, atoms) {
                 Ok(rect) => rect,
                 Err(reason) => {
                     report.outcomes.push(outcome(
@@ -186,12 +191,30 @@ pub fn apply_plan(
             }
 
             in_flight.begin(id, movement.target_rect);
-            let aux = ConfigureWindowAux::new()
-                .x(movement.target_rect.x)
-                .y(movement.target_rect.y)
-                .width(movement.target_rect.width)
-                .height(movement.target_rect.height);
-            match conn.configure_window(window, &aux) {
+            let flags = 10_u32
+                | (1 << 8)
+                | (1 << 9)
+                | (1 << 10)
+                | (1 << 11)
+                | (2 << 12);
+            let event = ClientMessageEvent::new(
+                32,
+                window,
+                atoms.moveresize_window,
+                ClientMessageData::from([
+                    flags,
+                    movement.target_rect.x as u32,
+                    movement.target_rect.y as u32,
+                    movement.target_rect.width,
+                    movement.target_rect.height,
+                ]),
+            );
+            match conn.send_event(
+                false,
+                root,
+                EventMask::SUBSTRUCTURE_REDIRECT | EventMask::SUBSTRUCTURE_NOTIFY,
+                event,
+            ) {
                 Ok(cookie) => {
                     report.requests_sent += 1;
                     pending.push((movement.clone(), cookie));
@@ -202,7 +225,7 @@ pub fn apply_plan(
                         id,
                         movement.target_rect,
                         ApplyStatus::Failed {
-                            reason: format!("could not queue ConfigureWindow: {error}"),
+                            reason: format!("could not send _NET_MOVERESIZE_WINDOW: {error}"),
                         },
                     ));
                 }
@@ -214,6 +237,9 @@ pub fn apply_plan(
         }
         conn.flush()
             .map_err(|error| KtileError::X11(format!("flush geometry requests: {error}")))?;
+        // ClientMessage delivery and WM processing are asynchronous. Wait a
+        // short bounded interval, then read back once; never retry deviations.
+        thread::sleep(Duration::from_millis(80));
 
         for (movement, cookie) in pending {
             let id = movement.window_id;
@@ -225,7 +251,7 @@ pub fn apply_plan(
                         reason: format!("ConfigureWindow rejected (window may have disappeared or WM denied it): {error}"),
                     }));
                 }
-                Ok(()) => match read_geometry(conn, id.0) {
+                Ok(()) => match read_geometry(conn, id.0, root, atoms) {
                     Err(reason) => {
                         in_flight.finish(id);
                         report
@@ -333,17 +359,49 @@ fn live_safety_check(
     Ok(())
 }
 
-fn read_geometry(conn: &RustConnection, window: Window) -> Result<Rect, String> {
+fn read_geometry(
+    conn: &RustConnection,
+    window: Window,
+    root: Window,
+    atoms: &EwmhAtoms,
+) -> Result<Rect, String> {
     let reply = conn
         .get_geometry(window)
         .map_err(|error| format!("window is gone: {error}"))?
         .reply()
         .map_err(|error| format!("window is gone: {error}"))?;
+    let translated = conn
+        .translate_coordinates(window, root, 0, 0)
+        .map_err(|error| format!("cannot translate window coordinates to root: {error}"))?
+        .reply()
+        .map_err(|error| format!("cannot translate window coordinates to root: {error}"))?;
+
+    let extents = conn
+        .get_property(
+            false,
+            window,
+            atoms.frame_extents,
+            x11rb::protocol::xproto::AtomEnum::CARDINAL,
+            0,
+            4,
+        )
+        .map_err(|error| format!("cannot read frame extents: {error}"))?
+        .reply()
+        .map_err(|error| format!("cannot read frame extents: {error}"))?;
+    let values: Vec<u32> = extents
+        .value32()
+        .map(|values| values.collect())
+        .unwrap_or_default();
+    let left = values.first().copied().unwrap_or(0);
+    let right = values.get(1).copied().unwrap_or(0);
+    let top = values.get(2).copied().unwrap_or(0);
+    let bottom = values.get(3).copied().unwrap_or(0);
+
     Ok(Rect {
-        x: i32::from(reply.x),
-        y: i32::from(reply.y),
-        width: u32::from(reply.width),
-        height: u32::from(reply.height),
+        x: i32::from(translated.dst_x).saturating_sub(left as i32),
+        y: i32::from(translated.dst_y).saturating_sub(top as i32),
+        width: u32::from(reply.width).saturating_add(left).saturating_add(right),
+        height: u32::from(reply.height).saturating_add(top).saturating_add(bottom),
     })
 }
 
