@@ -38,10 +38,12 @@ fn applies_live_window_and_safely_skips_window_destroyed_before_request() {
     let old_display = std::env::var("DISPLAY").ok();
     std::env::set_var("DISPLAY", ":96");
 
-    let connection = (0..40).find_map(|_| {
-        thread::sleep(Duration::from_millis(100));
-        connect().ok()
-    }).expect("Xvfb :96 should accept connections");
+    let connection = (0..40)
+        .find_map(|_| {
+            thread::sleep(Duration::from_millis(100));
+            connect().ok()
+        })
+        .expect("Xvfb :96 should accept connections");
     let (conn, screen_num) = connection;
     let screen = &conn.setup().roots[screen_num];
     let root = screen.root;
@@ -60,8 +62,14 @@ fn applies_live_window_and_safely_skips_window_destroyed_before_request() {
         WindowClass::INPUT_OUTPUT,
         screen.root_visual,
         &CreateWindowAux::new().event_mask(EventMask::STRUCTURE_NOTIFY),
-    ).expect("create test window").check().expect("create test window should succeed");
-    conn.map_window(live).expect("map test window").check().expect("map test window should succeed");
+    )
+    .expect("create test window")
+    .check()
+    .expect("create test window should succeed");
+    conn.map_window(live)
+        .expect("map test window")
+        .check()
+        .expect("map test window should succeed");
     conn.flush().expect("flush test setup");
 
     // This XID is deliberately never created: the safety gate must skip it.
@@ -69,11 +77,21 @@ fn applies_live_window_and_safely_skips_window_destroyed_before_request() {
     let plan = Plan::new(vec![
         WindowMove {
             window_id: WindowId(live),
-            target_rect: Rect { x: 30, y: 40, width: 200, height: 150 },
+            target_rect: Rect {
+                x: 30,
+                y: 40,
+                width: 200,
+                height: 150,
+            },
         },
         WindowMove {
             window_id: WindowId(dead),
-            target_rect: Rect { x: 300, y: 200, width: 200, height: 150 },
+            target_rect: Rect {
+                x: 300,
+                y: 200,
+                width: 200,
+                height: 150,
+            },
         },
     ]);
     let allowed = HashSet::from([WindowId(live), WindowId(dead)]);
@@ -82,10 +100,12 @@ fn applies_live_window_and_safely_skips_window_destroyed_before_request() {
 
     assert_eq!(report.requests_sent, 1, "only the live window may receive a request");
     assert_eq!(report.outcomes.len(), 2);
-    assert!(report.outcomes.iter().any(|o| o.window_id == WindowId(live)
-        && matches!(o.status, ApplyStatus::Applied { .. })));
-    assert!(report.outcomes.iter().any(|o| o.window_id == WindowId(dead)
-        && matches!(o.status, ApplyStatus::Skipped { .. })));
+    assert!(report.outcomes.iter().any(|o| {
+        o.window_id == WindowId(live) && matches!(o.status, ApplyStatus::Applied { .. })
+    }));
+    assert!(report.outcomes.iter().any(|o| {
+        o.window_id == WindowId(dead) && matches!(o.status, ApplyStatus::Skipped { .. })
+    }));
 
     let _ = conn.destroy_window(live);
     let _ = conn.flush();
