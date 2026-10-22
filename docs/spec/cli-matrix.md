@@ -8,7 +8,8 @@ Questa matrice descrive la CLI effettiva di `src/cli.rs` e `src/main.rs`; la pre
 | `ktile --check-config [--config PATH] [--layout dwindle\\|master-stack]` | M4 | no | valida TOML e stampa configurazione effettiva (l'override layout è accettato) | 0, 2, 3 (config invalida) |
 | `ktile --list-windows` | M4 | sì (read-only) | elenca client EWMH: XID + class + desktop + type | 0 (anche zero eleggibili, D4), 4 (no DISPLAY), 5/6 (EWMH) |
 | `ktile --dry-run --layout dwindle\|master-stack` | M4 | sì (read-only) | stampa piano XID→Rect, ZERO richieste | 0, 2, 3, 4, 5, 6 |
-| `ktile --layout dwindle\|master-stack` | M5 | sì (write) | applica piano, max 3 richieste/finestra | 0, 2, 3, 4, 5, 6 |
+| `ktile --layout dwindle\|master-stack` | M4/M5 | sì (read-only senza opt-in) | calcola e stampa piano; nessuna scrittura se manca `--allow-apply` | 0, 2, 3, 4, 5, 6 |
+| `ktile --allow-apply --layout dwindle\|master-stack` | M5 | sì (write opt-in) | gate live, richieste EWMH controllate, readback e report applicate/deviazioni/skipped/failed; massimo 3 richieste per batch | 0, 2, 3, 4, 5, 6 |
 | `ktile --daemon` | M6 (non implementato) | — | flag presente nel parser, ma event loop/daemon non implementato: non usarlo come funzione disponibile | da definire con M6 |
 
 ## Exit codes (D4, D6)
