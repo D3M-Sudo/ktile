@@ -1,41 +1,63 @@
-# Ktile — documentazione progettuale
+# Ktile
 
-Questa cartella contiene la documentazione progettuale per **Ktile**, tiler X11 cooperante con Muffin/Cinnamon (Linux Mint, sessione X11), riscrittura moderna ispirata all'esperienza Hyprland (layout dwindle a suddivisioni binarie e master-stack). Ktile è un client X11 esterno: **non** è un compositor e non sostituisce Muffin.
+Ktile è un tiler dinamico per **Linux Mint Cinnamon in sessione X11**, scritto in Rust e progettato per cooperare con Muffin anziché sostituirlo. Offre due layout: **Dwindle** (suddivisioni binarie persistenti) e **Master-Stack**, con geometria deterministica e gap configurabili.
 
-Questa versione (2026-10-22) documenta l'implementazione M5: applicazione manuale opt-in tramite `_NET_MOVERESIZE_WINDOW`, conversione geometrica consapevole di `_NET_FRAME_EXTENTS`, controlli di sicurezza live e report delle deviazioni del WM. I test automatici Xvfb/Openbox coprono applicazione, vincoli `WM_NORMAL_HINTS` e XID scomparso; la validazione su Cinnamon/Muffin reale resta aperta ed è tracciata in `docs/ROADMAP.md`. `docs/ARCHITECTURE.md` e `docs/ROADMAP.md` restano la fonte di verità tracciata del repository, aggiornata contestualmente a ogni modifica (ADR-13).
+> **Stato: prototipo in sviluppo.** M0–M2 e M4 sono implementate; M3 è sottoposta a verifica riproducibile di test e copertura. M5 supporta l'applicazione manuale opt-in, ma il gate di accettazione su Cinnamon/Muffin reale è ancora aperto. Il daemon automatico (M6), la compatibilità avanzata (M7) e il packaging (M8) non sono ancora disponibili.
 
-## Uso CLI M5
+## Principi
 
-Il comportamento predefinito e `--dry-run` sono read-only. Per applicare geometrie occorre il flag esplicito `--allow-apply`. Prima di provarlo su Cinnamon/Muffin, controllare il piano e seguire la checklist locale in `docs/ROADMAP.md`; i test Xvfb/Openbox non certificano il WM reale.
+- Muffin rimane responsabile di focus, stacking, decorazioni e workspace.
+- Ktile non è un compositor e non implementa blur, animazioni o bordi tramite hack grafici.
+- Il comportamento predefinito e `--dry-run` sono read-only. Per inviare richieste geometriche è necessario `--allow-apply`.
+- Nessun privilegio root e nessuna installazione di sistema richiesta per il progetto.
 
-## Documenti (fonte di verità)
-- `docs/ARCHITECTURE.md` — mappa concettuale, stack, albero directory, tabella moduli con stato, flusso dati. **Da aggiornare contestualmente a ogni decisione/cambio struttura.**
-- `docs/ROADMAP.md` — fasi (MVP/Fase 2/Optimization), checklist task M0–M8, registro ADR con date e motivazioni. **Da aggiornare contestualmente a ogni task completato.**
-- `docs/spec/01-project-overview.md` — scopo, obiettivi, fuori scope, direzione UX.
-- `docs/spec/02-architecture-rust-x11rb.md` — architettura e stack: **backend X11 scelto: x11rb** (decisione presa in analisi).
-- `docs/research/03-ewmh-muffin-compatibility.md` — ricerca e compatibilità EWMH/Muffin, protocollo di verifica su Mint.
-- `docs/spec/04-functional-specs-dwindle-master.md` — specifiche funzionali: layout core **dwindle e master-stack**, configurazione TOML, CLI, eleggibilità.
-- `docs/research/05-roadmap-m0-m8.md` — roadmap a milestone M0–M8 con gate, template per task di coding.
-- `docs/milestones/environment-baseline.md` — baseline M0 raccolta sul target.
+## Requisiti
 
-## Decisioni chiuse (2026-10-17)
-| # | Decisione | Esito |
-|---|---|---|
-| D1 | Nome progetto/app | **Ktile** (binario `ktile`, config `~/.config/ktile/config.toml`) |
-| D2 | Chiave gap esterno | unica chiave **`outer`** (coppia `inner`/`outer`) |
-| D3 | Ordine finestre | default `stable`; focus solo per la foglia target in dwindle, via `dwindle.split_target = "active"\|"mru"` (default `"active"`) |
-| D4 | "Nessuna finestra eleggibile" | exit **0** + log informativo (successo operativo) |
-| D5 | Layout core | **dwindle + master-stack**; vertical/horizontal/grid solo come test del motore geometrico |
-| D6 | Exit 6 | rifiuto solo per EWMH essenziale assente; nessuna whitelist di nomi WM |
-| D7 | Master-stack `new_status` | default **`slave`** |
-| D8 | Ripristino finestre sospese | posizione originaria se lo slot è identificabile, altrimenti nuova foglia |
-| D9 | Finestre sticky | escluse nella v1; rivalutazione obbligatoria in M7 |
+- Linux con sessione X11 e un window manager EWMH; target principale: Linux Mint Cinnamon/Muffin.
+- Rust stable e Cargo per compilare dai sorgenti.
+- Per i test d'integrazione X11: Xvfb, Openbox e dipendenze di sviluppo X11 indicate in [CI](.github/workflows/ci.yml).
 
-## Divergenza da risolvere prima di aggiornare il contratto
+## Compilazione e uso da sorgente
 
-La documentazione storica dichiara `~/.config/ktile/config.toml`, ma `src/main.rs` cerca `./ktile.toml` e poi `~/.config/ktile/ktile.toml`; se nessuno dei due esiste, usa i default in memoria. Non uniformare questo percorso solo per far combaciare i file: decidere prima quale percorso è quello corretto, quindi aggiornare codice, README, esempi e specifiche insieme.
+Dalla directory del repository:
 
-## Avvertenze
-- La documentazione è una base progettuale verificata rispetto all'analisi del Cortile originale, **non** un certificato di compatibilità Muffin: le affermazioni specifiche su Muffin devono essere verificate sulla versione target seguendo il protocollo in `docs/research/03-ewmh-muffin-compatibility.md`.
-- Il codice e questa documentazione sono aggiornati sul ramo di lavoro `feature-complete-roadmap` di `github.com/D3M-Sudo/ktile`: i file `src/layout/tree.rs`, `dwindle.rs`, `master_stack.rs`, i test `tests/layout_tree.rs`/`tests/layout_master.rs` e i fixture sono già in posto; la `docs/` di questo repository è la documentazione d'insieme.
-- I nomi dei file riflettono le decisioni prese: architettura Rust con backend `x11rb` (doc 02), specifiche dei layout core dwindle/master (doc 04), roadmap a milestone M0–M8 (doc 05).
+```bash
+cargo build
+cargo test
+cargo run -- --check-config
+cargo run -- --list-windows
+cargo run -- --dry-run --layout dwindle
+```
+
+Per applicare geometrie, solo dopo aver controllato il piano e aver predisposto una finestra di prova:
+
+```bash
+cargo run -- --allow-apply --layout dwindle
+```
+
+**Attenzione:** `--allow-apply` può spostare o ridimensionare le finestre eleggibili della sessione corrente. I test CI con Xvfb/Openbox non certificano il comportamento su Muffin. Prima di provarlo su un desktop reale, leggere la [procedura locale M5](docs/ROADMAP.md#procedura-operativa-m5-per-il-test-locale).
+
+Non è ancora disponibile una procedura di installazione/release stabile: il packaging utente è pianificato per M8.
+
+## Configurazione: contratto ancora da decidere
+
+Il percorso storico `~/.config/ktile/config.toml` diverge dal comportamento attuale del codice, che cerca `./ktile.toml` e poi `~/.config/ktile/ktile.toml`; senza file usa i default in memoria. La decisione è deliberatamente aperta: **non assumere che uno dei percorsi sia canonico**. Vedi [panoramica e nota di divergenza](docs/spec/01-project-overview.md#drift-da-risolvere-percorso-canonico-della-configurazione).
+
+## Documentazione per sviluppatori
+
+- [Roadmap e checklist di accettazione](docs/ROADMAP.md)
+- [Architettura e stato dei moduli](docs/ARCHITECTURE.md)
+- [Passaggio di consegne per agenti](docs/handover/HANDOVER.md)
+- [Panoramica e obiettivi](docs/spec/01-project-overview.md)
+- [Architettura Rust/x11rb](docs/spec/02-architecture-rust-x11rb.md)
+- [Specifiche funzionali e CLI](docs/spec/04-functional-specs-dwindle-master.md)
+- [Compatibilità EWMH/Muffin e protocollo di verifica](docs/research/03-ewmh-muffin-compatibility.md)
+
+Le verifiche manuali ancora aperte, inclusi i test M4 su pannelli/workarea e i test M5 su Cinnamon/Muffin, sono elencate in `docs/ROADMAP.md` e devono restare aperte finché non vengono eseguite sul target.
+
+## Contribuire
+
+- Leggere prima `AGENTS.md`, poi `docs/handover/HANDOVER.md`.
+- Mantenere `docs/ARCHITECTURE.md` e `docs/ROADMAP.md` coerenti con codice e test.
+- Eseguire fmt, Clippy, build, test e controlli coverage in GitHub Actions; non installare tool di sistema sull'host.
+- Non creare PR né fare merge senza esplicita autorizzazione del proprietario del repository.
