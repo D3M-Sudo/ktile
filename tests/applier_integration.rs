@@ -16,6 +16,7 @@ use ktile::x11::applier::{apply_plan, ApplyStatus};
 use ktile::x11::connection::{connect, EwmhAtoms};
 use ktile::x11::ewmh::verify_wm;
 use x11rb::connection::Connection;
+use x11rb::wrapper::ConnectionExt as WrapperConnectionExt;
 use x11rb::protocol::xproto::{
     AtomEnum, ConnectionExt, CreateWindowAux, EventMask, PropMode, WindowClass,
 };
