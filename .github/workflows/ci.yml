@@ -34,6 +34,10 @@ jobs:
       - name: Install X11 test deps
         run: sudo apt-get update && sudo apt-get install -y xvfb openbox x11-apps libxcb1-dev libx11-dev
       - run: cargo test
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+      - name: M3 layout line coverage (minimum 80%)
+        run: cargo llvm-cov --all-targets --include-files 'src/layout/.*' --fail-under-lines 80
       - name: X11 integration (isolated Xvfb per test)
         # NOTA: niente xvfb-run esterno — i test avviano Xvfb isolati su :97/:98/:99.
         # xvfb-run occuperebbe :99 e farebbe fallire test_xvfb_openbox_reading_and_events
