@@ -16,10 +16,10 @@ use ktile::x11::applier::{apply_plan, ApplyStatus};
 use ktile::x11::connection::{connect, EwmhAtoms};
 use ktile::x11::ewmh::verify_wm;
 use x11rb::connection::Connection;
-use x11rb::wrapper::ConnectionExt as WrapperConnectionExt;
 use x11rb::protocol::xproto::{
     AtomEnum, ConnectionExt, CreateWindowAux, EventMask, PropMode, WindowClass,
 };
+use x11rb::wrapper::ConnectionExt as WrapperConnectionExt;
 
 struct XvfbGuard(Child);
 
@@ -42,12 +42,6 @@ fn applies_live_window_and_safely_skips_window_destroyed_before_request() {
     let old_display = std::env::var("DISPLAY").ok();
     std::env::set_var("DISPLAY", ":96");
 
-    let wm = Command::new("openbox")
-        .env("DISPLAY", ":96")
-        .spawn()
-        .expect("Openbox must be installed in the CI test runner");
-    let _wm_guard = XvfbGuard(wm);
-
     let connection = (0..40)
         .find_map(|_| {
             thread::sleep(Duration::from_millis(100));
@@ -55,6 +49,12 @@ fn applies_live_window_and_safely_skips_window_destroyed_before_request() {
         })
         .expect("Xvfb :96 should accept connections");
     let (conn, screen_num) = connection;
+
+    let wm = Command::new("openbox")
+        .env("DISPLAY", ":96")
+        .spawn()
+        .expect("Openbox must be installed in the CI test runner");
+    let _wm_guard = XvfbGuard(wm);
     let screen = &conn.setup().roots[screen_num];
     let root = screen.root;
     let atoms = EwmhAtoms::new(&conn).expect("EWMH atoms should intern");
