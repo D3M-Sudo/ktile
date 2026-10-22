@@ -152,7 +152,24 @@ fn applies_ewmh_geometry_skips_vanished_window_and_reports_wm_deviation() {
         AtomEnum::WM_NORMAL_HINTS,
         AtomEnum::WM_SIZE_HINTS,
         &[
-            1 << 4, 0, 0, 600, 500, 400, 300, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1 << 4,
+            0,
+            0,
+            600,
+            500,
+            400,
+            300,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
         ],
     )
     .expect("set minimum size hints")
@@ -196,11 +213,7 @@ fn applies_ewmh_geometry_skips_vanished_window_and_reports_wm_deviation() {
             },
         },
     ]);
-    let allowed = HashSet::from([
-        WindowId(live),
-        WindowId(constrained),
-        WindowId(dead),
-    ]);
+    let allowed = HashSet::from([WindowId(live), WindowId(constrained), WindowId(dead)]);
     let report = apply_plan(&conn, &plan, &allowed, 0, root, &atoms)
         .expect("per-window X errors should be reported without aborting the batch");
 
