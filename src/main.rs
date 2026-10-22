@@ -161,7 +161,7 @@ fn run() -> Result<u8, KtileError> {
             .iter()
             .map(|movement| movement.window_id)
             .collect();
-        let report = apply_plan(&conn, &plan, &allowed, current_desktop, &atoms)?;
+        let report = apply_plan(&conn, &plan, &allowed, current_desktop, root, &atoms)?;
         println!("M5 geometry application report:");
         println!("  X11 write requests sent: {}", report.requests_sent);
         println!("  Applied/already correct: {}", report.applied_count());
