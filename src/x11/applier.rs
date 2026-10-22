@@ -158,7 +158,11 @@ pub fn apply_plan(
                 continue;
             }
             if let Err(reason) = live_safety_check(conn, window, active_desktop, atoms) {
-                report.outcomes.push(outcome(id, movement.target_rect, ApplyStatus::Skipped { reason }));
+                report.outcomes.push(outcome(
+                    id,
+                    movement.target_rect,
+                    ApplyStatus::Skipped { reason },
+                ));
                 continue;
             }
 
