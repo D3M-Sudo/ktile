@@ -533,6 +533,48 @@ mod tests {
     }
 
     #[test]
+    fn outer_geometry_is_converted_to_client_geometry_using_frame_extents() {
+        let outer = Rect {
+            x: 30,
+            y: 40,
+            width: 200,
+            height: 150,
+        };
+        let extents = FrameExtents {
+            left: 1,
+            right: 1,
+            top: 20,
+            bottom: 5,
+        };
+        assert_eq!(
+            to_client_geometry(outer, extents).unwrap(),
+            Rect {
+                x: 31,
+                y: 60,
+                width: 198,
+                height: 125,
+            }
+        );
+    }
+
+    #[test]
+    fn outer_geometry_rejects_slots_smaller_than_frame_extents() {
+        let outer = Rect {
+            x: 0,
+            y: 0,
+            width: 20,
+            height: 10,
+        };
+        let extents = FrameExtents {
+            left: 5,
+            right: 5,
+            top: 6,
+            bottom: 6,
+        };
+        assert!(to_client_geometry(outer, extents).is_err());
+    }
+
+    #[test]
     fn in_flight_geometry_matches_only_the_expected_rectangle() {
         let id = WindowId(42);
         let expected = Rect {
