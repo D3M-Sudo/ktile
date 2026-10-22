@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::path::PathBuf;
 use std::process::ExitCode;
 
@@ -8,6 +9,7 @@ use ktile::config::Config;
 use ktile::errors::KtileError;
 use ktile::state::eligibility::{is_eligible, ExcludeConfig};
 use ktile::state::reconciliation::{reconcile_read_only, take_snapshot};
+use ktile::x11::applier::{apply_plan, ApplyStatus};
 use ktile::x11::connection::{connect, EwmhAtoms};
 use ktile::x11::ewmh;
 use ktile::x11::monitor::read_workspace_area;
@@ -147,6 +149,30 @@ fn run() -> Result<u8, KtileError> {
 
     if cli.dry_run || !cli.allow_apply {
         println!("OK: 0 X11 write requests sent (read-only / dry-run mode).");
+        if !cli.dry_run && !cli.allow_apply {
+            println!("Per applicare le geometrie, usare esplicitamente --allow-apply (M5).");
+        }
+    } else {
+        // The plan was built from this fresh snapshot. Only IDs in the plan
+        // can pass the applier's allow-list; the applier rechecks live state
+        // immediately before each request.
+        let allowed: HashSet<_> = plan.moves.iter().map(|movement| movement.window_id).collect();
+        let report = apply_plan(&conn, &plan, &allowed, current_desktop, &atoms)?;
+        println!("M5 geometry application report:");
+        println!("  X11 write requests sent: {}", report.requests_sent);
+        println!("  Applied/already correct: {}", report.applied_count());
+        println!("  WM geometry deviations: {}", report.deviated_count());
+        println!("  Skipped by safety gate: {}", report.skipped_count());
+        println!("  Failed requests/readback: {}", report.failed_count());
+        for item in report.outcomes {
+            match item.status {
+                ApplyStatus::Applied { actual } => println!("  [APPLIED] 0x{:x}: {:?}", item.window_id.0, actual),
+                ApplyStatus::AlreadyCorrect => println!("  [OK] 0x{:x}: already at target", item.window_id.0),
+                ApplyStatus::Deviated { actual } => eprintln!("  [DEVIATION] 0x{:x}: requested {:?}, actual {:?}", item.window_id.0, item.target, actual),
+                ApplyStatus::Skipped { reason } => eprintln!("  [SKIPPED] 0x{:x}: {}", item.window_id.0, reason),
+                ApplyStatus::Failed { reason } => eprintln!("  [FAILED] 0x{:x}: {}", item.window_id.0, reason),
+            }
+        }
     }
 
     Ok(0)
