@@ -95,7 +95,7 @@ fn applies_live_window_and_safely_skips_window_destroyed_before_request() {
         },
     ]);
     let allowed = HashSet::from([WindowId(live), WindowId(dead)]);
-    let report = apply_plan(&conn, &plan, &allowed, 0, &atoms)
+    let report = apply_plan(&conn, &plan, &allowed, 0, root, &atoms)
         .expect("per-window X errors should be reported without aborting the batch");
 
     assert_eq!(
