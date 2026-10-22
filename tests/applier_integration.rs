@@ -15,7 +15,9 @@ use ktile::state::registry::WindowId;
 use ktile::x11::applier::{apply_plan, ApplyStatus};
 use ktile::x11::connection::{connect, EwmhAtoms};
 use x11rb::connection::Connection;
-use x11rb::protocol::xproto::{ConnectionExt, CreateWindowAux, EventMask, WindowClass, COPY_DEPTH_FROM_PARENT};
+use x11rb::protocol::xproto::{
+    ConnectionExt, CreateWindowAux, EventMask, WindowClass, COPY_DEPTH_FROM_PARENT,
+};
 
 struct XvfbGuard(Child);
 
@@ -98,7 +100,10 @@ fn applies_live_window_and_safely_skips_window_destroyed_before_request() {
     let report = apply_plan(&conn, &plan, &allowed, 0, &atoms)
         .expect("per-window X errors should be reported without aborting the batch");
 
-    assert_eq!(report.requests_sent, 1, "only the live window may receive a request");
+    assert_eq!(
+        report.requests_sent, 1,
+        "only the live window may receive a request"
+    );
     assert_eq!(report.outcomes.len(), 2);
     assert!(report.outcomes.iter().any(|o| {
         o.window_id == WindowId(live) && matches!(o.status, ApplyStatus::Applied { .. })
