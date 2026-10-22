@@ -68,10 +68,12 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 - Nota design (PR #2): `reconcile_read_only` M4 count-based (sequenza standard di inserimento); piano incrementale su albero con `split_target=active` atteso in M6.
 
 ### M5 — Applicazione manuale
-- [ ] `x11/applier.rs` (gate richieste, geometry-in-flight, BadWindow, max 3 per burst)
-- [ ] Test con mock (deviazione WM, finestra morta mid-flight)
-- [ ] Manuali target: finestra singola, dialogo immobile, fullscreen intatto, minimizzata intatta, chiusura durante applicazione, assenza loop
-- [ ] Gate: ≥90% finestre standard entro 2px, altrimenti stop e documentazione
+- [x] Implementare `x11/applier.rs`: gate live prima di ogni richiesta, protezione finestre non viewable/fullscreen/hidden/transient/non-NORMAL/sticky o su altro desktop, geometria validata, `_NET_MOVERESIZE_WINDOW` con StaticGravity, lettura geometria reale root/frame-aware, report delle deviazioni senza retry, massimo 3 richieste per batch.
+- [x] Integrare l'applicazione solo con opt-in esplicito `--allow-apply`; `--dry-run` e il comportamento predefinito restano read-only.
+- [ ] CI Xvfb/Openbox: test di applicazione effettiva, deviazione per `WM_NORMAL_HINTS` min-size e finestra scomparsa; chiudere solo con test verde.
+- [ ] Test race deterministico: finestra distrutta tra controllo live e risposta del WM (il percorso d'errore è gestito, ma il test race resta da validare).
+- [ ] Manuali target: finestra singola, dialogo immobile, fullscreen intatto, minimizzata intatta, chiusura durante applicazione, assenza loop.
+- [ ] Gate target: ≥90% finestre standard entro 2px; in caso contrario stop e documentazione del comportamento Muffin osservato.
 
 ### M6 — Auto-tiling
 - [ ] `daemon.rs` (foreground opt-in), `events.rs` completo, `reconciliation.rs` (piano incrementale su albero con `split_target=active`, evoluzione del count-based M4)
