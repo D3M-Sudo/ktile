@@ -14,8 +14,11 @@ use ktile::layout::plan::{Plan, WindowMove};
 use ktile::state::registry::WindowId;
 use ktile::x11::applier::{apply_plan, ApplyStatus};
 use ktile::x11::connection::{connect, EwmhAtoms};
+use ktile::x11::ewmh::verify_wm;
 use x11rb::connection::Connection;
-use x11rb::protocol::xproto::{ConnectionExt, CreateWindowAux, EventMask, WindowClass};
+use x11rb::protocol::xproto::{
+    AtomEnum, ConnectionExt, CreateWindowAux, EventMask, PropMode, WindowClass,
+};
 
 struct XvfbGuard(Child);
 
@@ -33,10 +36,16 @@ fn applies_live_window_and_safely_skips_window_destroyed_before_request() {
         .args([":96", "-screen", "0", "1280x800x24", "-nolisten", "tcp"])
         .spawn()
         .expect("Xvfb must be installed in the CI test runner");
-    let _guard = XvfbGuard(child);
+    let _xvfb_guard = XvfbGuard(child);
 
     let old_display = std::env::var("DISPLAY").ok();
     std::env::set_var("DISPLAY", ":96");
+
+    let wm = Command::new("openbox")
+        .env("DISPLAY", ":96")
+        .spawn()
+        .expect("Openbox must be installed in the CI test runner");
+    let _wm_guard = XvfbGuard(wm);
 
     let connection = (0..40)
         .find_map(|_| {
@@ -47,7 +56,12 @@ fn applies_live_window_and_safely_skips_window_destroyed_before_request() {
     let (conn, screen_num) = connection;
     let screen = &conn.setup().roots[screen_num];
     let root = screen.root;
-    let atoms = EwmhAtoms::new(&conn).expect("EWMH atoms should intern without a WM");
+    let atoms = EwmhAtoms::new(&conn).expect("EWMH atoms should intern");
+    let wm_ready = (0..40).any(|_| {
+        thread::sleep(Duration::from_millis(100));
+        verify_wm(&conn, root, &atoms).is_ok()
+    });
+    assert!(wm_ready, "Openbox should publish EWMH properties");
 
     let live = conn.generate_id().expect("allocate live XID");
     conn.create_window(
@@ -66,14 +80,35 @@ fn applies_live_window_and_safely_skips_window_destroyed_before_request() {
     .expect("create test window")
     .check()
     .expect("create test window should succeed");
+    conn.change_property32(
+        PropMode::REPLACE,
+        live,
+        atoms.wm_window_type,
+        AtomEnum::ATOM,
+        &[atoms.wm_window_type_normal],
+    )
+    .expect("set normal window type")
+    .check()
+    .expect("normal window type property should succeed");
+    conn.change_property32(
+        PropMode::REPLACE,
+        live,
+        atoms.wm_desktop,
+        AtomEnum::CARDINAL,
+        &[0],
+    )
+    .expect("set active desktop")
+    .check()
+    .expect("desktop property should succeed");
     conn.map_window(live)
         .expect("map test window")
         .check()
         .expect("map test window should succeed");
     conn.flush().expect("flush test setup");
+    thread::sleep(Duration::from_millis(500));
 
-    // This XID is deliberately never created: the safety gate must skip it.
-    let dead = live.wrapping_add(0x10000);
+    // Allocate an XID but deliberately never create the corresponding window.
+    let dead = conn.generate_id().expect("allocate dead XID");
     let plan = Plan::new(vec![
         WindowMove {
             window_id: WindowId(live),
