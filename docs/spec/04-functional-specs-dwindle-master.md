@@ -10,12 +10,15 @@ ktile --check-config
 ktile --list-windows
 ktile --dry-run --layout dwindle|master-stack
 ktile --layout dwindle|master-stack
+ktile --allow-apply --layout dwindle|master-stack
 ktile --daemon
 ```
 
-- `--layout` ha default da config; `--dry-run` stampa il piano senza applicarlo.
+- `--layout` ha default da config; `--dry-run` stampa il piano senza applicarlo. Anche senza `--dry-run`, il comportamento resta read-only: per inviare richieste geometriche occorre `--allow-apply` esplicito (M5).
 - `--daemon` è foreground e opt-in; niente PID file, niente fork; shutdown su SIGTERM/SIGINT entro 1 s.
 - `--check-config` valida e stampa la config effettiva; nessuna connessione richiesta.
+- `--allow-apply` abilita l'applicazione M5 solo dopo il gate live dell'applier; la CI Xvfb/Openbox non sostituisce la verifica su Cinnamon/Muffin.
+- `--daemon` è presente nel parser ma il daemon M6 non è ancora implementato: non considerarlo una funzione disponibile.
 
 ## 2. Configurazione TOML
 
@@ -51,7 +54,7 @@ instances = ["conky"]
 title_regex = ["^np\.vc\.virtualbox$"]
 ```
 
-Regole di validazione (`--check-config`): gap non negativi e < metà dell'area minima; enum chiusi; regex compilabili; chiavi sconosciute → warning o errore secondo policy (default: errore). Default conservativi; config assente → creazione con commenti.
+Regole di validazione (`--check-config`): gap non negativi e < metà dell'area minima; enum chiusi; regex compilabili; chiavi sconosciute → warning o errore secondo policy (default: errore). Default conservativi; se la configurazione non viene trovata il programma usa i default in memoria (non crea automaticamente un file). `--config PATH` esplicito con file mancante produce errore.
 
 ## 3. Eleggibilità delle finestre
 
@@ -150,3 +153,8 @@ Log su stderr con livelli (error/warn/info/debug); opzione verbosity; nessun log
 - D3: `focus_first` non esiste più; uso di `dwindle.split_target`.
 - D7: `new_is_master = true` equivale a `new_status = "master"` (se entrambi presenti e in conflitto → errore di validazione).
 - Alias legacy generici: un solo alias per chiave, documentato, con warning di deprecazione.
+
+
+## 5. Divergenza documentale: percorso config
+
+Il codice corrente cerca `./ktile.toml` e poi `~/.config/ktile/ktile.toml`; la panoramica storica indica `~/.config/ktile/config.toml`. Il percorso canonico resta da decidere: non modificare codice o specifiche su questo punto finché non è stata confermata la fonte contrattuale desiderata.
