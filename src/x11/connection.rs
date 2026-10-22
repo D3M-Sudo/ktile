@@ -23,6 +23,8 @@ pub struct EwmhAtoms {
     pub wm_window_type_dock: Atom,
     pub wm_state_fullscreen: Atom,
     pub wm_state_hidden: Atom,
+    pub moveresize_window: Atom,
+    pub frame_extents: Atom,
 }
 
 impl EwmhAtoms {
@@ -51,6 +53,8 @@ impl EwmhAtoms {
             wm_window_type_dock: intern(b"_NET_WM_WINDOW_TYPE_DOCK")?,
             wm_state_fullscreen: intern(b"_NET_WM_STATE_FULLSCREEN")?,
             wm_state_hidden: intern(b"_NET_WM_STATE_HIDDEN")?,
+            moveresize_window: intern(b"_NET_MOVERESIZE_WINDOW")?,
+            frame_extents: intern(b"_NET_FRAME_EXTENTS")?,
         })
     }
 }
