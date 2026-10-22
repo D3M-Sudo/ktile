@@ -218,7 +218,6 @@ fn applies_ewmh_geometry_skips_vanished_window_and_reports_wm_deviation() {
         .expect("per-window X errors should be reported without aborting the batch");
 
     assert_eq!(report.requests_sent, 2);
-    println!("M5 report: {report:#?}");
     assert_eq!(report.outcomes.len(), 3);
     assert!(report.outcomes.iter().any(|o| {
         o.window_id == WindowId(live) && matches!(o.status, ApplyStatus::Applied { .. })
