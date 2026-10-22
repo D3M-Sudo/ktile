@@ -25,6 +25,14 @@ use crate::x11::{ewmh, icccm};
 /// verified before another batch can start.
 pub const MAX_REQUESTS_PER_BURST: usize = 3;
 
+#[derive(Debug, Clone, Copy, Default)]
+struct FrameExtents {
+    left: u32,
+    right: u32,
+    top: u32,
+    bottom: u32,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ApplyStatus {
     Applied { actual: Rect },
@@ -190,6 +198,37 @@ pub fn apply_plan(
                 continue;
             }
 
+            let extents = match read_frame_extents(conn, window, atoms) {
+                Ok(extents) => extents,
+                Err(reason) => {
+                    report.outcomes.push(outcome(
+                        id,
+                        movement.target_rect,
+                        ApplyStatus::Skipped { reason },
+                    ));
+                    continue;
+                }
+            };
+            let client_target = match to_client_geometry(movement.target_rect, extents) {
+                Ok(rect) => rect,
+                Err(reason) => {
+                    report.outcomes.push(outcome(
+                        id,
+                        movement.target_rect,
+                        ApplyStatus::Skipped { reason },
+                    ));
+                    continue;
+                }
+            };
+            if let Err(reason) = validate_target(client_target) {
+                report.outcomes.push(outcome(
+                    id,
+                    movement.target_rect,
+                    ApplyStatus::Skipped { reason },
+                ));
+                continue;
+            }
+
             in_flight.begin(id, movement.target_rect);
             let flags = 10_u32 | (1 << 8) | (1 << 9) | (1 << 10) | (1 << 11) | (2 << 12);
             let event = ClientMessageEvent::new(
@@ -198,10 +237,10 @@ pub fn apply_plan(
                 atoms.moveresize_window,
                 ClientMessageData::from([
                     flags,
-                    movement.target_rect.x as u32,
-                    movement.target_rect.y as u32,
-                    movement.target_rect.width,
-                    movement.target_rect.height,
+                    client_target.x as u32,
+                    client_target.y as u32,
+                    client_target.width,
+                    client_target.height,
                 ]),
             );
             match conn.send_event(
@@ -285,6 +324,64 @@ fn outcome(window_id: WindowId, target: Rect, status: ApplyStatus) -> ApplyOutco
         target,
         status,
     }
+}
+
+fn read_frame_extents(
+    conn: &RustConnection,
+    window: Window,
+    atoms: &EwmhAtoms,
+) -> Result<FrameExtents, String> {
+    let reply = conn
+        .get_property(
+            false,
+            window,
+            atoms.frame_extents,
+            x11rb::protocol::xproto::AtomEnum::CARDINAL,
+            0,
+            4,
+        )
+        .map_err(|error| format!("cannot read frame extents: {error}"))?
+        .reply()
+        .map_err(|error| format!("cannot read frame extents: {error}"))?;
+    let values: Vec<u32> = reply
+        .value32()
+        .map(|values| values.collect())
+        .unwrap_or_default();
+    Ok(FrameExtents {
+        left: values.first().copied().unwrap_or(0),
+        right: values.get(1).copied().unwrap_or(0),
+        top: values.get(2).copied().unwrap_or(0),
+        bottom: values.get(3).copied().unwrap_or(0),
+    })
+}
+
+fn to_client_geometry(outer: Rect, extents: FrameExtents) -> Result<Rect, String> {
+    let x = outer
+        .x
+        .checked_add(extents.left as i32)
+        .ok_or_else(|| "target x overflows while accounting for frame extents".to_string())?;
+    let y = outer
+        .y
+        .checked_add(extents.top as i32)
+        .ok_or_else(|| "target y overflows while accounting for frame extents".to_string())?;
+    let horizontal_extents = extents.left.saturating_add(extents.right);
+    let vertical_extents = extents.top.saturating_add(extents.bottom);
+    let width = outer
+        .width
+        .checked_sub(horizontal_extents)
+        .filter(|width| *width > 0)
+        .ok_or_else(|| "target is too narrow for the window frame extents".to_string())?;
+    let height = outer
+        .height
+        .checked_sub(vertical_extents)
+        .filter(|height| *height > 0)
+        .ok_or_else(|| "target is too short for the window frame extents".to_string())?;
+    Ok(Rect {
+        x,
+        y,
+        width,
+        height,
+    })
 }
 
 fn validate_target(rect: Rect) -> Result<(), String> {
@@ -371,36 +468,17 @@ fn read_geometry(
         .reply()
         .map_err(|error| format!("cannot translate window coordinates to root: {error}"))?;
 
-    let extents = conn
-        .get_property(
-            false,
-            window,
-            atoms.frame_extents,
-            x11rb::protocol::xproto::AtomEnum::CARDINAL,
-            0,
-            4,
-        )
-        .map_err(|error| format!("cannot read frame extents: {error}"))?
-        .reply()
-        .map_err(|error| format!("cannot read frame extents: {error}"))?;
-    let values: Vec<u32> = extents
-        .value32()
-        .map(|values| values.collect())
-        .unwrap_or_default();
-    let left = values.first().copied().unwrap_or(0);
-    let right = values.get(1).copied().unwrap_or(0);
-    let top = values.get(2).copied().unwrap_or(0);
-    let bottom = values.get(3).copied().unwrap_or(0);
+    let extents = read_frame_extents(conn, window, atoms)?;
 
     Ok(Rect {
-        x: i32::from(translated.dst_x).saturating_sub(left as i32),
-        y: i32::from(translated.dst_y).saturating_sub(top as i32),
+        x: i32::from(translated.dst_x).saturating_sub(extents.left as i32),
+        y: i32::from(translated.dst_y).saturating_sub(extents.top as i32),
         width: u32::from(reply.width)
-            .saturating_add(left)
-            .saturating_add(right),
+            .saturating_add(extents.left)
+            .saturating_add(extents.right),
         height: u32::from(reply.height)
-            .saturating_add(top)
-            .saturating_add(bottom),
+            .saturating_add(extents.top)
+            .saturating_add(extents.bottom),
     })
 }
 
