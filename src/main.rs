@@ -170,11 +170,22 @@ fn run() -> Result<u8, KtileError> {
         println!("  Failed requests/readback: {}", report.failed_count());
         for item in report.outcomes {
             match item.status {
-                ApplyStatus::Applied { actual } => println!("  [APPLIED] 0x{:x}: {:?}", item.window_id.0, actual),
-                ApplyStatus::AlreadyCorrect => println!("  [OK] 0x{:x}: already at target", item.window_id.0),
-                ApplyStatus::Deviated { actual } => eprintln!("  [DEVIATION] 0x{:x}: requested {:?}, actual {:?}", item.window_id.0, item.target, actual),
-                ApplyStatus::Skipped { reason } => eprintln!("  [SKIPPED] 0x{:x}: {}", item.window_id.0, reason),
-                ApplyStatus::Failed { reason } => eprintln!("  [FAILED] 0x{:x}: {}", item.window_id.0, reason),
+                ApplyStatus::Applied { actual } => {
+                    println!("  [APPLIED] 0x{:x}: {:?}", item.window_id.0, actual)
+                }
+                ApplyStatus::AlreadyCorrect => {
+                    println!("  [OK] 0x{:x}: already at target", item.window_id.0)
+                }
+                ApplyStatus::Deviated { actual } => eprintln!(
+                    "  [DEVIATION] 0x{:x}: requested {:?}, actual {:?}",
+                    item.window_id.0, item.target, actual
+                ),
+                ApplyStatus::Skipped { reason } => {
+                    eprintln!("  [SKIPPED] 0x{:x}: {}", item.window_id.0, reason)
+                }
+                ApplyStatus::Failed { reason } => {
+                    eprintln!("  [FAILED] 0x{:x}: {}", item.window_id.0, reason)
+                }
             }
         }
     }
