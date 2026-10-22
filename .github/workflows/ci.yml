@@ -36,8 +36,31 @@ jobs:
       - run: cargo test
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
-      - name: M3 layout line coverage (minimum 80%)
-        run: cargo llvm-cov --all-targets --include-files 'src/layout/.*' --fail-under-lines 80
+      - name: M3 layout line coverage report
+        run: cargo llvm-cov --all-targets --json --output-path coverage.json
+      - name: Enforce M3 layout line coverage (minimum 80%)
+        run: |
+          python3 - <<'PY'
+          import json
+          import sys
+
+          with open("coverage.json", encoding="utf-8") as report_file:
+              report = json.load(report_file)
+
+          files = [
+              item for item in report["data"][0]["files"]
+              if "/src/layout/" in item["filename"].replace("\\\\", "/")
+          ]
+          if not files:
+              print("ERROR: coverage report contains no src/layout/ files")
+              sys.exit(1)
+
+          lines_found = sum(item["summary"]["lines"]["count"] for item in files)
+          lines_hit = sum(item["summary"]["lines"]["covered"] for item in files)
+          percentage = 100.0 * lines_hit / lines_found if lines_found else 100.0
+          print(f"src/layout line coverage: {lines_hit}/{lines_found} = {percentage:.2f}%")
+          sys.exit(0 if percentage >= 80.0 else 1)
+          PY
       - name: X11 integration (isolated Xvfb per test)
         # NOTA: niente xvfb-run esterno — i test avviano Xvfb isolati su :97/:98/:99.
         # xvfb-run occuperebbe :99 e farebbe fallire test_xvfb_openbox_reading_and_events
