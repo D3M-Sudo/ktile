@@ -156,7 +156,11 @@ fn run() -> Result<u8, KtileError> {
         // The plan was built from this fresh snapshot. Only IDs in the plan
         // can pass the applier's allow-list; the applier rechecks live state
         // immediately before each request.
-        let allowed: HashSet<_> = plan.moves.iter().map(|movement| movement.window_id).collect();
+        let allowed: HashSet<_> = plan
+            .moves
+            .iter()
+            .map(|movement| movement.window_id)
+            .collect();
         let report = apply_plan(&conn, &plan, &allowed, current_desktop, &atoms)?;
         println!("M5 geometry application report:");
         println!("  X11 write requests sent: {}", report.requests_sent);
