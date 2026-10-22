@@ -23,29 +23,28 @@ Escluse: `xcb`, `x11-dl`, dbus/zbus, crate di rete, tray, GUI, animazioni.
 
 ## 3. Componenti e confini
 
+**Stato effettivo al 2026-10-22:** M1–M4 sono implementate e M5 ha un applier manuale opt-in (`--allow-apply`) con gate live e readback. Il daemon/event loop, il piano incrementale basato sull'albero persistente e il coalescing degli eventi non sono ancora implementati: restano obiettivi M6, non descrivere il diagramma seguente come flusso già attivo.
+
 ```text
 CLI / config (cli.rs, config.rs)
     |
     v
-Config loader -> validation + defaults
+main.rs -> config validation -> X11 connect + EWMH checks
     |
     v
-daemon.rs (event loop, shutdown) -- DomainEvent -->
+snapshot client/workspace/area (x11/ewmh, monitor, icccm)
     |
     v
-x11/  <----> X server / Muffin (EWMH + ICCCM, lettura + sole richieste geometriche)
+eligibility + reconciliation read-only (state/)
     |
     v
-state/  registry -> eligibility -> workspaces/monitors
+layout/ pure geometry + plan
     |
     v
-layout/  MOTORE PURO: geometry, tree (dwindle), master_stack, plan
-    |
-    v
-x11/applier.rs  piano -> richieste controllate (lock anti-feedback, BadWindow)
-    |
-    v
-log / diagnostica, errors (codici uscita)
+[default / --dry-run] stampa piano, nessuna richiesta di scrittura
+[--allow-apply] x11/applier.rs -> gate live -> _NET_MOVERESIZE_WINDOW -> readback/report
+
+FUTURO M6 (non implementato): eventi X11 -> daemon -> aggiornamento stato e piano incrementale
 ```
 
 Regole dei confini:
@@ -53,8 +52,8 @@ Regole dei confini:
 1. **`layout/` non conosce X11**: input astratto (`WorkspaceArea`, `Vec<WindowSlot>`, `LayoutOptions`), output `Vec<(WindowId, Rect)>`. `WindowId` è un newtype opaco.
 2. **`state/` non parla col server**: riceve snapshot da `x11/` come tipi di dominio (`WindowMeta`, `Monitor`, `Workspace`).
 3. **`x11/` è l'unico strato che tocca la connessione**; errori tipizzati (`ConnectionLost`, `BadWindow(id)`, `EwmhMissing(atom)`).
-4. **`applier` è l'unico punto che invia geometrie**; ogni richiesta passa un gate (esiste, eleggibile, non fullscreen, geometria valida) e registra la "geometry in flight".
-5. **Event loop** traduce eventi X11 in `DomainEvent` (WindowMapped/Unmapped/Destroyed, PropertiesChanged, WorkspaceChanged, MonitorChanged, FocusChanged); il ricalcolo è conseguenza dello stato, non dell'evento grezzo.
+4. **`applier` è l'unico punto che invia geometrie**; l'applicazione è disattivata di default e richiede `--allow-apply`; ogni richiesta passa il gate live e produce esito/readback.
+5. **Event loop (M6, non implementato)** dovrà tradurre eventi X11 in eventi di dominio e guidare riconciliazioni selettive; il codice corrente esegue un singolo snapshot/piano per invocazione CLI.
 6. **Shutdown**: stop cooperativo, nessuna richiesta ri-inviata, connessione chiusa; Ktile non "ripristina" nulla all'uscita.
 
 ## 4. Struttura moduli
@@ -63,7 +62,7 @@ Regole dei confini:
 src/
   main.rs                  wiring, codici uscita
   cli.rs                   clap: --check-config --list-windows --dry-run
-                           --layout L --daemon --config PATH --version
+                           --layout L --allow-apply --daemon --config PATH --version
   config.rs                TOML -> Config validata (serde), limiti, defaults
   errors.rs                KtileError -> exit code
   x11/
@@ -73,7 +72,7 @@ src/
     ewmh.rs                lettura proprietà EWMH
     icccm.rs               WM_CLASS, transient, normal hints (sola lettura)
     monitor.rs             RandR heads, workarea, strut -> WorkspaceArea
-    applier.rs             configure requests, anti-feedback, BadWindow
+    applier.rs             _NET_MOVERESIZE_WINDOW, safety gate, frame-aware readback
   state/
     registry.rs            WindowId -> WindowState (Active|Suspended|Excluded|Gone)
     eligibility.rs         policy di esclusione
@@ -181,3 +180,8 @@ Albero **persistente** (equivalente a `preserve_split=true` di Hyprland): direzi
 ## 13. Limiti del riferimento Hyprland
 
 Hyprland gestisce compositor, rendering, animazioni e input nella propria architettura Wayland. Ktile può riprodurre tiling, gaps e convenzioni UX, non effetti grafici né eventi pointer-aware. Nessuna dipendenza da API Hyprland/Wayland.
+
+
+## 5. Divergenza da risolvere: percorso del file di configurazione
+
+`src/main.rs` cerca prima `./ktile.toml`, poi `~/.config/ktile/ktile.toml`; se non trova nessun file usa i default, mentre `--config PATH` esplicito senza file fallisce. Alcune specifiche storiche indicano `~/.config/ktile/config.toml` e la configurazione esempio è chiamata `config.example.toml`. Questa differenza è stata verificata direttamente nel codice ma non va risolta aggiornando unilateralmente i documenti: stabilire prima il percorso canonico voluto e poi aggiornare implementazione, esempi e tutte le specifiche in modo coerente.
