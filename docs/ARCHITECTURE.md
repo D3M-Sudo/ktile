@@ -1,7 +1,7 @@
 # ARCHITECTURE — Ktile
 
 > Fonte di verità architetturale del progetto. **Regola operativa permanente:** ogni decisione architetturale, nuova funzione, cambio di stato di un modulo o riorganizzazione dei file aggiorna **contestualmente** questo file e/o `ROADMAP.md` (entrambi in `docs/`). Ogni proposta di codice include l'aggiornamento corrispondente.
-> Stato redazione: 2026-10-20 — M1 chiuso in cloud (rustc/cargo 1.94.0, build/clippy/test verdi, test Xvfb+openbox); M2 completato in cloud (25/25 fixture verdi); **M3 layout core (tree.rs, dwindle.rs, master_stack.rs) completato** con test allineati e simulazione geometrica validata; moduli `monitor` ed `eligibility` implementati e testati.
+> Stato redazione: 2026-10-22 — M1–M4 implementati e verificati in cloud; **M5 applicazione manuale implementata** con opt-in esplicito `--allow-apply`, gate di sicurezza live, richieste EWMH frame-aware, readback e report delle deviazioni. `cargo fmt --check`, Clippy, build, unit/integration test X11 e integrazione applier Xvfb/Openbox sono verdi su GitHub Actions. Restano aperti il test deterministico della race di distruzione finestra e l'accettazione manuale su Cinnamon/Muffin reale (vedi `ROADMAP.md`); non dichiarare superato il gate del target prima di quel test.
 
 ## 1. Mappa concettuale e stack tecnologico
 
