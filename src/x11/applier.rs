@@ -191,12 +191,7 @@ pub fn apply_plan(
             }
 
             in_flight.begin(id, movement.target_rect);
-            let flags = 10_u32
-                | (1 << 8)
-                | (1 << 9)
-                | (1 << 10)
-                | (1 << 11)
-                | (2 << 12);
+            let flags = 10_u32 | (1 << 8) | (1 << 9) | (1 << 10) | (1 << 11) | (2 << 12);
             let event = ClientMessageEvent::new(
                 32,
                 window,
@@ -400,12 +395,8 @@ fn read_geometry(
     Ok(Rect {
         x: i32::from(translated.dst_x).saturating_sub(left as i32),
         y: i32::from(translated.dst_y).saturating_sub(top as i32),
-        width: u32::from(reply.width)
-            .saturating_add(left)
-            .saturating_add(right),
-        height: u32::from(reply.height)
-            .saturating_add(top)
-            .saturating_add(bottom),
+        width: u32::from(reply.width).saturating_add(left).saturating_add(right),
+        height: u32::from(reply.height).saturating_add(top).saturating_add(bottom),
     })
 }
 
