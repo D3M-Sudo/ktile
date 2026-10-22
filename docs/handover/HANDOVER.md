@@ -1,8 +1,8 @@
 # HANDOVER — Ktile (2026-10-22)
 
 > File di passaggio di consegne per una nuova sessione/agente.
-> Branch di lavoro: `feature-complete-roadmap` (sviluppo M5 e aggiornamento documentazione). La CI documentale precedente era verde il 2026-10-22; la run corrente con misurazione coverage M3 va verificata prima di dichiarare M3 accettata.
-> Fase: **M0–M2 e M4 implementate; M3 implementata nel codice ma in verifica test/coverage; M5 implementata con gate target ancora aperto**. Non creare PR né fare merge senza richiesta esplicita.
+> Branch di lavoro: `feature-complete-roadmap` (sviluppo M5 e aggiornamento documentazione). CI run #39843748187 completata con successo il 2026-10-22: test, fmt, Clippy, build e integrazioni Xvfb/Openbox verdi; coverage `src/layout/` = 89,66% (650/725), sopra la soglia dell'80%.
+> Fase: **M0–M5 implementate a livello di codice; M3 accettata dai gate automatici (coverage 89,66%); M5 con gate target ancora aperto**. Non creare PR né fare merge senza richiesta esplicita.
 
 ## 1. Cos'è Ktile (30 secondi)
 
@@ -20,7 +20,7 @@ Muffin resta autorevole su focus/stacking/decorazioni/workspace.
 | M0 baseline | ✅ completata e committata (`2c5c9f2`) | `docs/milestones/environment-baseline.md`: Mint 22.3, Cinnamon 6.6.9, Muffin 6.6.3, X11 `:0`, x86_64, tool X11 presenti, 4 desktop, workarea 1920×1040. |
 | M1 Gate | ✅ **Chiuso in cloud** (2026-10-19) **e confermato su target** (2026-10-20) | Cloud: toolchain Rust 1.94.0 (ADR-15), `cargo build/fmt/clippy/test` verdi, integrazione Xvfb + openbox. Target: osservazioni residue B5/B6 eseguite (M1-findings §2c), grep 0 match rieseguito; conteggi test: 15 suite plain / 20 totali con `--ignored` (9+4+2+5). |
 | M2 Core Geometrico | ✅ **Completato in cloud** (2026-10-19) | `src/layout/{geometry.rs, plan.rs}` e `tests/geometry.rs`. 25/25 fixture da `fixtures-geometry.json` verificate con esito positivo e invarianti rispettate. |
-| M3 Dwindle / Master-Stack | ⚠️ Implementata; verifica di accettazione documentale in corso | Moduli `src/layout/{tree.rs,dwindle.rs,master_stack.rs}` e test `tests/layout_tree.rs` / `tests/layout_master.rs` presenti. La soglia ≥80% non era misurata: ora è un gate esplicito CI; non marcare M3 completata finché la run non conferma test e coverage. |
+| M3 Dwindle / Master-Stack | ✅ Completata e verificata in CI (2026-10-22) | Moduli `src/layout/{tree.rs,dwindle.rs,master_stack.rs}` e test `tests/layout_tree.rs` / `tests/layout_master.rs`. CI run #39843748187: `cargo test` verde e line coverage `src/layout/` = 89,66% (650/725), sopra la soglia ≥80%. |
 | Moduli Lettura | ✅ **Completati in cloud** (2026-10-19) | `src/x11/monitor.rs` (RandR + workarea -> `WorkspaceArea`, guardrail single-monitor) e `src/state/eligibility.rs` (`is_eligible` con 9 test unitari). |
 | M4 Config/CLI/Reconcile | ✅ implementata | Config TOML (`src/config.rs`), CLI (`src/cli.rs`), reconciliation read-only count-based, lettore ICCCM e modelli workspace. La verifica target del calcolo area/pannelli resta da eseguire. |
 | Residui B5/B6 Target | ✅ **Completati su target** (2026-10-20) | Eseguiti con il protocollo `docs/milestones/M1-residuals-user.md` su Mint 22.3 / Cinnamon 6.6.9 / Muffin 6.6.3 (X11 `:0`). B5: HIDDEN in `_NET_WM_STATE`, nessun Unmap/Map al minimize, permanenza in `_NET_CLIENT_LIST` (verificato). B6: pannello laterale + revert = baseline (verificato); nessun strut esposto → ADR-12 da re-verificare. Output grezzi: M1-findings §2c. |

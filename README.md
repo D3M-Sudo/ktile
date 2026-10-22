@@ -2,7 +2,9 @@
 
 Ktile è un tiler dinamico per **Linux Mint Cinnamon in sessione X11**, scritto in Rust e progettato per cooperare con Muffin anziché sostituirlo. Offre due layout: **Dwindle** (suddivisioni binarie persistenti) e **Master-Stack**, con geometria deterministica e gap configurabili.
 
-> **Stato: prototipo in sviluppo.** M0–M2 e M4 sono implementate; M3 è sottoposta a verifica riproducibile di test e copertura. M5 supporta l'applicazione manuale opt-in, ma il gate di accettazione su Cinnamon/Muffin reale è ancora aperto. Il daemon automatico (M6), la compatibilità avanzata (M7) e il packaging (M8) non sono ancora disponibili.
+> **Stato: prototipo in sviluppo.** M0–M5 sono implementate a livello di milestone di codice, con i gate target ancora aperti dove indicato; M3 ha superato i test e la soglia di copertura in CI (89,66% delle linee di `src/layout/`). M5 supporta l'applicazione manuale opt-in, ma il gate di accettazione su Cinnamon/Muffin reale è ancora aperto. Il daemon automatico (M6), la compatibilità avanzata (M7) e il packaging (M8) non sono ancora disponibili.
+
+La verifica M3 è documentata nella [CI run #39843748187](https://github.com/D3M-Sudo/ktile/actions/runs/39843748187): 650/725 linee coperte (89,66%; soglia 80%). Questa verifica automatizzata non equivale all'accettazione su Cinnamon/Muffin reale.
 
 ## Principi
 

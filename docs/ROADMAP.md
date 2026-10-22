@@ -1,7 +1,7 @@
 # ROADMAP — Ktile
 
 > Fonte di verità di pianificazione del progetto. **Regola operativa permanente:** ogni task completato, cambio di stato di un modulo o nuova decisione architetturale aggiorna **contestualmente** questo file (checkbox e/o ADR) e/o `ARCHITECTURE.md` (entrambi in `docs/`).
-> Stato redazione: 2026-10-22 — M1 chiuso in cloud e confermato su target (M1-findings §2c); M2 (25 fixture) e M4 (config/CLI/reconciliation read-only) implementati; M3 implementata nel codice ma la dichiarazione di copertura ≥80% è in attesa di misurazione CI. M5: applicazione manuale con opt-in, gate live, geometria frame-aware e report deviazioni implementata; **CI dell'ultimo aggiornamento confermata verde dall'utente**. Restano aperti test race deterministico e accettazione Cinnamon/Muffin reale, oltre al residuo M4 pannelli/workarea.
+> Stato redazione: 2026-10-22 — M1 chiuso in cloud e confermato su target (M1-findings §2c); M2 (25 fixture) e M4 (config/CLI/reconciliation read-only) implementati; M3 completata: CI run #39843748187 ha misurato 89,66% di copertura linee su `src/layout/` (650/725; soglia ≥80%). M5: applicazione manuale con opt-in, gate live, geometria frame-aware e report deviazioni implementata; **CI dell'ultimo aggiornamento confermata verde dall'utente**. Restano aperti test race deterministico e accettazione Cinnamon/Muffin reale, oltre al residuo M4 pannelli/workarea.
 
 ## 1. Funzionalità per fasi
 
@@ -50,12 +50,12 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 - [x] Arricchire fixtures-geometry.json (N=3..8, gap estremi, aree piccole, coordinate negative) (25 fixture)
 - [x] Gate fmt/clippy/test verdi in cloud
 
-### M3 — Dwindle e master-stack (verifica test/coverage in corso)
+### M3 — Dwindle e master-stack — ✅ completata (CI 2026-10-22)
 - [x] `layout/tree.rs` (insert/remove/promote, split persistente completo) — ripristinato, API e sintassi bilanciate, test allineati
 - [x] `layout/dwindle.rs` (split_mode longest-side/alternating, split_target active/mru, ratio clamp) — ripristinato, pipeline e fixtures allineati
 - [x] `layout/master_stack.rs` (new_status, promozione slave più vecchio, mfact) — ripristinato, import e surface API verificati
 - [x] Test: rimozioni radice/foglia/intermedia, sospese D8, min-size, idempotenza, replay deterministo — `tests/layout_tree.rs`, `tests/layout_master.rs`
-- [ ] Copertura ≥80% linee su `src/layout/` — misurazione riproducibile aggiunta alla CI con `cargo llvm-cov`; spuntare e marcare M3 completata solo dopo run verde e percentuale effettiva ≥80%.
+- [x] Copertura linee su `src/layout/` ≥80% — **89,66% (650/725)** con `cargo llvm-cov`; soglia verificata nella [CI run #39843748187](https://github.com/D3M-Sudo/ktile/actions/runs/39843748187).
 
 ### M4 — Configurazione e dry-run ✅ (merged 2026-10-20, PR #2 → `661305e`)
 - [x] `config.rs` (TOML, validazioni, `outer`, `split_target`, `new_status`) — `src/config.rs`, `tests/config_validation.rs`
