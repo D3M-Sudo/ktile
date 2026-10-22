@@ -2,6 +2,8 @@
 
 Roadmap autorizzata dal rapporto di analisi (sezione 8), allineata alle decisioni chiuse D1–D9 (2026-10-17). Ogni milestone chiude con i gate di qualità: `cargo fmt --check`, `cargo clippy --all-targets --all-features -- -D warnings`, `cargo test`. L'auto-tiling resta **opt-in** fino a M6 e disattivato di default anche dopo. Nessun commit/push salvo richiesta esplicita; niente `sudo`.
 
+**Stato al 2026-10-22:** M0–M4 implementate; M5 applier manuale implementato con `--allow-apply`, gate live, `_NET_MOVERESIZE_WINDOW`, conversione frame-aware e report di readback/deviazioni. La CI dell'ultimo aggiornamento è stata confermata verde dall'utente. Il test race deterministico e l'accettazione manuale Cinnamon/Muffin restano gate aperti. Questo documento conserva il piano originario; per lo stato puntuale delle checklist fa fede `docs/ROADMAP.md`.
+
 ## M0 — Baseline e verifica del repository
 
 - **Obiettivo misurabile:** baseline documentata (branch, HEAD SHA, working tree, versioni Mint/Cinnamon/Muffin, sessione X11, Rust, strumenti, esiti EWMH).
@@ -43,8 +45,8 @@ Roadmap autorizzata dal rapporto di analisi (sezione 8), allineata alle decision
 ## M5 — Applicazione manuale
 
 - **Prerequisiti:** M4 ok; consenso dell'utente in sessione di test; gate dry-run superato.
-- **Obiettivo misurabile:** `--layout` applica il piano a una finestra di test poi all'intero workspace attivo; lettura risultato; log deviazioni; max 3 richieste per finestra.
-- **File ammessi:** `src/x11/applier.rs`, estensioni `events.rs` (filtro in-flight), `tests/applier_logic.rs` (mock).
+- **Obiettivo misurabile:** `--allow-apply --layout` abilita esplicitamente l'applicazione del piano; gate live, lettura risultato, report delle deviazioni senza retry e limite di 3 richieste per batch. Senza `--allow-apply`, la CLI resta read-only anche se `--dry-run` non è specificato.
+- **File effettivamente toccati per M5:** `src/x11/applier.rs`, integrazione in `src/main.rs`, `src/cli.rs`, `tests/applier_integration.rs`, aggiornamenti `docs/ARCHITECTURE.md` e `docs/ROADMAP.md`. Il filtro eventi in-flight/anti-feedback è rinviato al daemon M6; `tests/applier_logic.rs` non è il test file attuale.
 - **Manuali (target, non distruttivi):** finestra singola; dialogo immobile; fullscreen immutato; minimizzata mai ripristinata; pannello intatto; chiusura durante applicazione; assenza di loop (log stabile dopo 5 s).
 - **Gate quantitativo:** ≥90% finestre standard entro tolleranza 2px, altrimenti stop e documentazione.
 
