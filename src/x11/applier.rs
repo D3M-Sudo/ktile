@@ -1,7 +1,7 @@
 //! Guarded manual application of a geometric plan.
 //!
 //! This is the only module allowed to issue window geometry requests. Each
-//! batch contains at most three ConfigureWindow requests; the result is read
+//! batch contains at most three EWMH geometry requests; the result is read
 //! back once per window and WM deviations are reported, never retried.
 
 use std::collections::{HashMap, HashSet};
@@ -44,7 +44,7 @@ pub struct ApplyOutcome {
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ApplyReport {
     pub outcomes: Vec<ApplyOutcome>,
-    /// Number of ConfigureWindow requests actually queued for the X server.
+    /// Number of EWMH geometry requests sent to the window manager.
     pub requests_sent: usize,
 }
 
@@ -248,7 +248,7 @@ pub fn apply_plan(
                 Err(error) => {
                     in_flight.finish(id);
                     report.outcomes.push(outcome(id, target, ApplyStatus::Failed {
-                        reason: format!("ConfigureWindow rejected (window may have disappeared or WM denied it): {error}"),
+                        reason: format!("EWMH geometry request failed (window may have disappeared or WM denied it): {error}"),
                     }));
                 }
                 Ok(()) => match read_geometry(conn, id.0, root, atoms) {
@@ -400,8 +400,12 @@ fn read_geometry(
     Ok(Rect {
         x: i32::from(translated.dst_x).saturating_sub(left as i32),
         y: i32::from(translated.dst_y).saturating_sub(top as i32),
-        width: u32::from(reply.width).saturating_add(left).saturating_add(right),
-        height: u32::from(reply.height).saturating_add(top).saturating_add(bottom),
+        width: u32::from(reply.width)
+            .saturating_add(left)
+            .saturating_add(right),
+        height: u32::from(reply.height)
+            .saturating_add(top)
+            .saturating_add(bottom),
     })
 }
 
