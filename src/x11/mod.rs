@@ -5,3 +5,5 @@ pub mod events;
 pub mod ewmh;
 pub mod icccm;
 pub mod monitor;
+
+pub mod applier;
