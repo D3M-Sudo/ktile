@@ -395,8 +395,12 @@ fn read_geometry(
     Ok(Rect {
         x: i32::from(translated.dst_x).saturating_sub(left as i32),
         y: i32::from(translated.dst_y).saturating_sub(top as i32),
-        width: u32::from(reply.width).saturating_add(left).saturating_add(right),
-        height: u32::from(reply.height).saturating_add(top).saturating_add(bottom),
+        width: u32::from(reply.width)
+            .saturating_add(left)
+            .saturating_add(right),
+        height: u32::from(reply.height)
+            .saturating_add(top)
+            .saturating_add(bottom),
     })
 }
 
