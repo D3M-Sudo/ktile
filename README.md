@@ -2,7 +2,7 @@
 
 Questa cartella contiene la documentazione progettuale per **Ktile**, tiler X11 cooperante con Muffin/Cinnamon (Linux Mint, sessione X11), riscrittura moderna ispirata all'esperienza Hyprland (layout dwindle a suddivisioni binarie e master-stack). Ktile è un client X11 esterno: **non** è un compositor e non sostituisce Muffin.
 
-Questa versione (2026-10-20) aggiorna `docs/ARCHITECTURE.md` e `docs/ROADMAP.md` contestualmente al completamento della milestone M3 del layout core: `src/layout/tree.rs`, `dwindle.rs` e `master_stack.rs` ripristinati, con test `tests/layout_tree.rs` e `tests/layout_master.rs` allineati ai fixture geometrici. Riflette le decisioni di progetto chiuse in fase di analisi (registro decisioni D1–D9 nel rapporto di analisi, sezione 7.1). `docs/ARCHITECTURE.md` e `docs/ROADMAP.md` restano la fonte di verità tracciata del repository, aggiornata contestualmente a ogni modifica (regola operativa permanente, ADR-13).
+Questa versione (2026-10-22) documenta l'implementazione M5: applicazione manuale opt-in tramite `_NET_MOVERESIZE_WINDOW`, conversione geometrica consapevole di `_NET_FRAME_EXTENTS`, controlli di sicurezza live e report delle deviazioni del WM. I test automatici Xvfb/Openbox coprono applicazione, vincoli `WM_NORMAL_HINTS` e XID scomparso; la validazione su Cinnamon/Muffin reale resta aperta ed è tracciata in `docs/ROADMAP.md`. `docs/ARCHITECTURE.md` e `docs/ROADMAP.md` restano la fonte di verità tracciata del repository, aggiornata contestualmente a ogni modifica (ADR-13).
 
 ## Uso CLI M5
 
