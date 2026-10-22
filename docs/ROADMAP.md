@@ -108,6 +108,24 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 - [ ] **M7 — matrice Muffin:** ripetere su Muffin gli scenari supportati e registrare separatamente ogni scenario non applicabile o non verificato.
 - [ ] **M8 — installazione utente:** verificare installazione e avvio da `~/.local/bin/ktile`, configurazione, autostart se abilitato, disinstallazione e assenza di necessità di privilegi root o rete a runtime.
 
+### Procedura operativa M5 per il test locale
+
+Eseguire in una sessione **Cinnamon/X11** reale, dopo aver compilato il ramo corrente. Salvare il lavoro e iniziare in un workspace di prova con una sola finestra normale eleggibile; il comando di applicazione può agire su tutte le finestre eleggibili.
+
+```bash
+cargo test
+cargo run -- --list-windows
+cargo run -- --dry-run --layout dwindle
+```
+
+Verificare che il dry-run non invii richieste e che le geometrie proposte rispettino l'area utile. Solo dopo aver controllato il piano, eseguire la prova esplicita:
+
+```bash
+cargo run -- --allow-apply --layout dwindle
+```
+
+Per la finestra di prova confrontare la geometria attesa con `xwininfo -id XID` e annotare `xprop -id XID _NET_FRAME_EXTENTS _NET_WM_STATE WM_NORMAL_HINTS`. Ripetere separatamente gli scenari elencati sopra. Non considerare una prova superata se la finestra viene spostata fuori dall'area utile, un dialogo viene tilato, una finestra fullscreen/minimizzata cambia geometria, oppure il WM devia la richiesta senza che Ktile lo segnali.
+
 ### Come riportare l'esito
 
 Per ogni elemento usare uno dei seguenti stati: **PASS locale**, **FAIL locale**, **non eseguito**, **non applicabile**. Per un FAIL allegare il comportamento atteso/effettivo e i log; correggere e rieseguire prima di dichiarare la milestone completata. L'agente deve lasciare nel riepilogo finale una sezione "Test locali richiesti" con gli elementi ancora aperti, anche se tutti i controlli CI sono verdi.
