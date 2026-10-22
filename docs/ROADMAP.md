@@ -70,7 +70,7 @@ Legenda: `[ ]` da fare · `[x]` completato · `[-]` non applicabile/rinviato olt
 ### M5 — Applicazione manuale
 - [x] Implementare `x11/applier.rs`: gate live prima di ogni richiesta, protezione finestre non viewable/fullscreen/hidden/transient/non-NORMAL/sticky o su altro desktop, geometria validata, `_NET_MOVERESIZE_WINDOW` con StaticGravity, lettura geometria reale root/frame-aware, report delle deviazioni senza retry, massimo 3 richieste per batch.
 - [x] Integrare l'applicazione solo con opt-in esplicito `--allow-apply`; `--dry-run` e il comportamento predefinito restano read-only.
-- [ ] CI Xvfb/Openbox: test di applicazione effettiva, deviazione per `WM_NORMAL_HINTS` min-size e finestra scomparsa; chiudere solo con test verde.
+- [x] CI Xvfb/Openbox: applicazione EWMH effettiva, deviazione per `WM_NORMAL_HINTS` min-size e finestra scomparsa prima della richiesta; test verde su GitHub Actions.
 - [ ] Test race deterministico: finestra distrutta tra controllo live e risposta del WM (il percorso d'errore è gestito, ma il test race resta da validare).
 - [ ] Manuali target: finestra singola, dialogo immobile, fullscreen intatto, minimizzata intatta, chiusura durante applicazione, assenza loop.
 - [ ] Gate target: ≥90% finestre standard entro 2px; in caso contrario stop e documentazione del comportamento Muffin osservato.
