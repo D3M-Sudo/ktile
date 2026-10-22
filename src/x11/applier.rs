@@ -7,7 +7,7 @@
 use std::collections::{HashMap, HashSet};
 
 use x11rb::connection::Connection;
-use x11rb::protocol::xproto::{ConnectionExt, ConfigureWindowAux, MapState, Window};
+use x11rb::protocol::xproto::{ConfigureWindowAux, ConnectionExt, MapState, Window};
 use x11rb::rust_connection::RustConnection;
 
 use crate::errors::KtileError;
@@ -47,21 +47,36 @@ pub struct ApplyReport {
 
 impl ApplyReport {
     pub fn applied_count(&self) -> usize {
-        self.outcomes.iter().filter(|outcome| {
-            matches!(outcome.status, ApplyStatus::Applied { .. } | ApplyStatus::AlreadyCorrect)
-        }).count()
+        self.outcomes
+            .iter()
+            .filter(|outcome| {
+                matches!(
+                    outcome.status,
+                    ApplyStatus::Applied { .. } | ApplyStatus::AlreadyCorrect
+                )
+            })
+            .count()
     }
 
     pub fn deviated_count(&self) -> usize {
-        self.outcomes.iter().filter(|outcome| matches!(outcome.status, ApplyStatus::Deviated { .. })).count()
+        self.outcomes
+            .iter()
+            .filter(|outcome| matches!(outcome.status, ApplyStatus::Deviated { .. }))
+            .count()
     }
 
     pub fn skipped_count(&self) -> usize {
-        self.outcomes.iter().filter(|outcome| matches!(outcome.status, ApplyStatus::Skipped { .. })).count()
+        self.outcomes
+            .iter()
+            .filter(|outcome| matches!(outcome.status, ApplyStatus::Skipped { .. }))
+            .count()
     }
 
     pub fn failed_count(&self) -> usize {
-        self.outcomes.iter().filter(|outcome| matches!(outcome.status, ApplyStatus::Failed { .. })).count()
+        self.outcomes
+            .iter()
+            .filter(|outcome| matches!(outcome.status, ApplyStatus::Failed { .. }))
+            .count()
     }
 }
 
@@ -78,7 +93,9 @@ impl GeometryInFlight {
     }
 
     pub fn matches(&self, window: WindowId, observed: Rect) -> bool {
-        self.expected.get(&window).is_some_and(|expected| *expected == observed)
+        self.expected
+            .get(&window)
+            .is_some_and(|expected| *expected == observed)
     }
 
     pub fn finish(&mut self, window: WindowId) {
