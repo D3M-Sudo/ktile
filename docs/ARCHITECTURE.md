@@ -40,29 +40,29 @@ Ktile è un **tiler X11 esterno, cooperante con Muffin** (Linux Mint Cinnamon, s
 
 ## 2. Albero delle directory
 
-Stato attuale (2026-10-19) — M1/M2 completati in cloud.
+Stato verificato sul ramo `feature-complete-roadmap` (2026-10-22, dopo M5 CI verde).
 
 ```text
 <repo>/
-├── README.md                  ← indice documentazione (root)
-├── Cargo.toml, Cargo.lock     ← progetto Rust compilabile
+├── AGENTS.md
+├── README.md
+├── Cargo.toml, Cargo.lock
+├── .github/workflows/ci.yml
 ├── docs/
-│   ├── ARCHITECTURE.md        ← fonte di verità architetturale (questo file)
-│   ├── ROADMAP.md             ← milestone M0–M8, checklist, ADR
-│   ├── spec/                  ← specifiche di progetto
-│   ├── research/              ← ricerca e protocolli di verifica
-│   └── milestones/            ← evidenze per milestone
-│       ├── environment-baseline.md    (M0)
-│       ├── M1-findings.md             (M1/M2 risultati cloud)
-│       ├── M1-residuals-user.md       (Protocollo residui macchina target)
-│       └── fixtures-geometry.json     (25 fixture di test)
+│   ├── ARCHITECTURE.md, ROADMAP.md
+│   ├── handover/HANDOVER.md
+│   ├── spec/ (01 overview, 02 architecture, 04 layouts, CLI matrix, config example)
+│   ├── research/ (03 EWMH/Muffin, 05 milestone plan)
+│   └── milestones/ (environment baseline, M1 findings/residual protocol, geometry fixtures)
 ├── src/
-│   ├── lib.rs, main.rs, cli.rs, errors.rs
-│   ├── x11/  (connection, ewmh, events, monitor)
-│   ├── state/ (registry, eligibility)
-│   └── layout/ (mod, geometry, tree, dwindle, master_stack, plan)
+│   ├── lib.rs, main.rs, cli.rs, config.rs, errors.rs
+│   ├── x11/ (connection, events, ewmh, icccm, monitor, applier)
+│   ├── state/ (eligibility, reconciliation, registry, workspace)
+│   └── layout/ (dwindle, geometry, master_stack, plan, tree)
 └── tests/
-    ├── exit_codes.rs, geometry.rs, eligibility.rs, x11_integration.rs
+    ├── applier_integration.rs, cli_tests.rs, config_validation.rs
+    ├── eligibility.rs, exit_codes.rs, geometry.rs
+    ├── layout_master.rs, layout_tree.rs, x11_integration.rs
 ```
 
 ## 3. Tabella dei moduli
@@ -71,18 +71,18 @@ Stato attuale (2026-10-19) — M1/M2 completati in cloud.
 |---|---|---|---|
 | `src/main.rs` | Entry point, wiring, codici d'uscita | `main`, mappatura errori→exit | ✅ Completato (M1) |
 | `src/cli.rs` | Argomenti CLI | parsing, `--version`, `has_display` | ✅ Implementato (M1/M4) |
-| `src/config.rs` | Config TOML validata | default, validazione, limiti (gap, enum, regex) | Pianificato (M4) |
+| `src/config.rs` | Config TOML validata | default, validazione, limiti (gap, enum, regex) | ✅ Implementato (M4); percorso predefinito da riconciliare con D1/docs |
 | `src/errors.rs` | Errori tipizzati | `KtileError`, conversione exit code (2,4,5,6) | ✅ Completato (M1) |
-| `src/daemon.rs` | Event loop e shutdown | polling eventi, coalescing, stop su segnali ≤1 s | Pianificato (M6) |
+| `src/daemon.rs` | Event loop e shutdown | — | Non presente; pianificato (M6) |
 | `src/x11/connection.rs` | Connessione X11 | `connect`, `EwmhAtoms::new` | ✅ Completato (M1) |
 | `src/x11/events.rs` | Selezione e traduzione eventi | `DomainEvent`, `select_root_events` | ✅ Implementato (M1) |
 | `src/x11/ewmh.rs` | Lettura proprietà EWMH | `verify_wm`, `client_list` | ✅ Completato (M1) |
-| `src/x11/icccm.rs` | Lettura metadati ICCCM | `WM_CLASS`, `WM_TRANSIENT_FOR`, normal hint (read-only) | Pianificato |
+| `src/x11/icccm.rs` | Lettura metadati ICCCM | `WM_CLASS`, `WM_TRANSIENT_FOR`, `WM_NORMAL_HINTS` (read-only) | ✅ Implementato (M4/M5) |
 | `src/x11/monitor.rs` | Monitor e aree | `read_workspace_area` (RandR + strut/workarea) | ✅ Completato (M4); residuo Muffin locale aperto |
 | `src/x11/applier.rs` | Applicazione geometrie | `_NET_MOVERESIZE_WINDOW`, gate live, frame-aware readback, report deviazioni, no retry | Implementato (M5); gate Cinnamon/Muffin reale ancora aperto |
 | `src/state/registry.rs` | Stato finestre | `WindowId`, `WindowState` | ✅ Implementato (M1) |
 | `src/state/eligibility.rs` | Policy di esclusione | `is_eligible`, `ExcludeConfig` | ✅ Completato (M4) |
-| `src/state/workspace.rs` | Stato per workspace | `WorkspaceId=(desktop,monitor)`, alberi layout | Pianificato |
+| `src/state/workspace.rs` | Modelli workspace e monitor | tipi di dominio workspace/area | Implementato; orchestrazione incrementale ancora pianificata (M6/M7) |
 | `src/state/reconciliation.rs` | Diff stato↔X11 | ricalcolo selettivo, idempotenza; M4 `reconcile_read_only` count-based (sequenza standard di inserimento, nessuna pianificazione su albero) | ✅ Read-only M4; piano incrementale su albero con `split_target=active` atteso in M6 (daemon) |
 | `src/layout/geometry.rs` | Rettangoli e gap | `Rect`, `Gaps`, `compute_dwindle`, `compute_master_stack` | ✅ Completato (M2) |
 | `src/layout/tree.rs` | Albero binario | insert/remove/promote (dwindle) | ✅ Completato (M3) |
@@ -90,6 +90,10 @@ Stato attuale (2026-10-19) — M1/M2 completati in cloud.
 | `src/layout/master_stack.rs` | Policy master-stack | `new_status`, promozione, `mfact` | ✅ Completato (M3) |
 | `src/layout/plan.rs` | Piano geometrico | `Plan`, `WindowMove`, `diff`, idempotenza | ✅ Completato (M2) |
 | `docs/` | Documentazione | fonte di verità progettuale | In continuo aggiornamento |
+
+
+
+> **Drift documentale aperto (non risolto arbitrariamente):** D1/README e le specifiche indicano `~/.config/ktile/config.toml`, mentre `src/main.rs` cerca attualmente `~/.config/ktile/ktile.toml` (oltre a `./ktile.toml`). Prima di cambiare codice o specifiche, decidere esplicitamente quale percorso è il contratto desiderato; fino ad allora questa divergenza è intenzionale da investigare, non un fatto da “correggere” solo in documentazione.
 
 ## 4. Flusso dei dati e architettura logica
 
