@@ -172,7 +172,7 @@ pub fn apply_plan(
         for (movement, cookie) in pending {
             let id = movement.window_id;
             let target = movement.target_rect;
-            match cookie.check(conn) {
+            match cookie.check() {
                 Err(error) => {
                     in_flight.finish(id);
                     report.outcomes.push(outcome(id, target, ApplyStatus::Failed {
