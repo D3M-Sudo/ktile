@@ -36,3 +36,5 @@ jobs:
         # ("Server is already active for display 99").
         # --test-threads=1: i test manipolano DISPLAY (env globale), in parallelo si pestano.
         run: cargo test --test x11_integration -- --ignored --nocapture --test-threads=1
+      - name: Manual geometry applier integration (Xvfb)
+        run: cargo test --test applier_integration -- --ignored --nocapture --test-threads=1
