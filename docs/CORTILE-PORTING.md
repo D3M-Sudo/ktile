@@ -26,6 +26,22 @@ Cortile is an X11 auto-tiling manager written in Go and licensed under the MIT L
 
 This list is a source-derived inventory, not evidence that K-tile currently implements those features.
 
+## Reviewed upstream source paths
+
+The following upstream files were inspected as behavioral references on the upstream `main` branch. They have **not** been copied into K-tile:
+
+| Upstream path | Behavior to port or compare |
+|---|---|
+| `layout/vertical.go` | Vertical master/stack placement, gap arithmetic, proportions, master/slave resizing behavior |
+| `layout/horizontal.go` | Horizontal master/stack placement, gap arithmetic, proportions, master/slave resizing behavior |
+| `layout/maximized.go` | Shared-area layout with window gaps and minimum-size constraints |
+| `layout/fullscreen.go` | Fullscreen layout semantics; K-tile must continue excluding already-fullscreen windows from ordinary tiling |
+| `desktop/layout.go` | Expected layout operations: client insertion/removal, master promotion, swaps, focus traversal and proportion changes |
+| `desktop/workspace.go` | Workspace/monitor scoped layouts, enable/disable tiling, state persistence, restore and cycle behavior |
+| `common/config.go` | TOML configuration keys, runtime reload behavior and configuration defaults |
+
+The inspected upstream code uses MIT-licensed Cortile source. Preserve the original notices for any substantial copied/adapted implementation and add file-level notes when a port is actually made. Porting a behavior is not the same as copying its implementation; newly authored Rust equivalents should be identified as such.
+
 ## Attribution
 
 Cortile repository license: https://github.com/leukipp/cortile/blob/main/LICENSE
