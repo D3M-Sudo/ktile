@@ -308,7 +308,6 @@ fn run(
     Ok(())
 }
 
-
 #[cfg(feature = "x11")]
 fn print_live_plan(
     backend: &k_tile::x11::X11Backend,
