@@ -11,12 +11,23 @@ use crate::{
 use thiserror::Error;
 use x11rb::{
     connection::Connection,
+    protocol::randr::ConnectionExt as RandrConnectionExt,
     protocol::{
         Event,
         xproto::{Atom, AtomEnum, ChangeWindowAttributesAux, ConnectionExt, EventMask, Window},
     },
     rust_connection::RustConnection,
 };
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Monitor {
+    pub name: String,
+    pub x: i32,
+    pub y: i32,
+    pub width: u32,
+    pub height: u32,
+    pub primary: bool,
+}
 
 #[derive(Debug, Error)]
 pub enum X11Error {
@@ -28,6 +39,8 @@ pub enum X11Error {
     Reply(#[from] x11rb::errors::ReplyError),
     #[error("no EWMH-compliant window manager detected")]
     NoWindowManager,
+    #[error("RandR 1.5 monitor enumeration is not supported by this X server")]
+    RandrUnsupported,
 }
 
 pub struct X11Backend {
@@ -75,6 +88,44 @@ impl X11Backend {
 
     pub fn root_window(&self) -> Window {
         self.connection.setup().roots[self.screen_num].root
+    }
+
+    /// Enumerate active physical/logical monitors using RandR 1.5.
+    ///
+    /// No guessed screen dimensions are returned when the extension is absent
+    /// or too old; callers must handle the explicit unsupported error.
+    pub fn monitors(&self) -> Result<Vec<Monitor>, X11Error> {
+        let extension = self.connection.query_extension(b"RANDR")?.reply()?;
+        if !extension.present {
+            return Err(X11Error::RandrUnsupported);
+        }
+
+        let version = self.connection.randr_query_version(1, 5)?.reply()?;
+        if version.major_version < 1
+            || (version.major_version == 1 && version.minor_version < 5)
+        {
+            return Err(X11Error::RandrUnsupported);
+        }
+
+        let reply = self
+            .connection
+            .randr_get_monitors(self.root_window(), true)?
+            .reply()?;
+        reply
+            .monitors
+            .into_iter()
+            .map(|monitor| {
+                let name = self.connection.get_atom_name(monitor.name)?.reply()?.name;
+                Ok(Monitor {
+                    name: String::from_utf8_lossy(&name).into_owned(),
+                    x: i32::from(monitor.x),
+                    y: i32::from(monitor.y),
+                    width: u32::from(monitor.width),
+                    height: u32::from(monitor.height),
+                    primary: monitor.primary,
+                })
+            })
+            .collect()
     }
 
     /// Read the current EWMH desktop index, if the window manager publishes it.

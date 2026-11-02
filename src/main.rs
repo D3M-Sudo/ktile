@@ -170,6 +170,24 @@ fn run(
                         );
                     }
                 }
+                match backend.monitors() {
+                    Ok(monitors) => {
+                        for monitor in monitors {
+                            println!(
+                                "monitor={:?} primary={} x={} y={} width={} height={}",
+                                monitor.name,
+                                monitor.primary,
+                                monitor.x,
+                                monitor.y,
+                                monitor.width,
+                                monitor.height
+                            );
+                        }
+                    }
+                    Err(error) => {
+                        eprintln!("RandR monitor enumeration unavailable: {error}");
+                    }
+                }
             }
             #[cfg(not(feature = "x11"))]
             return Err("this build has no X11 support".into());
