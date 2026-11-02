@@ -343,6 +343,35 @@ impl X11Backend {
             let atom = Self::intern(&self.connection, name)?;
             Ok(states.contains(&atom))
         };
+        let type_atom = Self::intern(&self.connection, b"_NET_WM_WINDOW_TYPE")?;
+        let type_reply = self
+            .connection
+            .get_property(false, window.0, type_atom, AtomEnum::ATOM, 0, 64)?
+            .reply()?;
+        let window_types: Vec<Atom> = type_reply
+            .value32()
+            .map(|values| values.collect())
+            .unwrap_or_default();
+        let has_type = |name: &[u8]| -> Result<bool, X11Error> {
+            let atom = Self::intern(&self.connection, name)?;
+            Ok(window_types.contains(&atom))
+        };
+        let transient_reply = self
+            .connection
+            .get_property(
+                false,
+                window.0,
+                AtomEnum::WM_TRANSIENT_FOR,
+                AtomEnum::WINDOW,
+                0,
+                1,
+            )?
+            .reply()?;
+        let transient = transient_reply
+            .value32()
+            .and_then(|mut values| values.next())
+            .is_some();
+
         Ok(WindowState {
             fullscreen: has(b"_NET_WM_STATE_FULLSCREEN")?,
             maximized_horizontal: has(b"_NET_WM_STATE_MAXIMIZED_HORZ")?,
@@ -354,6 +383,10 @@ impl X11Backend {
             skip_pager: has(b"_NET_WM_STATE_SKIP_PAGER")?,
             sticky: has(b"_NET_WM_STATE_STICKY")?,
             minimized: has(b"_NET_WM_STATE_HIDDEN")?,
+            dock: has_type(b"_NET_WM_WINDOW_TYPE_DOCK")?,
+            desktop: has_type(b"_NET_WM_WINDOW_TYPE_DESKTOP")?,
+            dialog: has_type(b"_NET_WM_WINDOW_TYPE_DIALOG")?,
+            transient,
         })
     }
 }
