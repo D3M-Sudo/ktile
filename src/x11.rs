@@ -299,6 +299,9 @@ impl X11Backend {
                     .event_mask(EventMask::SUBSTRUCTURE_NOTIFY | EventMask::PROPERTY_CHANGE),
             )?
             .check()?;
+        for window in self.client_windows()? {
+            self.subscribe_window_properties(window.0);
+        }
         self.connection.flush()?;
 
         let relevant_properties: Vec<Atom> = [
@@ -334,6 +337,7 @@ impl X11Backend {
                 match event {
                     Event::CreateNotify(event) => {
                         reconcile_needed = true;
+                        self.subscribe_window_properties(event.window);
                         tracing::info!(window = event.window, "X11 window created");
                     }
                     Event::MapNotify(event) => {
@@ -380,6 +384,20 @@ impl X11Backend {
             if reconcile_needed {
                 reconcile();
             }
+        }
+    }
+
+    fn subscribe_window_properties(&self, window: Window) {
+        if let Err(error) = self
+            .connection
+            .change_window_attributes(
+                window,
+                &ChangeWindowAttributesAux::new().event_mask(EventMask::PROPERTY_CHANGE),
+            )
+            .and_then(|cookie| cookie.check())
+        {
+            // Clients may disappear between discovery/event delivery and subscription.
+            tracing::debug!(window, %error, "could not subscribe to client property changes");
         }
     }
 
