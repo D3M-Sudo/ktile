@@ -117,7 +117,12 @@ fn run(
                     floating: false,
                 })
                 .collect();
-            let plan = LayoutEngine::default().plan(
+            let config = if config_path.exists() {
+                Config::load(config_path)?
+            } else {
+                Config::default()
+            };
+            let plan = config.engine().plan(
                 layout.into(),
                 Rect {
                     x: 0,
