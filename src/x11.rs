@@ -286,11 +286,27 @@ impl X11Backend {
     /// invoked only for lifecycle/geometry changes or relevant EWMH properties.
     /// This method itself never mutates client geometry.
     pub fn watch_events(&self) -> Result<(), X11Error> {
-        self.watch_events_with_reconcile(|| {})
+        self.watch_events_until(|| false, || {})
     }
 
-    pub fn watch_events_with_reconcile<F>(&self, mut reconcile: F) -> Result<(), X11Error>
+    pub fn watch_events_with_reconcile<F>(&self, reconcile: F) -> Result<(), X11Error>
     where
+        F: FnMut(),
+    {
+        self.watch_events_until(|| false, reconcile)
+    }
+
+    /// Watch until the supplied shutdown predicate becomes true.
+    ///
+    /// A short bounded wait keeps idle CPU use low while allowing signal-driven
+    /// shutdown to complete promptly. Event batches remain bounded at 128.
+    pub fn watch_events_until<S, F>(
+        &self,
+        mut should_stop: S,
+        mut reconcile: F,
+    ) -> Result<(), X11Error>
+    where
+        S: FnMut() -> bool,
         F: FnMut(),
     {
         self.connection
@@ -328,8 +344,16 @@ impl X11Backend {
         .collect::<Result<_, _>>()?;
 
         const MAX_EVENTS_PER_BATCH: usize = 128;
+        const IDLE_WAIT: std::time::Duration = std::time::Duration::from_millis(50);
         loop {
-            let first = self.connection.wait_for_event()?;
+            if should_stop() {
+                tracing::info!("X11 watcher received cooperative shutdown request");
+                return Ok(());
+            }
+            let Some(first) = self.connection.poll_for_event()? else {
+                std::thread::sleep(IDLE_WAIT);
+                continue;
+            };
             let mut batch = Vec::with_capacity(MAX_EVENTS_PER_BATCH);
             batch.push(first);
             while batch.len() < MAX_EVENTS_PER_BATCH {
