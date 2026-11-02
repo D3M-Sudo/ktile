@@ -351,6 +351,32 @@ mod tests {
     }
 
     #[test]
+    fn tiny_work_areas_fail_explicitly_when_non_overlapping_layouts_cannot_fit() {
+        let tiny = Rect {
+            x: -2,
+            y: -3,
+            width: 1,
+            height: 1,
+        };
+        for kind in [
+            LayoutKind::VerticalLeft,
+            LayoutKind::VerticalRight,
+            LayoutKind::HorizontalTop,
+            LayoutKind::HorizontalBottom,
+            LayoutKind::Grid,
+        ] {
+            assert_eq!(
+                LayoutEngine::default().plan(kind, tiny, &windows(2)),
+                Err(LayoutError::InsufficientWorkArea),
+                "layout {kind:?} should reject an area too small for two windows"
+            );
+        }
+        assert!(LayoutEngine::default()
+            .plan(LayoutKind::Maximized, tiny, &windows(2))
+            .is_ok());
+    }
+
+    #[test]
     fn rejects_work_areas_whose_far_edge_cannot_be_represented() {
         let too_wide = Rect {
             x: i32::MAX,
