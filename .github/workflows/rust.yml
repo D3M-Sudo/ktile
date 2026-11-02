@@ -30,6 +30,6 @@ jobs:
       - name: Install isolated X11 test tools
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends --yes xvfb openbox xterm xdotool
+          sudo apt-get install --no-install-recommends --yes xvfb openbox x11-utils xdotool
       - name: Run isolated X11 integration smoke test
         run: bash scripts/test-x11-integration.sh
