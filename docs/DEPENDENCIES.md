@@ -21,7 +21,7 @@ Cargo.lock records the resolved graph. CI runs `python3 scripts/check_dependency
 ## Upstream source reuse
 Cortile: https://github.com/leukipp/cortile
 
-Cortile is MIT-licensed; its upstream license includes copyright notices for Berin Larson (2019) and leukipp (2022). The current K-tile foundation is newly authored and does not claim a completed source port. Before importing code, record source paths, modifications, original notices and applicable license text in CORTILE-PORTING.md.
+Cortile is MIT-licensed; its upstream license includes copyright notices for Berin Larson (2019) and leukipp (2022). The current K-tile foundation is newly authored and does not claim a completed source port. The inspected upstream source paths and behavior mapping are recorded in CORTILE-PORTING.md. Before importing code, record exact source paths, modifications, original notices and applicable license text.
 
 ## Release requirements
 - [x] Keep Cargo.lock committed and reviewed; re-review it whenever dependencies change.
