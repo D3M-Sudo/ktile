@@ -104,10 +104,19 @@ WATCH_PID=$!
 sleep 0.4
 DISPLAY="$DISPLAY" xdotool windowmove "$WINDOW_ID" 160 120
 sleep 0.6
-kill "$WATCH_PID" 2>/dev/null || true
-wait "$WATCH_PID" 2>/dev/null || true
+kill -TERM "$WATCH_PID"
+if ! wait "$WATCH_PID"; then
+    cat "$TMP_DIR/watch.log" >&2
+    echo "watch-x11 did not exit cleanly after SIGTERM." >&2
+    exit 1
+fi
 WATCH_PID=""
 
+if ! grep -q "X11 watcher received cooperative shutdown request" "$TMP_DIR/watch.log"; then
+    cat "$TMP_DIR/watch.log" >&2
+    echo "watch-x11 did not report cooperative shutdown." >&2
+    exit 1
+fi
 if ! grep -q "X11 window geometry changed" "$TMP_DIR/watch.log"; then
     cat "$TMP_DIR/watch.log" >&2
     echo "X11 watcher did not report the test window geometry change." >&2
@@ -133,9 +142,18 @@ for _ in $(seq 1 30); do
     if grep -q 'reconcile_needed=true' "$TMP_DIR/watch-plan.log"; then break; fi
     sleep 0.1
 done
-kill "$WATCH_PID" 2>/dev/null || true
-wait "$WATCH_PID" 2>/dev/null || true
+kill -TERM "$WATCH_PID"
+if ! wait "$WATCH_PID"; then
+    cat "$TMP_DIR/watch-plan.log" >&2
+    echo "watch-plan did not exit cleanly after SIGTERM." >&2
+    exit 1
+fi
 WATCH_PID=""
+if ! grep -q "X11 watcher received cooperative shutdown request" "$TMP_DIR/watch-plan.log"; then
+    cat "$TMP_DIR/watch-plan.log" >&2
+    echo "watch-plan did not report cooperative shutdown." >&2
+    exit 1
+fi
 if ! grep -q 'processed coalesced X11 event batch' "$TMP_DIR/watch-plan.log" \
     || [[ "$(grep -c '^read-only live preview:' "$TMP_DIR/watch-plan.log")" -lt 2 ]]; then
     cat "$TMP_DIR/watch-plan.log" >&2
