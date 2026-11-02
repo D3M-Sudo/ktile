@@ -10,7 +10,9 @@ use tracing_subscriber::EnvFilter;
 #[command(
     name = "k-tile",
     version,
-    about = "Modern lightweight X11 tiling manager for Cinnamon/Muffin"
+    about = "Modern lightweight X11 tiling manager for Cinnamon/Muffin",
+    subcommand_required = true,
+    arg_required_else_help = true
 )]
 struct Cli {
     /// Path to TOML configuration.
@@ -596,6 +598,11 @@ mod tests {
             config_path_from_env(None, None),
             PathBuf::from("./.config/k-tile/config.toml")
         );
+    }
+
+    #[test]
+    fn cli_requires_a_subcommand_instead_of_silently_checking_config() {
+        assert!(Cli::try_parse_from(["k-tile"]).is_err());
     }
 
     #[test]
