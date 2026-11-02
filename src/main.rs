@@ -20,13 +20,11 @@ extern "C" fn request_shutdown(_signal: libc::c_int) {
 fn install_shutdown_handlers() -> Result<(), Box<dyn std::error::Error>> {
     // The handler performs only an atomic store, which is signal-safe.
     unsafe {
-        if libc::signal(libc::SIGINT, request_shutdown as libc::sighandler_t)
-            == libc::SIG_ERR
+        if libc::signal(libc::SIGINT, request_shutdown as libc::sighandler_t) == libc::SIG_ERR
         {
             return Err("could not install SIGINT handler".into());
         }
-        if libc::signal(libc::SIGTERM, request_shutdown as libc::sighandler_t)
-            == libc::SIG_ERR
+        if libc::signal(libc::SIGTERM, request_shutdown as libc::sighandler_t) == libc::SIG_ERR
         {
             return Err("could not install SIGTERM handler".into());
         }
@@ -317,10 +315,8 @@ fn run(
         Command::WatchX11 => {
             #[cfg(feature = "x11")]
             {
-                k_tile::x11::X11Backend::connect()?.watch_events_until(
-                    || SHUTDOWN_REQUESTED.load(Ordering::Relaxed),
-                    || {},
-                )?;
+                k_tile::x11::X11Backend::connect()?
+                    .watch_events_until(|| SHUTDOWN_REQUESTED.load(Ordering::Relaxed), || {})?;
             }
             #[cfg(not(feature = "x11"))]
             return Err("this build has no X11 support".into());
