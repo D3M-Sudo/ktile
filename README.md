@@ -52,11 +52,26 @@ For all commands, configuration keys and limitations, see [Usage](docs/USAGE.md)
 
 ## Development checks
 
+Run the core quality gates with the Makefile:
+
+```sh
+make check
+```
+
+The equivalent individual commands are:
+
 ```sh
 cargo fmt --all -- --check
-cargo test --all-features
-cargo clippy --all-targets --all-features -- -D warnings
-cargo build --release
+cargo test --all-features --locked
+cargo clippy --all-targets --all-features --locked -- -D warnings
+cargo build --release --all-features --locked
+python3 scripts/check_dependency_licenses.py
+```
+
+The isolated X11 smoke test requires Xvfb, Openbox, x11-utils and xdotool:
+
+```sh
+make x11-integration
 ```
 
 See [Testing](docs/TESTING.md), [Contributing](CONTRIBUTING.md) and [Agent instructions](AGENTS.md). CI results are available in [GitHub Actions](https://github.com/D3M-Sudo/ktile/actions).
