@@ -154,6 +154,20 @@ fn run(
                     width,
                     height
                 );
+                let current = backend.current_desktop()?;
+                println!(
+                    "current_desktop={:?} desktop_count={:?}",
+                    current,
+                    backend.desktop_count()?
+                );
+                if let Some(desktop) = current {
+                    if let Some(area) = backend.work_area(desktop)? {
+                        println!(
+                            "workarea x={} y={} width={} height={}",
+                            area.x, area.y, area.width, area.height
+                        );
+                    }
+                }
             }
             #[cfg(not(feature = "x11"))]
             return Err("this build has no X11 support".into());

@@ -4,7 +4,7 @@
 //! mutation belongs to a later milestone after reconciliation and restoration
 //! behavior have dedicated integration tests.
 
-use crate::model::{WindowId, WindowState};
+use crate::{layout::Rect, model::{WindowId, WindowState}};
 use thiserror::Error;
 use x11rb::{
     connection::Connection,
@@ -69,6 +69,59 @@ impl X11Backend {
 
     pub fn root_window(&self) -> Window {
         self.connection.setup().roots[self.screen_num].root
+    }
+
+    /// Read the current EWMH desktop index, if the window manager publishes it.
+    pub fn current_desktop(&self) -> Result<Option<u32>, X11Error> {
+        let atom = Self::intern(&self.connection, b"_NET_CURRENT_DESKTOP")?;
+        let reply = self
+            .connection
+            .get_property(false, self.root_window(), atom, AtomEnum::CARDINAL, 0, 1)?
+            .reply()?;
+        Ok(reply.value32().and_then(|mut values| values.next()))
+    }
+
+    /// Read the number of virtual desktops, if published by the window manager.
+    pub fn desktop_count(&self) -> Result<Option<u32>, X11Error> {
+        let atom = Self::intern(&self.connection, b"_NET_NUMBER_OF_DESKTOPS")?;
+        let reply = self
+            .connection
+            .get_property(false, self.root_window(), atom, AtomEnum::CARDINAL, 0, 1)?
+            .reply()?;
+        Ok(reply.value32().and_then(|mut values| values.next()))
+    }
+
+    /// Read the EWMH work area for one desktop, including reserved panel space.
+    pub fn work_area(&self, desktop: u32) -> Result<Option<Rect>, X11Error> {
+        let Some(offset) = desktop.checked_mul(4) else {
+            return Ok(None);
+        };
+        let atom = Self::intern(&self.connection, b"_NET_WORKAREA")?;
+        let reply = self
+            .connection
+            .get_property(
+                false,
+                self.root_window(),
+                atom,
+                AtomEnum::CARDINAL,
+                offset,
+                4,
+            )?
+            .reply()?;
+        let values: Vec<u32> = reply
+            .value32()
+            .map(|values| values.collect())
+            .unwrap_or_default();
+        if values.len() != 4 {
+            return Ok(None);
+        }
+        let area = Rect {
+            x: values[0] as i32,
+            y: values[1] as i32,
+            width: values[2],
+            height: values[3],
+        };
+        Ok(area.is_valid().then_some(area))
     }
 
     /// Read the EWMH client list without changing any desktop state.
