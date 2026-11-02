@@ -28,6 +28,8 @@ Preview geometry without touching desktop windows:
     target/release/k-tile plan --width 1920 --height 1080 --windows 5 --layout vertical-left
     target/release/k-tile plan --width 1600 --height 900 --windows 6 --layout grid
 
+Preview commands use validated settings from the TOML file when it exists; if no config file exists, the preview uses built-in defaults. Pass `--config PATH` to select another config. `check-config` still requires an existing config file.
+
 Check X11/EWMH connectivity:
 
     target/release/k-tile check-x11
