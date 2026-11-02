@@ -18,7 +18,7 @@ CI must treat each check as blocking. A failed formatter, test or Clippy run mus
 ## Test layers
 1. Pure core tests: eligibility, config validation, deterministic layout output, bounds, tiny dimensions and negative monitor origins.
 2. Property tests: generated areas/window counts; positive rectangle dimensions, bounds, no unintended overlaps, and deterministic output.
-3. X11 integration: disposable X server such as Xvfb with an EWMH-aware test WM; create/destroy clients and validate metadata/events.
+3. X11 integration: disposable X server such as Xvfb with an EWMH-aware test WM; create/destroy clients and validate metadata/events. Exercise bursty event delivery and verify the watcher remains idle-blocking and processes no more than 128 queued events per batch.
 4. Lifecycle: real child process shutdown, bounded termination and safe restoration without overwriting newer user geometry.
 5. Target desktop: Linux Mint 22.3 Cinnamon/Muffin X11; panels/workareas, fullscreen, modal/transient, workspace changes and monitor hotplug.
 6. Resource checks: idle/active CPU and RSS; no busy loops or repeated identical geometry requests.
