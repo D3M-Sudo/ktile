@@ -2,6 +2,8 @@ use crate::layout::{LayoutEngine, LayoutKind};
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
+    fs::OpenOptions,
+    io::Write,
     path::{Path, PathBuf},
 };
 use thiserror::Error;
@@ -98,7 +100,10 @@ impl Config {
     }
 
     pub fn write_default(path: &Path) -> Result<(), ConfigError> {
-        if let Some(parent) = path.parent() {
+        if let Some(parent) = path
+            .parent()
+            .filter(|parent| !parent.as_os_str().is_empty())
+        {
             fs::create_dir_all(parent).map_err(|source| ConfigError::Write {
                 path: parent.to_path_buf(),
                 source,
@@ -106,10 +111,23 @@ impl Config {
         }
         let body = toml::to_string_pretty(&Self::default())
             .expect("serializing default config cannot fail");
-        fs::write(path, body).map_err(|source| ConfigError::Write {
-            path: path.to_path_buf(),
-            source,
-        })
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(path)
+            .map_err(|source| ConfigError::Write {
+                path: path.to_path_buf(),
+                source,
+            })?;
+        if let Err(source) = file.write_all(body.as_bytes()).and_then(|_| file.sync_all()) {
+            drop(file);
+            let _ = fs::remove_file(path);
+            return Err(ConfigError::Write {
+                path: path.to_path_buf(),
+                source,
+            });
+        }
+        Ok(())
     }
 }
 
@@ -134,6 +152,17 @@ mod tests {
             ..Default::default()
         };
         assert!(config.validate().is_err());
+    }
+
+    #[test]
+    fn write_default_creates_config_and_refuses_overwrite() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("nested/config.toml");
+
+        Config::write_default(&path).unwrap();
+        let loaded = Config::load(&path).unwrap();
+        assert_eq!(loaded.master_ratio, Config::default().master_ratio);
+        assert!(Config::write_default(&path).is_err());
     }
 
     #[test]
