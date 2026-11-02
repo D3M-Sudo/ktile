@@ -39,7 +39,8 @@ Status labels describe verified repository implementation, not aspiration. A mil
 - [x] Event loop handles map/unmap/configure/destroy and relevant EWMH root/client property events; focus and monitor-hotplug subscriptions remain open.
 - [x] Diagnostic event watcher blocks while idle and drains queued events in batches capped at 128, bounding event-burst work without busy polling.
 - [x] Coalesced event batches trigger one read-only snapshot/layout preview per relevant batch, with no idle polling.
-- [ ] Add focus and monitor-hotplug event coverage and lifecycle shutdown.
+- [x] Subscribe to client focus changes and RandR screen/CRTC/output notifications; root EWMH property events cover current-workspace changes.
+- [ ] Add cooperative shutdown/wakeup semantics and lifecycle tests; monitor-hotplug behavior still needs end-to-end Xvfb and Cinnamon validation.
 - [ ] Re-read eligibility state immediately before each geometry request.
 - [ ] Opt-in geometry write gate until target desktop verification.
 - [ ] Cooperative shutdown and safe restoration tests using a real child process.
