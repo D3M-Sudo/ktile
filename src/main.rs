@@ -74,11 +74,18 @@ impl From<LayoutArg> for LayoutKind {
 }
 
 fn main() -> ExitCode {
-    tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env())
-        .init();
     let cli = Cli::parse();
     let config_path = cli.config.unwrap_or_else(default_config_path);
+    let configured_level = if config_path.exists() {
+        Config::load(&config_path)
+            .map(|config| config.log_level)
+            .unwrap_or_else(|_| "info".into())
+    } else {
+        "info".into()
+    };
+    let filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::new(configured_level));
+    tracing_subscriber::fmt().with_env_filter(filter).init();
 
     match run(cli.command, &config_path) {
         Ok(()) => ExitCode::SUCCESS,
