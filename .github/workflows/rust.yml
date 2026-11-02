@@ -23,6 +23,10 @@ jobs:
         run: cargo fmt --all -- --check
       - name: Test core and X11 adapter
         run: cargo test --all-features --locked
+      - name: Test backend-independent core
+        run: cargo test --no-default-features --locked
+      - name: Build without X11 backend
+        run: cargo build --no-default-features --locked
       - name: Clippy
         run: cargo clippy --all-targets --all-features --locked -- -D warnings
       - name: Check resolved dependency license metadata
