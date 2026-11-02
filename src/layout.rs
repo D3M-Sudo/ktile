@@ -374,4 +374,58 @@ mod tests {
             Err(LayoutError::InvalidMasterRatio)
         );
     }
+    proptest::proptest! {
+        #[test]
+        fn generated_layouts_stay_within_bounds_and_do_not_overlap(
+            width in 200u32..4000,
+            height in 200u32..2500,
+            x in -2000i32..2000,
+            y in -2000i32..2000,
+            count in 1u32..16,
+            gap in 0u32..24,
+            ratio in 0.2f64..0.8,
+        ) {
+            use proptest::prelude::*;
+
+            let work_area = Rect { x, y, width, height };
+            let windows = windows(count);
+            let engine = LayoutEngine { master_ratio: ratio, master_count: 1, gap };
+
+            for kind in [
+                LayoutKind::VerticalLeft,
+                LayoutKind::VerticalRight,
+                LayoutKind::HorizontalTop,
+                LayoutKind::HorizontalBottom,
+                LayoutKind::Grid,
+                LayoutKind::Maximized,
+            ] {
+                let plan = engine.plan(kind, work_area, &windows);
+                prop_assert!(plan.is_ok());
+                let plan = plan.unwrap();
+
+                for window in &plan.windows {
+                    prop_assert!(window.rect.is_valid());
+                    prop_assert!(window.rect.x >= work_area.x);
+                    prop_assert!(window.rect.y >= work_area.y);
+                    prop_assert!(window.rect.right() <= work_area.right());
+                    prop_assert!(window.rect.bottom() <= work_area.bottom());
+                }
+
+                if kind != LayoutKind::Maximized {
+                    for i in 0..plan.windows.len() {
+                        for j in (i + 1)..plan.windows.len() {
+                            let a = plan.windows[i].rect;
+                            let b = plan.windows[j].rect;
+                            let overlaps = i64::from(a.x) < b.right()
+                                && i64::from(b.x) < a.right()
+                                && i64::from(a.y) < b.bottom()
+                                && i64::from(b.y) < a.bottom();
+                            prop_assert!(!overlaps);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }
