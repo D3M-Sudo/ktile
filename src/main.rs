@@ -20,10 +20,10 @@ extern "C" fn request_shutdown(_signal: libc::c_int) {
 fn install_shutdown_handlers() -> Result<(), Box<dyn std::error::Error>> {
     // The handler performs only an atomic store, which is signal-safe.
     unsafe {
-        if libc::signal(libc::SIGINT, request_shutdown as libc::sighandler_t) == libc::SIG_ERR {
+        if libc::signal(libc::SIGINT, request_shutdown as *const () as libc::sighandler_t) == libc::SIG_ERR {
             return Err("could not install SIGINT handler".into());
         }
-        if libc::signal(libc::SIGTERM, request_shutdown as libc::sighandler_t) == libc::SIG_ERR {
+        if libc::signal(libc::SIGTERM, request_shutdown as *const () as libc::sighandler_t) == libc::SIG_ERR {
             return Err("could not install SIGTERM handler".into());
         }
     }
