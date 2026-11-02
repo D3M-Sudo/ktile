@@ -46,14 +46,7 @@ impl X11Backend {
         // EWMH requires the supporting-WM property on the WM window to point
         // back to itself. A root property alone is not sufficient evidence.
         let wm_property = connection
-            .get_property(
-                false,
-                wm_window,
-                supporting_atom,
-                AtomEnum::WINDOW,
-                0,
-                1,
-            )?
+            .get_property(false, wm_window, supporting_atom, AtomEnum::WINDOW, 0, 1)?
             .reply()?;
         if wm_property.value32().and_then(|mut values| values.next()) != Some(wm_window) {
             return Err(X11Error::NoWindowManager);

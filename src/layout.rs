@@ -233,8 +233,7 @@ impl LayoutEngine {
                     x: area.x.saturating_add(x0 as i32),
                     y: area.y.saturating_add(y0 as i32),
                     width: cell_width.saturating_sub(self.gap.min(cell_width.saturating_sub(1))),
-                    height: cell_height
-                        .saturating_sub(self.gap.min(cell_height.saturating_sub(1))),
+                    height: cell_height.saturating_sub(self.gap.min(cell_height.saturating_sub(1))),
                 }
             })
             .collect()
