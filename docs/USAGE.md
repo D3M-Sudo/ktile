@@ -57,3 +57,8 @@ Keys include layout, master_ratio (0.1–0.9), master_count (1–16), gap (0–1
 
 ## Safe testing
 Use preview commands first. Backend integration should use a disposable X11 session or Xvfb. Do not enable autostart or rely on the current build for live tiling. See TESTING.md.
+
+
+### Cooperative shutdown
+
+`watch-x11` and `watch-plan` handle SIGINT and SIGTERM. The signal handler only sets an atomic shutdown flag; the watcher checks it between event batches and during bounded 50 ms idle waits. Shutdown is clean and does not terminate Cinnamon/Muffin or alter client geometry. No automatic geometry restoration is performed because live geometry application is not yet enabled.
