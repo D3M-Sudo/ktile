@@ -43,7 +43,8 @@ Status labels describe verified repository implementation, not aspiration. A mil
 - [ ] Add cooperative shutdown/wakeup semantics and lifecycle tests; monitor-hotplug behavior still needs end-to-end Xvfb and Cinnamon validation.
 - [ ] Re-read eligibility state immediately before each geometry request.
 - [ ] Opt-in geometry write gate until target desktop verification.
-- [ ] Cooperative shutdown and safe restoration tests using a real child process.
+- [x] Cooperative shutdown tests using real child processes.
+- [ ] Safe geometry restoration tests using a real child process (deferred until live geometry writes are implemented and gated).
 
 ## M4 — Workspaces, monitors and rules
 
