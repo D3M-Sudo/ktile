@@ -17,8 +17,8 @@ Status labels describe verified repository implementation, not aspiration. A mil
 - [ ] Port and test Cortile's vertical/horizontal layout behavior, proportion persistence, and master/stack rules.
 - [ ] Define rounding and gap invariants, including tiny work areas and negative monitor origins.
 - [x] Property tests for non-overlap, bounds and positive dimensions.
-- [ ] Idempotence and window insertion/removal/reordering semantics.
-- [ ] Add window insertion/removal/reordering semantics.
+- [x] Idempotent settled-state reconciliation and cleanup when windows disappear.
+- [ ] Define and test window insertion/removal/reordering semantics across all layouts.
 
 ## M2 — X11 read-only inventory
 
