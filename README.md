@@ -42,6 +42,9 @@ target/release/k-tile check-config
 target/release/k-tile plan --width 1920 --height 1080 --windows 5 --layout vertical-left
 target/release/k-tile plan --width 1600 --height 900 --windows 6 --layout grid
 
+# Preview the current desktop's real windows without changing geometry
+target/release/k-tile plan-live
+
 # Inspect X11/EWMH connectivity (read-only)
 target/release/k-tile check-x11
 target/release/k-tile inspect-windows
