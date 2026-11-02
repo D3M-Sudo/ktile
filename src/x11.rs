@@ -278,18 +278,20 @@ impl X11Backend {
         Ok(reply.value32().and_then(|mut values| values.next()))
     }
 
-    /// Subscribe to basic root/subwindow lifecycle events and log them.
+    /// Watch X11 events and call `reconcile` once after each relevant batch.
     ///
-    /// This diagnostic event loop does not move, resize, focus, or otherwise
-    /// manage desktop windows. It runs until the X11 connection fails or the
-    /// process is interrupted.
-    /// Subscribe to basic root/subwindow lifecycle events and log them.
-    ///
-    /// The loop blocks for the first event, then drains at most 128 already
-    /// queued events before processing the next batch. This bounds work during
-    /// event bursts without polling an idle X server or starving shutdown.
-    /// This diagnostic watcher never mutates client geometry.
+    /// The watcher blocks while idle, drains no more than 128 queued events per
+    /// batch, and coalesces bursts into a single callback. The callback is
+    /// invoked only for lifecycle/geometry changes or relevant EWMH properties.
+    /// This method itself never mutates client geometry.
     pub fn watch_events(&self) -> Result<(), X11Error> {
+        self.watch_events_with_reconcile(|| {})
+    }
+
+    pub fn watch_events_with_reconcile<F>(&self, mut reconcile: F) -> Result<(), X11Error>
+    where
+        F: FnMut(),
+    {
         self.connection
             .change_window_attributes(
                 self.root_window(),
@@ -298,6 +300,22 @@ impl X11Backend {
             )?
             .check()?;
         self.connection.flush()?;
+
+        let relevant_properties: Vec<Atom> = [
+            b"_NET_CLIENT_LIST".as_slice(),
+            b"_NET_CURRENT_DESKTOP".as_slice(),
+            b"_NET_NUMBER_OF_DESKTOPS".as_slice(),
+            b"_NET_WORKAREA".as_slice(),
+            b"_NET_WM_STATE".as_slice(),
+            b"_NET_WM_DESKTOP".as_slice(),
+            b"_NET_WM_WINDOW_TYPE".as_slice(),
+            b"_NET_WM_NAME".as_slice(),
+            b"WM_NAME".as_slice(),
+            b"WM_CLASS".as_slice(),
+        ]
+        .iter()
+        .map(|name| Self::intern(&self.connection, name))
+        .collect::<Result<_, _>>()?;
 
         const MAX_EVENTS_PER_BATCH: usize = 128;
         loop {
@@ -310,19 +328,24 @@ impl X11Backend {
                     None => break,
                 }
             }
-            tracing::debug!(events = batch.len(), "processing bounded X11 event batch");
+
+            let mut reconcile_needed = false;
             for event in batch {
                 match event {
                     Event::CreateNotify(event) => {
+                        reconcile_needed = true;
                         tracing::info!(window = event.window, "X11 window created");
                     }
                     Event::MapNotify(event) => {
+                        reconcile_needed = true;
                         tracing::info!(window = event.window, "X11 window mapped");
                     }
                     Event::UnmapNotify(event) => {
+                        reconcile_needed = true;
                         tracing::info!(window = event.window, "X11 window unmapped");
                     }
                     Event::ConfigureNotify(event) => {
+                        reconcile_needed = true;
                         tracing::debug!(
                             window = event.window,
                             x = event.x,
@@ -333,17 +356,29 @@ impl X11Backend {
                         );
                     }
                     Event::DestroyNotify(event) => {
+                        reconcile_needed = true;
                         tracing::info!(window = event.window, "X11 window destroyed");
                     }
                     Event::PropertyNotify(event) => {
-                        tracing::debug!(
-                            window = event.window,
-                            atom = event.atom,
-                            "X11 root property changed"
-                        );
+                        if relevant_properties.contains(&event.atom) {
+                            reconcile_needed = true;
+                            tracing::debug!(
+                                window = event.window,
+                                atom = event.atom,
+                                "relevant X11 property changed"
+                            );
+                        }
                     }
                     other => tracing::trace!(event = ?other, "unhandled X11 event"),
                 }
+            }
+            tracing::debug!(
+                events = batch.len(),
+                reconcile_needed,
+                "processed coalesced X11 event batch"
+            );
+            if reconcile_needed {
+                reconcile();
             }
         }
     }
