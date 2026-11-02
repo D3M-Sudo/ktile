@@ -29,10 +29,11 @@ Status labels describe verified repository implementation, not aspiration. A mil
 
 ## M3 — Event-driven reconciler and safe application
 
+- [x] Pure reconciliation planner proposes Apply/Restore actions without X11 I/O.
+- [x] Capture original geometry and track last confirmed K-tile geometry; suppress windows after external geometry changes.
 - [ ] Event loop for map/unmap/configure/property/focus/workspace/monitor events.
 - [ ] Coalesced reconciliation with bounded work and no busy loop.
 - [ ] Re-read eligibility state immediately before each geometry request.
-- [ ] Capture original geometry and track user-driven changes.
 - [ ] Opt-in geometry write gate until target desktop verification.
 - [ ] Cooperative shutdown and safe restoration tests using a real child process.
 

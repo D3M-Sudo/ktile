@@ -53,4 +53,4 @@ GTK4/Libadwaita is feature-gated during development so headless CI can test core
 
 ## Current implementation boundary
 
-The first code foundation includes a pure planner, config validation and a read-only X11 probe. It does not yet implement the live event loop or mutate window geometry. These are subsequent milestones and require dedicated integration tests.
+The current code includes a pure layout planner, validated TOML configuration, a read-only X11/EWMH inventory, and a pure reconciliation planner that emits Apply/Restore proposals. The reconciler captures original geometry, requires explicit backend confirmation before recording applied geometry, and suppresses windows whose geometry changed outside K-tile. It does not implement the live event loop or mutate window geometry. Those steps require a backend that revalidates state immediately before each request and dedicated integration tests.

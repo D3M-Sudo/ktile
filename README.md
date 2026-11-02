@@ -8,11 +8,12 @@ K-tile takes functional inspiration from [Cortile](https://github.com/leukipp/co
 
 The current branch provides:
 - a backend-independent domain model and deterministic layout planner;
+- a pure reconciliation planner that proposes geometry changes and restoration only when the observed geometry still matches the last confirmed K-tile operation;
 - vertical-left/right and horizontal-top/bottom master/stack layouts, maximized and grid plans;
 - exclusion of floating, fullscreen, maximized, modal, above/below, skip-taskbar and skip-pager windows from layout plans;
 - TOML parsing and validation;
 - CLI commands for configuration initialization/validation and non-mutating layout previews;
-- a read-only X11/EWMH connection and window metadata adapter.
+- a read-only X11/EWMH adapter for client metadata, desktop count/current desktop and usable work areas.
 
 **K-tile does not yet automatically tile live desktop windows.** The event loop, safe geometry application/restoration, workspace and monitor management, rules, keyboard shortcuts, drag interactions, tray, full GTK4/Libadwaita GUI, and packaging remain unfinished. Do not configure the current development build to start automatically or treat it as a production tiling manager.
 
