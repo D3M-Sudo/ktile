@@ -19,4 +19,5 @@ K-tile has not yet published a stable release.
 - Applied the TOML `log_level` setting to tracing by default, while preserving `RUST_LOG` as the explicit override.
 - Added a CI test/build path with default features disabled to verify the backend-independent core does not require X11.
 - Hardened the default configuration path to ignore a relative `XDG_CONFIG_HOME` rather than writing configuration into the working directory.
+- Made the CLI display help when invoked without a subcommand instead of unexpectedly failing configuration validation.
 - Automatic live tiling, GUI, tray, workspace/monitor management, hotkeys, drag interactions and packaging remain unfinished.
