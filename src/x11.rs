@@ -101,9 +101,7 @@ impl X11Backend {
         }
 
         let version = self.connection.randr_query_version(1, 5)?.reply()?;
-        if version.major_version < 1
-            || (version.major_version == 1 && version.minor_version < 5)
-        {
+        if version.major_version < 1 || (version.major_version == 1 && version.minor_version < 5) {
             return Err(X11Error::RandrUnsupported);
         }
 

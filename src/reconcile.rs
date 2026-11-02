@@ -347,12 +347,7 @@ mod tests {
             })
             .collect();
         let second = reconciler
-            .plan(
-                &LayoutEngine::default(),
-                LayoutKind::Grid,
-                area(),
-                &settled,
-            )
+            .plan(&LayoutEngine::default(), LayoutKind::Grid, area(), &settled)
             .unwrap();
 
         assert!(second.is_empty());
