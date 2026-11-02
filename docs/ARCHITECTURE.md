@@ -40,7 +40,7 @@ All geometry is represented in signed X/Y coordinates and unsigned positive dime
 The future backend contract should expose:
 - connection/session lifecycle;
 - enumeration and snapshots of managed windows;
-- monitor/workarea enumeration;
+- monitor/workarea enumeration through RandR/EWMH, with explicit failure when required metadata is unavailable;
 - event stream for map, unmap, configure, focus, state, workspace and monitor changes;
 - explicit operations for focus, move-to-workspace, and geometry application;
 - revalidation before mutation.
