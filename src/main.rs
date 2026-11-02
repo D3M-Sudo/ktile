@@ -484,12 +484,20 @@ fn intersect_rect(a: Rect, b: Rect) -> Option<Rect> {
 }
 
 fn default_config_path() -> PathBuf {
-    if let Some(config_home) = std::env::var_os("XDG_CONFIG_HOME") {
-        return PathBuf::from(config_home).join("k-tile/config.toml");
+    config_path_from_env(
+        std::env::var_os("XDG_CONFIG_HOME").map(PathBuf::from),
+        std::env::var_os("HOME").map(PathBuf::from),
+    )
+}
+
+fn config_path_from_env(
+    xdg_config_home: Option<PathBuf>,
+    home: Option<PathBuf>,
+) -> PathBuf {
+    if let Some(config_home) = xdg_config_home.filter(|path| path.is_absolute()) {
+        return config_home.join("k-tile/config.toml");
     }
-    std::env::var_os("HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("."))
+    home.unwrap_or_else(|| PathBuf::from("."))
         .join(".config/k-tile/config.toml")
 }
 
@@ -542,6 +550,36 @@ mod tests {
     #[test]
     fn default_config_path_is_namespaced() {
         assert!(default_config_path().ends_with("k-tile/config.toml"));
+    }
+
+    #[test]
+    fn config_path_uses_absolute_xdg_config_home() {
+        assert_eq!(
+            config_path_from_env(
+                Some(PathBuf::from("/tmp/user-config")),
+                Some(PathBuf::from("/home/test"))
+            ),
+            PathBuf::from("/tmp/user-config/k-tile/config.toml")
+        );
+    }
+
+    #[test]
+    fn config_path_ignores_relative_xdg_config_home() {
+        assert_eq!(
+            config_path_from_env(
+                Some(PathBuf::from("relative-config")),
+                Some(PathBuf::from("/home/test"))
+            ),
+            PathBuf::from("/home/test/.config/k-tile/config.toml")
+        );
+    }
+
+    #[test]
+    fn config_path_falls_back_to_dot_config_when_home_is_unset() {
+        assert_eq!(
+            config_path_from_env(None, None),
+            PathBuf::from("./.config/k-tile/config.toml")
+        );
     }
 
     #[test]
