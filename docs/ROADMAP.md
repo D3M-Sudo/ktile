@@ -36,11 +36,11 @@ Status labels describe verified repository implementation, not aspiration. A mil
 
 - [x] Pure reconciliation planner proposes Apply/Restore actions without X11 I/O.
 - [x] Capture original geometry and track last confirmed K-tile geometry; suppress windows after external geometry changes.
-- [x] Event loop handles map/unmap/configure/destroy and relevant EWMH root/client property events; focus and monitor-hotplug subscriptions remain open.
+- [x] Event loop handles map/unmap/configure/destroy, focus, relevant EWMH root/client properties, and RandR topology notifications.
 - [x] Diagnostic event watcher blocks while idle and drains queued events in batches capped at 128, bounding event-burst work without busy polling.
 - [x] Coalesced event batches trigger one read-only snapshot/layout preview per relevant batch, with no idle polling.
 - [x] Subscribe to client focus changes and RandR screen/CRTC/output notifications; root EWMH property events cover current-workspace changes.
-- [ ] Add cooperative shutdown/wakeup semantics and lifecycle tests; monitor-hotplug behavior still needs end-to-end Xvfb and Cinnamon validation.
+- [x] Add cooperative SIGINT/SIGTERM shutdown semantics and real-child-process lifecycle tests. Monitor-hotplug event delivery still needs end-to-end Xvfb and Cinnamon validation.
 - [ ] Re-read eligibility state immediately before each geometry request.
 - [ ] Opt-in geometry write gate until target desktop verification.
 - [x] Cooperative shutdown tests using real child processes.
