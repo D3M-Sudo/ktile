@@ -109,19 +109,11 @@ if ! cmp -s "$TMP_DIR/geometry-before.log" "$TMP_DIR/geometry-after.log"; then
 fi
 
 # Verify the diagnostic watcher observes an externally initiated configure event.
-DISPLAY="$DISPLAY" target/release/k-tile watch-x11 >"$TMP_DIR/watch.log" 2>&1 &
+DISPLAY="$DISPLAY" timeout --preserve-status --signal=TERM --kill-after=2s 5s target/release/k-tile watch-x11 >"$TMP_DIR/watch.log" 2>&1 &
 WATCH_PID=$!
 sleep 0.4
 DISPLAY="$DISPLAY" xdotool windowmove "$WINDOW_ID" 160 120
 sleep 0.6
-kill -TERM "$WATCH_PID"
-if ! timeout 5s tail --pid="$WATCH_PID" -f /dev/null; then
-    kill -KILL "$WATCH_PID" 2>/dev/null || true
-    wait "$WATCH_PID" 2>/dev/null || true
-    cat "$TMP_DIR/watch.log" >&2
-    echo "watch-x11 did not exit within 5 seconds after SIGTERM." >&2
-    exit 1
-fi
 if ! wait "$WATCH_PID"; then
     cat "$TMP_DIR/watch.log" >&2
     echo "watch-x11 did not exit cleanly after SIGTERM." >&2
@@ -151,7 +143,7 @@ if grep -oE 'events=[0-9]+' "$TMP_DIR/watch.log" | cut -d= -f2 | awk '$1 > 128 {
 fi
 
 # The event-driven planner should refresh exactly in response to a relevant batch.
-DISPLAY="$DISPLAY" target/release/k-tile watch-plan >"$TMP_DIR/watch-plan.log" 2>&1 &
+DISPLAY="$DISPLAY" timeout --preserve-status --signal=TERM --kill-after=2s 5s target/release/k-tile watch-plan >"$TMP_DIR/watch-plan.log" 2>&1 &
 WATCH_PID=$!
 sleep 0.4
 DISPLAY="$DISPLAY" xdotool windowmove "$WINDOW_ID" 190 140
@@ -159,14 +151,6 @@ for _ in $(seq 1 30); do
     if grep -q 'reconcile_needed=true' "$TMP_DIR/watch-plan.log"; then break; fi
     sleep 0.1
 done
-kill -TERM "$WATCH_PID"
-if ! timeout 5s tail --pid="$WATCH_PID" -f /dev/null; then
-    kill -KILL "$WATCH_PID" 2>/dev/null || true
-    wait "$WATCH_PID" 2>/dev/null || true
-    cat "$TMP_DIR/watch-plan.log" >&2
-    echo "watch-plan did not exit within 5 seconds after SIGTERM." >&2
-    exit 1
-fi
 if ! wait "$WATCH_PID"; then
     cat "$TMP_DIR/watch-plan.log" >&2
     echo "watch-plan did not exit cleanly after SIGTERM." >&2
