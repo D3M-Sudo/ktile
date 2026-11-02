@@ -42,13 +42,13 @@ Override the layout for this preview:
 
     target/release/k-tile plan-live --layout grid
 
-The preview uses the configured layout, master ratio, master count, gap and work-area policy. Floating and excluded application classes, plus fullscreen/maximized/modal/transient/dock/desktop windows, are omitted. Windows on other desktops are skipped; sticky windows remain eligible. If EWMH work-area metadata is unavailable, the command fails rather than guessing. If RandR 1.5 monitor enumeration is unavailable, it logs a warning and uses the X11 server's actual root-screen geometry as a single-area fallback.
+The preview uses the configured layout, master ratio, master count, gap and work-area policy. Floating and excluded application classes, plus fullscreen/maximized/modal/transient/dock/desktop windows, are omitted. Windows on other desktops are skipped; sticky windows remain eligible. If EWMH work-area metadata is unavailable, the command fails rather than guessing. Run `watch-plan` to refresh this preview automatically after relevant map/unmap/configure and EWMH root-property events; it still never changes window geometry. If RandR 1.5 monitor enumeration is unavailable, it logs a warning and uses the X11 server's actual root-screen geometry as a single-area fallback.
 
 Check X11/EWMH connectivity:
 
     target/release/k-tile check-x11
 
-Available layouts: vertical-left, vertical-right, horizontal-top, horizontal-bottom, maximized and grid. `check-x11` only inspects connectivity and screen dimensions; `inspect-windows` lists EWMH client metadata, and `watch-x11` is a diagnostic event watcher.
+Available layouts: vertical-left, vertical-right, horizontal-top, horizontal-bottom, maximized and grid. `check-x11` only inspects connectivity and screen dimensions; `inspect-windows` lists EWMH client metadata, and `watch-x11` is a diagnostic event watcher; `watch-plan` recomputes a read-only preview once per relevant event batch.
 
 ## Configuration
 Default path is $XDG_CONFIG_HOME/k-tile/config.toml, or ~/.config/k-tile/config.toml if XDG_CONFIG_HOME is unset. See config.example.toml.
