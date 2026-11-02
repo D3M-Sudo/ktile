@@ -5,10 +5,7 @@ Read README.md, AGENTS.md, docs/ARCHITECTURE.md, docs/ROADMAP.md and SECURITY.md
 ## Development checks
 Install stable Rust with Cargo, rustfmt and Clippy. Run:
 
-    cargo fmt --all -- --check
-    cargo test --all-features
-    cargo clippy --all-targets --all-features -- -D warnings
-    cargo build --release
+    make check
 
 Do not weaken CI gates to hide failures. Report checks that could not run.
 
