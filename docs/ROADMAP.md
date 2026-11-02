@@ -25,7 +25,7 @@ Status labels describe verified repository implementation, not aspiration. A mil
 - [x] EWMH capability detection and client-list discovery.
 - [x] Read-only EWMH metadata: title, WM_CLASS, state, root-relative client geometry, desktop count/current desktop and work area.
 - [x] RandR 1.5 active-monitor enumeration and EWMH work-area reads; no guessed display geometry.
-- [ ] Validated fallback for servers without RandR 1.5; currently the CLI reports an explicit diagnostic.
+- [x] Explicitly diagnosed fallback to actual X11 root-screen geometry when RandR 1.5 is unavailable; multi-monitor placement is unavailable in this fallback mode.
 - [x] Read-only diagnostic event watcher for basic X11 window lifecycle events.
 - [x] Basic Xvfb/Openbox smoke test covers connection, EWMH client discovery, config-driven preview and diagnostic configure events; broader EWMH matrix remains open.
 - [x] No geometry writes are issued in the read-only inventory milestone.
