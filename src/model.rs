@@ -17,6 +17,10 @@ pub struct WindowState {
     pub skip_pager: bool,
     pub sticky: bool,
     pub minimized: bool,
+    pub dock: bool,
+    pub desktop: bool,
+    pub dialog: bool,
+    pub transient: bool,
 }
 
 impl WindowState {
@@ -30,7 +34,11 @@ impl WindowState {
             || self.below
             || self.skip_taskbar
             || self.skip_pager
-            || self.minimized)
+            || self.minimized
+            || self.dock
+            || self.desktop
+            || self.dialog
+            || self.transient)
     }
 }
 
@@ -97,6 +105,22 @@ mod tests {
             },
             WindowState {
                 minimized: true,
+                ..Default::default()
+            },
+            WindowState {
+                dock: true,
+                ..Default::default()
+            },
+            WindowState {
+                desktop: true,
+                ..Default::default()
+            },
+            WindowState {
+                dialog: true,
+                ..Default::default()
+            },
+            WindowState {
+                transient: true,
                 ..Default::default()
             },
         ];
