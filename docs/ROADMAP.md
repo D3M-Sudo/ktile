@@ -88,3 +88,8 @@ Status labels describe verified repository implementation, not aspiration. A mil
 ## Definition of done
 
 No milestone is marked complete solely because the project compiles. Required evidence includes tests, explicit limitations, clean shutdown behavior where relevant, and target-desktop tests for any live window management changes.
+
+
+## Host validation queue
+
+Manual target-desktop work is tracked separately in [HOST-VALIDATION-JOBS.md](HOST-VALIDATION-JOBS.md). Do not enable live geometry writes until the read-only Cinnamon/Muffin, window-state, workspace/monitor and resource-baseline jobs pass, and the explicit live-write safety gate has been reviewed and authorized.
