@@ -27,8 +27,9 @@ Preview geometry without touching desktop windows:
 
     target/release/k-tile plan --width 1920 --height 1080 --windows 5 --layout vertical-left
     target/release/k-tile plan --width 1600 --height 900 --windows 6 --layout grid
-# Omit --layout to use the `layout` value from the TOML configuration:
-target/release/k-tile plan --width 1600 --height 900 --windows 6
+# Omit `--layout` to use the `layout` value from the TOML configuration:
+
+    target/release/k-tile plan --width 1600 --height 900 --windows 6
 
 Preview commands use validated settings from the TOML file when it exists; if no config file exists, the preview uses built-in defaults. Pass `--config PATH` to select another config. `check-config` still requires an existing config file.
 
@@ -40,7 +41,7 @@ Override the layout for this preview:
 
     target/release/k-tile plan-live --layout grid
 
-The preview uses the configured layout, master ratio, master count, gap and work-area policy. Floating and excluded application classes are omitted. Windows on other desktops are skipped; sticky windows remain eligible. It fails rather than guessing the work area when the window manager does not publish the required EWMH metadata.
+The preview uses the configured layout, master ratio, master count, gap and work-area policy. Floating and excluded application classes, plus fullscreen/maximized/modal/transient/dock/desktop windows, are omitted. Windows on other desktops are skipped; sticky windows remain eligible. If EWMH work-area metadata is unavailable, the command fails rather than guessing. If RandR 1.5 monitor enumeration is unavailable, it logs a warning and uses the X11 server's actual root-screen geometry as a single-area fallback.
 
 Check X11/EWMH connectivity:
 
