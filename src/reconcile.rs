@@ -318,7 +318,6 @@ mod tests {
         assert!(reconciler.plan_restore(&changed).is_empty());
     }
 
-
     #[test]
     fn settled_geometry_is_idempotent() {
         let mut reconciler = Reconciler::default();
