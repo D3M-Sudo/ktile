@@ -14,11 +14,21 @@ TMP_DIR="$(mktemp -d)"
 
 cleanup() {
     set +e
-    [[ -n "$WATCH_PID" ]] && kill "$WATCH_PID" 2>/dev/null
-    [[ -n "$WINDOW_PID" ]] && kill "$WINDOW_PID" 2>/dev/null
-    [[ -n "$WM_PID" ]] && kill "$WM_PID" 2>/dev/null
-    [[ -n "$XVFB_PID" ]] && kill "$XVFB_PID" 2>/dev/null
-    wait 2>/dev/null
+    stop_child() {
+        local pid="$1"
+        [[ -n "$pid" ]] || return 0
+        kill -TERM "$pid" 2>/dev/null || true
+        for _ in $(seq 1 20); do
+            kill -0 "$pid" 2>/dev/null || break
+            sleep 0.1
+        done
+        kill -KILL "$pid" 2>/dev/null || true
+        wait "$pid" 2>/dev/null || true
+    }
+    stop_child "$WATCH_PID"
+    stop_child "$WINDOW_PID"
+    stop_child "$WM_PID"
+    stop_child "$XVFB_PID"
     rm -rf "$TMP_DIR"
 }
 trap cleanup EXIT
@@ -99,12 +109,19 @@ if ! cmp -s "$TMP_DIR/geometry-before.log" "$TMP_DIR/geometry-after.log"; then
 fi
 
 # Verify the diagnostic watcher observes an externally initiated configure event.
-DISPLAY="$DISPLAY" timeout 5s target/release/k-tile watch-x11 >"$TMP_DIR/watch.log" 2>&1 &
+DISPLAY="$DISPLAY" target/release/k-tile watch-x11 >"$TMP_DIR/watch.log" 2>&1 &
 WATCH_PID=$!
 sleep 0.4
 DISPLAY="$DISPLAY" xdotool windowmove "$WINDOW_ID" 160 120
 sleep 0.6
 kill -TERM "$WATCH_PID"
+if ! timeout 5s tail --pid="$WATCH_PID" -f /dev/null; then
+    kill -KILL "$WATCH_PID" 2>/dev/null || true
+    wait "$WATCH_PID" 2>/dev/null || true
+    cat "$TMP_DIR/watch.log" >&2
+    echo "watch-x11 did not exit within 5 seconds after SIGTERM." >&2
+    exit 1
+fi
 if ! wait "$WATCH_PID"; then
     cat "$TMP_DIR/watch.log" >&2
     echo "watch-x11 did not exit cleanly after SIGTERM." >&2
@@ -134,7 +151,7 @@ if grep -oE 'events=[0-9]+' "$TMP_DIR/watch.log" | cut -d= -f2 | awk '$1 > 128 {
 fi
 
 # The event-driven planner should refresh exactly in response to a relevant batch.
-DISPLAY="$DISPLAY" timeout 5s target/release/k-tile watch-plan >"$TMP_DIR/watch-plan.log" 2>&1 &
+DISPLAY="$DISPLAY" target/release/k-tile watch-plan >"$TMP_DIR/watch-plan.log" 2>&1 &
 WATCH_PID=$!
 sleep 0.4
 DISPLAY="$DISPLAY" xdotool windowmove "$WINDOW_ID" 190 140
@@ -143,6 +160,13 @@ for _ in $(seq 1 30); do
     sleep 0.1
 done
 kill -TERM "$WATCH_PID"
+if ! timeout 5s tail --pid="$WATCH_PID" -f /dev/null; then
+    kill -KILL "$WATCH_PID" 2>/dev/null || true
+    wait "$WATCH_PID" 2>/dev/null || true
+    cat "$TMP_DIR/watch-plan.log" >&2
+    echo "watch-plan did not exit within 5 seconds after SIGTERM." >&2
+    exit 1
+fi
 if ! wait "$WATCH_PID"; then
     cat "$TMP_DIR/watch-plan.log" >&2
     echo "watch-plan did not exit cleanly after SIGTERM." >&2
