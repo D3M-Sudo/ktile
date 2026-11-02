@@ -1,32 +1,64 @@
-# Ktile — documentazione progettuale
+# K-tile
 
-Questa cartella contiene la documentazione progettuale per **Ktile**, tiler X11 cooperante con Muffin/Cinnamon (Linux Mint, sessione X11), riscrittura moderna ispirata all'esperienza Hyprland (layout dwindle a suddivisioni binarie e master-stack). Ktile è un client X11 esterno: **non** è un compositor e non sostituisce Muffin.
+K-tile is a Rust-based dynamic tiling manager for Linux desktop environments that expose the X11 EWMH/ICCCM interfaces. The first supported target is Linux Mint 22.3 Cinnamon running X11 with Muffin. A future Wayland backend is an architectural goal, not a current capability.
 
-Questa versione (2026-10-17) sostituisce la documentazione iniziale ("cortile-modern-docs"): riflette le decisioni di progetto chiuse in fase di analisi (registro decisioni D1–D9 nel rapporto di analisi, sezione 7.1). Include inoltre `ARCHITECTURE.md` e `ROADMAP.md` come fonte di verità tracciata del repository (regola operativa permanente: aggiornamento contestuale obbligatorio).
+The project takes functional inspiration from [Cortile](https://github.com/leukipp/cortile). Cortile is MIT-licensed; any source code ported from it must retain its applicable copyright and license notices. K-tile's initial implementation is an independent Rust foundation, not a claim of feature parity.
 
-## Documenti (fonte di verità)
-- `ARCHITECTURE.md` — mappa concettuale, stack, albero directory, tabella moduli con stato, flusso dati. **Da aggiornare contestualmente a ogni decisione/cambio struttura.**
-- `ROADMAP.md` — fasi (MVP/Fase 2/Optimization), checklist task M0–M8, registro ADR con date e motivazioni. **Da aggiornare contestualmente a ogni task completato.**
-- `docs/01-project-overview.md` — scopo, obiettivi, fuori scope, direzione UX.
-- `docs/02-architecture-rust-x11rb.md` — architettura e stack: **backend X11 scelto: x11rb** (decisione presa in analisi).
-- `docs/03-ewmh-muffin-compatibility.md` — ricerca e compatibilità EWMH/Muffin, protocollo di verifica su Mint.
-- `docs/04-functional-specs-dwindle-master.md` — specifiche funzionali: layout core **dwindle e master-stack**, configurazione TOML, CLI, eleggibilità.
-- `docs/05-roadmap-m0-m8.md` — roadmap a milestone M0–M8 con gate, template per task di coding.
+## Current implementation status
 
-## Decisioni chiuse (2026-10-17)
-| # | Decisione | Esito |
-|---|---|---|
-| D1 | Nome progetto/app | **Ktile** (binario `ktile`, config `~/.config/ktile/config.toml`) |
-| D2 | Chiave gap esterno | unica chiave **`outer`** (coppia `inner`/`outer`) |
-| D3 | Ordine finestre | default `stable`; focus solo per la foglia target in dwindle, via `dwindle.split_target = "active"\|"mru"` (default `"active"`) |
-| D4 | "Nessuna finestra eleggibile" | exit **0** + log informativo (successo operativo) |
-| D5 | Layout core | **dwindle + master-stack**; vertical/horizontal/grid solo come test del motore geometrico |
-| D6 | Exit 6 | rifiuto solo per EWMH essenziale assente; nessuna whitelist di nomi WM |
-| D7 | Master-stack `new_status` | default **`slave`** |
-| D8 | Ripristino finestre sospese | posizione originaria se lo slot è identificabile, altrimenti nuova foglia |
-| D9 | Finestre sticky | escluse nella v1; rivalutazione obbligatoria in M7 |
+This repository is under active reconstruction. The initial foundation provides:
+- a backend-independent geometry model and deterministic layout planner;
+- vertical-left/right and horizontal-top/bottom master/stack layouts, maximized and grid layouts;
+- conservative exclusion of floating, fullscreen, maximized, modal, above/below and skip-taskbar/pager windows from plans;
+- TOML parsing and validation;
+- CLI commands for config initialization/validation, sample layout planning and read-only X11 connection checks;
+- a read-only X11 connection probe.
 
-## Avvertenze
-- La documentazione è una base progettuale verificata rispetto all'analisi del Cortile originale, **non** un certificato di compatibilità Muffin: le affermazioni specifiche su Muffin devono essere verificate sulla versione target seguendo il protocollo in `docs/03-ewmh-muffin-compatibility.md`.
-- Il repository applicativo non era disponibile al momento della redazione: questi documenti vanno copiati nella directory `docs/` del repository reale.
-- I nomi dei file riflettono le decisioni prese: architettura Rust con backend `x11rb` (doc 02), specifiche dei layout core dwindle/master (doc 04), roadmap a milestone M0–M8 (doc 05).
+**It does not yet automatically tile live desktop windows.** The event loop, EWMH state reconciliation, geometry application with revalidation, workspace/monitor tracking, GUI, tray integration, drag-and-drop, hotkeys and safe restore workflow remain implementation milestones.
+
+## Build
+
+Requirements: Rust toolchain and (for X11 integration) X11 development/runtime libraries as required by the target environment.
+
+```sh
+cargo fmt --check
+cargo test
+cargo clippy --all-targets --all-features -- -D warnings
+cargo build --release
+```
+
+## Usage
+
+```sh
+# Validate a configuration
+cargo run -- check-config --config ~/.config/k-tile/config.toml
+
+# Create a default config (does not overwrite an existing file)
+cargo run -- --config ~/.config/k-tile/config.toml init-config
+
+# Preview geometry without changing any desktop windows
+cargo run -- plan --width 1920 --height 1080 --windows 5 --layout grid
+
+# Read-only X11/EWMH connection check
+cargo run -- check-x11
+```
+
+The CLI is deliberately read-only at this stage. No window geometry is changed by the current implementation.
+
+## Configuration
+
+See [config.example.toml](config.example.toml). The default config location is `$XDG_CONFIG_HOME/k-tile/config.toml`, or `~/.config/k-tile/config.toml` if `XDG_CONFIG_HOME` is not set.
+
+## Architecture and roadmap
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [Development roadmap](docs/ROADMAP.md)
+- [Cortile porting and license notes](docs/CORTILE-PORTING.md)
+
+## Safety contract
+
+The live backend must never resize a window based only on a stale snapshot. Before every geometry request, it must re-read the target's relevant EWMH state, verify the window is still eligible and confirm that the request remains within the current monitor work area. Tiling remains opt-in until target-machine tests on Cinnamon/Muffin pass. Disabling K-tile must restore captured geometry where the window still exists and where restoration will not overwrite a newer user action.
+
+## License
+
+K-tile is distributed under the MIT License. See [LICENSE](LICENSE). Source code copied or adapted from Cortile must preserve Cortile's copyright and license notices.

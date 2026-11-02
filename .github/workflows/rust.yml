@@ -1,0 +1,27 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [main, development, testing, "feature/**", "k-tile-rust-rebuild"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Format, tests, and Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      - name: Test core and X11 adapter
+        run: cargo test --all-features
+      - name: Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings

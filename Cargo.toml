@@ -1,0 +1,31 @@
+[package]
+name = "k-tile"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "A lightweight, robust X11 tiling manager with Cinnamon/Muffin as the primary target"
+license = "MIT"
+repository = "https://github.com/D3M-Sudo/ktile"
+
+[features]
+default = ["x11"]
+x11 = ["dep:x11rb"]
+gui = ["dep:gtk4"]
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
+thiserror = "2.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+x11rb = { version = "0.13", optional = true, features = ["randr"] }
+gtk4 = { version = "0.9", optional = true }
+
+[dev-dependencies]
+proptest = "1.6"
+tempfile = "3.15"
+
+[[bin]]
+name = "k-tile"
+path = "src/main.rs"
