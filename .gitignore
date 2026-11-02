@@ -1,4 +1,4 @@
-# === Ktile .gitignore — Rust-first (M0 docs, codice da M1) ===
+# K-tile Rust project — generated artifacts and local-only files
 
 # --- Rust / Cargo ---
 # Build output (rigenerabile via `cargo build`)
@@ -29,13 +29,13 @@ Thumbs.db
 \#*\#
 .\#*
 
-# --- Diagnostica M0/M1 (log X11, non sporcare il repo) ---
+# --- Diagnostics (keep local X11 logs out of version control) ---
 *.log
 xev.log
 *.pcap
 /tmp/
 
-# --- Build / packaging locale (M8) ---
+# --- Build and packaging artifacts ---
 *.deb
 *.rpm
 *.tar.gz
