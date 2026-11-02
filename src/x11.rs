@@ -11,7 +11,10 @@ use crate::{
 use thiserror::Error;
 use x11rb::{
     connection::Connection,
-    protocol::xproto::{Atom, AtomEnum, ConnectionExt, Window},
+    protocol::{
+        xproto::{Atom, AtomEnum, ChangeWindowAttributesAux, ConnectionExt, EventMask, Window},
+        Event,
+    },
     rust_connection::RustConnection,
 };
 
@@ -209,6 +212,58 @@ impl X11Backend {
             .get_property(false, window.0, atom, AtomEnum::CARDINAL, 0, 1)?
             .reply()?;
         Ok(reply.value32().and_then(|mut values| values.next()))
+    }
+
+    /// Subscribe to basic root/subwindow lifecycle events and log them.
+    ///
+    /// This diagnostic event loop does not move, resize, focus, or otherwise
+    /// manage desktop windows. It runs until the X11 connection fails or the
+    /// process is interrupted.
+    pub fn watch_events(&self) -> Result<(), X11Error> {
+        self.connection
+            .change_window_attributes(
+                self.root_window(),
+                &ChangeWindowAttributesAux::new().event_mask(
+                    EventMask::SUBSTRUCTURE_NOTIFY | EventMask::PROPERTY_CHANGE,
+                ),
+            )?
+            .check()?;
+        self.connection.flush()?;
+
+        loop {
+            match self.connection.wait_for_event()? {
+                Event::CreateNotify(event) => {
+                    tracing::info!(window = event.window, "X11 window created");
+                }
+                Event::MapNotify(event) => {
+                    tracing::info!(window = event.window, "X11 window mapped");
+                }
+                Event::UnmapNotify(event) => {
+                    tracing::info!(window = event.window, "X11 window unmapped");
+                }
+                Event::ConfigureNotify(event) => {
+                    tracing::debug!(
+                        window = event.window,
+                        x = event.x,
+                        y = event.y,
+                        width = event.width,
+                        height = event.height,
+                        "X11 window geometry changed"
+                    );
+                }
+                Event::DestroyNotify(event) => {
+                    tracing::info!(window = event.window, "X11 window destroyed");
+                }
+                Event::PropertyNotify(event) => {
+                    tracing::debug!(
+                        window = event.window,
+                        atom = event.atom,
+                        "X11 root property changed"
+                    );
+                }
+                other => tracing::trace!(event = ?other, "unhandled X11 event"),
+            }
+        }
     }
 
     pub fn window_state(&self, window: WindowId) -> Result<WindowState, X11Error> {

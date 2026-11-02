@@ -41,6 +41,8 @@ enum Command {
     CheckX11,
     /// List EWMH client windows and read their metadata without changing desktop state.
     InspectWindows,
+    /// Watch basic X11 window lifecycle events without changing window geometry.
+    WatchX11,
 }
 
 #[derive(Debug, Clone, Copy, clap::ValueEnum)]
@@ -206,6 +208,14 @@ fn run(
                         id.0, desktop, class, title, state
                     );
                 }
+            }
+            #[cfg(not(feature = "x11"))]
+            return Err("this build has no X11 support".into());
+        }
+        Command::WatchX11 => {
+            #[cfg(feature = "x11")]
+            {
+                k_tile::x11::X11Backend::connect()?.watch_events()?;
             }
             #[cfg(not(feature = "x11"))]
             return Err("this build has no X11 support".into());
