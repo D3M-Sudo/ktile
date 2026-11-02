@@ -180,7 +180,6 @@ fn run(
                 };
                 let backend = k_tile::x11::X11Backend::connect()?;
                 print_live_plan(&backend, &config, layout)?;
-
             }
             #[cfg(not(feature = "x11"))]
             return Err("this build has no X11 support".into());
@@ -337,9 +336,7 @@ fn print_live_plan(
             })
             .collect(),
         Ok(_) => {
-            tracing::warn!(
-                "RandR returned no monitors; using X11 root geometry for this preview"
-            );
+            tracing::warn!("RandR returned no monitors; using X11 root geometry for this preview");
             let (width, height) = backend.screen_size();
             vec![(
                 0,
@@ -425,8 +422,8 @@ fn print_live_plan(
                     .any(|pattern| class.eq_ignore_ascii_case(pattern))
             })
         };
-        let floating = class_matches(&config.floating_classes)
-            || class_matches(&config.excluded_classes);
+        let floating =
+            class_matches(&config.floating_classes) || class_matches(&config.excluded_classes);
         let geometry = match backend.window_geometry(id) {
             Ok(geometry) => geometry,
             Err(error) => {
@@ -649,8 +646,7 @@ mod tests {
             cli.command,
             Some(Command::WatchPlan { layout: None })
         ));
-        let explicit =
-            Cli::try_parse_from(["k-tile", "watch-plan", "--layout", "grid"]).unwrap();
+        let explicit = Cli::try_parse_from(["k-tile", "watch-plan", "--layout", "grid"]).unwrap();
         assert!(matches!(
             explicit.command,
             Some(Command::WatchPlan {
