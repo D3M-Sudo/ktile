@@ -234,6 +234,7 @@ name = "k-tile"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "libc",
  "proptest",
  "serde",
  "tempfile",
