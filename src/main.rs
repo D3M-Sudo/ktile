@@ -185,11 +185,27 @@ fn run(
                             continue;
                         }
                     };
-                    let window_desktop = backend.window_desktop(id)?;
+                    let window_desktop = match backend.window_desktop(id) {
+                        Ok(value) => value,
+                        Err(error) => {
+                            tracing::warn!(window = id.0, %error, "skipping window with unreadable desktop");
+                            continue;
+                        }
+                    };
                     if window_desktop.is_some_and(|value| value != desktop && value != u32::MAX) {
                         continue;
                     }
-                    let app_class = backend.window_class(id)?;
+                    let app_class = match backend.window_class(id) {
+                        Ok(value) => value,
+                        Err(error) => {
+                            tracing::warn!(window = id.0, %error, "skipping window with unreadable class");
+                            continue;
+                        }
+                    };
+                    let title = backend.window_title(id).unwrap_or_else(|error| {
+                        tracing::warn!(window = id.0, %error, "window title unavailable");
+                        None
+                    });
                     let class_matches = |patterns: &[String]| {
                         app_class.as_ref().is_some_and(|class| {
                             patterns
@@ -201,7 +217,7 @@ fn run(
                         || class_matches(&config.excluded_classes);
                     windows.push(k_tile::WindowInfo {
                         id,
-                        title: backend.window_title(id)?,
+                        title,
                         app_class,
                         workspace: window_desktop.unwrap_or(desktop),
                         monitor: 0,
