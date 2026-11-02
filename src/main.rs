@@ -273,4 +273,21 @@ mod tests {
     fn default_config_path_is_namespaced() {
         assert!(default_config_path().ends_with("k-tile/config.toml"));
     }
+
+    #[test]
+    fn layout_arg_is_optional_so_toml_layout_can_be_used() {
+        let cli = Cli::try_parse_from(["k-tile", "plan"]).unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Command::Plan { layout: None, .. })
+        ));
+        let explicit = Cli::try_parse_from(["k-tile", "plan", "--layout", "grid"]).unwrap();
+        assert!(matches!(
+            explicit.command,
+            Some(Command::Plan {
+                layout: Some(LayoutArg::Grid),
+                ..
+            })
+        ));
+    }
 }
