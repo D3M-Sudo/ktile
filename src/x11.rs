@@ -434,7 +434,8 @@ impl X11Backend {
     fn subscribe_window_properties(&self, window: Window) {
         let result = match self.connection.change_window_attributes(
             window,
-            &ChangeWindowAttributesAux::new().event_mask(EventMask::PROPERTY_CHANGE),
+            &ChangeWindowAttributesAux::new()
+                .event_mask(EventMask::PROPERTY_CHANGE | EventMask::FOCUS_CHANGE),
         ) {
             Ok(cookie) => cookie.check().map_err(|error| error.to_string()),
             Err(error) => Err(error.to_string()),
