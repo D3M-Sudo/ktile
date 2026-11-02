@@ -47,6 +47,8 @@ pub enum LayoutError {
     InvalidWorkArea,
     #[error("master ratio must be between 0.1 and 0.9")]
     InvalidMasterRatio,
+    #[error("work area is too small for the requested layout and window count")]
+    InsufficientWorkArea,
 }
 
 #[derive(Debug, Clone)]
@@ -83,6 +85,16 @@ impl LayoutEngine {
             LayoutKind::Maximized => eligible.iter().map(|_| area).collect(),
             LayoutKind::Grid => self.grid(&eligible, area),
         };
+
+        if rects.iter().any(|rect| {
+            !rect.is_valid()
+                || rect.x < area.x
+                || rect.y < area.y
+                || rect.right() > area.right()
+                || rect.bottom() > area.bottom()
+        }) {
+            return Err(LayoutError::InsufficientWorkArea);
+        }
 
         Ok(LayoutPlan {
             area,
