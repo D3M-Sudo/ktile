@@ -69,6 +69,17 @@ mod tests {
     }
 
     #[test]
+    fn sticky_windows_remain_eligible_for_current_workspace_planning() {
+        assert!(
+            WindowState {
+                sticky: true,
+                ..Default::default()
+            }
+            .is_tile_eligible()
+        );
+    }
+
+    #[test]
     fn special_window_states_are_excluded() {
         let states = [
             WindowState {
