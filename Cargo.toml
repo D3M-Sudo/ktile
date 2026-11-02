@@ -10,7 +10,6 @@ repository = "https://github.com/D3M-Sudo/ktile"
 [features]
 default = ["x11"]
 x11 = ["dep:x11rb"]
-gui = ["dep:gtk4"]
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
@@ -20,7 +19,6 @@ thiserror = "2.0"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 x11rb = { version = "0.13", optional = true, features = ["randr"] }
-gtk4 = { version = "0.9", optional = true }
 
 [dev-dependencies]
 proptest = "1.6"
