@@ -186,16 +186,15 @@ fn run(
                         }
                     };
                     let window_desktop = backend.window_desktop(id)?;
-                    if window_desktop.is_some_and(|value| value != desktop && value != u32::MAX)
-                    {
+                    if window_desktop.is_some_and(|value| value != desktop && value != u32::MAX) {
                         continue;
                     }
                     let app_class = backend.window_class(id)?;
                     let class_matches = |patterns: &[String]| {
                         app_class.as_ref().is_some_and(|class| {
-                            patterns.iter().any(|pattern| {
-                                class.eq_ignore_ascii_case(pattern)
-                            })
+                            patterns
+                                .iter()
+                                .any(|pattern| class.eq_ignore_ascii_case(pattern))
                         })
                     };
                     let floating = class_matches(&config.floating_classes)
