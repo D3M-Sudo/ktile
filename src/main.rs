@@ -78,7 +78,6 @@ fn run(command: Option<Command>, config_path: &std::path::Path) -> Result<(), Bo
             println!("Wrote default configuration: {}", config_path.display());
         }
         Command::Plan { width, height, windows, layout } => {
-            let config = Config::default();
             let infos: Vec<_> = (1..=windows).map(|id| k_tile::WindowInfo {
                 id: k_tile::WindowId(id),
                 title: Some(format!("Example {id}")),
@@ -97,7 +96,6 @@ fn run(command: Option<Command>, config_path: &std::path::Path) -> Result<(), Bo
             for window in plan.windows {
                 println!("window={} x={} y={} width={} height={}", window.id.0, window.rect.x, window.rect.y, window.rect.width, window.rect.height);
             }
-            let _ = config;
         }
         Command::CheckX11 => {
             #[cfg(feature = "x11")]
