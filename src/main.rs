@@ -490,10 +490,7 @@ fn default_config_path() -> PathBuf {
     )
 }
 
-fn config_path_from_env(
-    xdg_config_home: Option<PathBuf>,
-    home: Option<PathBuf>,
-) -> PathBuf {
+fn config_path_from_env(xdg_config_home: Option<PathBuf>, home: Option<PathBuf>) -> PathBuf {
     if let Some(config_home) = xdg_config_home.filter(|path| path.is_absolute()) {
         return config_home.join("k-tile/config.toml");
     }
