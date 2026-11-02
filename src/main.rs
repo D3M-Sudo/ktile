@@ -491,6 +491,48 @@ mod tests {
     use super::*;
 
     #[test]
+    fn intersects_monitor_with_global_work_area() {
+        let monitor = Rect {
+            x: -1600,
+            y: 0,
+            width: 1600,
+            height: 900,
+        };
+        let work = Rect {
+            x: -1600,
+            y: 24,
+            width: 3200,
+            height: 876,
+        };
+        assert_eq!(
+            intersect_rect(monitor, work),
+            Some(Rect {
+                x: -1600,
+                y: 24,
+                width: 1600,
+                height: 876,
+            })
+        );
+    }
+
+    #[test]
+    fn returns_none_for_disjoint_monitor_and_work_area() {
+        let monitor = Rect {
+            x: -1600,
+            y: 0,
+            width: 1600,
+            height: 900,
+        };
+        let work = Rect {
+            x: 0,
+            y: 24,
+            width: 1920,
+            height: 876,
+        };
+        assert_eq!(intersect_rect(monitor, work), None);
+    }
+
+    #[test]
     fn default_config_path_is_namespaced() {
         assert!(default_config_path().ends_with("k-tile/config.toml"));
     }
