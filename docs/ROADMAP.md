@@ -27,7 +27,7 @@ Status labels describe verified repository implementation, not aspiration. A mil
 - [x] RandR 1.5 active-monitor enumeration and EWMH work-area reads; no guessed display geometry.
 - [ ] Validated fallback for servers without RandR 1.5; currently the CLI reports an explicit diagnostic.
 - [x] Read-only diagnostic event watcher for basic X11 window lifecycle events.
-- [ ] Xvfb/Openbox integration tests for supported behavior.
+- [x] Basic Xvfb/Openbox smoke test covers connection, EWMH client discovery, config-driven preview and diagnostic configure events; broader EWMH matrix remains open.
 - [x] No geometry writes are issued in the read-only inventory milestone.
 
 ## M3 — Event-driven reconciler and safe application
