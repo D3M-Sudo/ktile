@@ -136,7 +136,8 @@ done
 kill "$WATCH_PID" 2>/dev/null || true
 wait "$WATCH_PID" 2>/dev/null || true
 WATCH_PID=""
-if ! grep -q 'reconcile_needed=true' "$TMP_DIR/watch-plan.log"; then
+if ! grep -q 'processed coalesced X11 event batch' "$TMP_DIR/watch-plan.log" \
+    || [[ "$(grep -c '^read-only live preview:' "$TMP_DIR/watch-plan.log")" -lt 2 ]]; then
     cat "$TMP_DIR/watch-plan.log" >&2
     echo "watch-plan did not trigger a preview refresh after a window event." >&2
     exit 1
