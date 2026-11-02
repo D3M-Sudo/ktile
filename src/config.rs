@@ -119,7 +119,10 @@ impl Config {
                 path: path.to_path_buf(),
                 source,
             })?;
-        if let Err(source) = file.write_all(body.as_bytes()).and_then(|_| file.sync_all()) {
+        if let Err(source) = file
+            .write_all(body.as_bytes())
+            .and_then(|_| file.sync_all())
+        {
             drop(file);
             let _ = fs::remove_file(path);
             return Err(ConfigError::Write {
