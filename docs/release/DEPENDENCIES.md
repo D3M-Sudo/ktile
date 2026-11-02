@@ -1,0 +1,31 @@
+# Dependency and attribution inventory
+
+This initial inventory is not a complete legal report. Re-check the full resolved dependency graph for each release.
+
+## Direct Rust dependencies
+
+| Crate | Purpose |
+|---|---|
+| clap | CLI argument parsing |
+| serde | Serialization and configuration model |
+| toml | TOML parsing and serialization |
+| thiserror | Typed errors |
+| tracing | Structured logging API |
+| tracing-subscriber | Logging subscriber and environment filters |
+| x11rb (optional x11 feature) | X11 protocol access |
+| proptest (development) | Property-based tests |
+| tempfile (development) | Temporary test files |
+
+Cargo.lock records the resolved graph. CI runs `python3 scripts/check_dependency_licenses.py`, which lists every resolved third-party package and fails if license metadata is missing. This is an inventory-completeness check only: it does not assess license compatibility or prove that required license texts are bundled. Generate and review a full direct/transitive legal report before distribution.
+
+## Upstream source reuse
+Cortile: https://github.com/leukipp/cortile
+
+Cortile is MIT-licensed; its upstream license includes copyright notices for Berin Larson (2019) and leukipp (2022). The current K-tile foundation is newly authored and does not claim a completed source port. The inspected upstream source paths and behavior mapping are recorded in CORTILE-PORTING.md. Before importing code, record exact source paths, modifications, original notices and applicable license text.
+
+## Release requirements
+- [x] Keep Cargo.lock committed and reviewed; re-review it whenever dependencies change.
+- [ ] Generate a complete dependency license inventory.
+- [ ] Check advisories and unsupported dependencies.
+- [ ] Include required license texts/notices in source and binary distributions.
+- [ ] Re-run checks when dependencies change.

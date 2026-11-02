@@ -1,0 +1,12 @@
+# K-tile user configuration.
+# Copy to ~/.config/k-tile/config.toml and adjust to your desktop.
+
+layout = "vertical-left"
+master_ratio = 0.58
+master_count = 1
+gap = 8
+respect_workarea = true
+restore_on_exit = true
+floating_classes = ["Pavucontrol", "Nm-connection-editor"]
+excluded_classes = []
+log_level = "info"

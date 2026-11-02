@@ -52,7 +52,7 @@ target/release/k-tile inspect-windows
 RUST_LOG=info target/release/k-tile watch-x11
 ```
 
-For all commands, configuration keys and limitations, see [Usage](docs/USAGE.md). For local build and removal instructions, see [Installation](docs/INSTALLATION.md).
+For all commands, configuration keys and limitations, see [Usage](docs/user-guide/USAGE.md). For local build and removal instructions, see [Installation](docs/user-guide/INSTALLATION.md).
 
 ## Development checks
 
@@ -78,18 +78,20 @@ The isolated X11 smoke test requires Xvfb, Openbox, x11-utils and xdotool:
 make x11-integration
 ```
 
-See [Testing](docs/TESTING.md), [Contributing](CONTRIBUTING.md) and [Agent instructions](AGENTS.md). CI results are available in [GitHub Actions](https://github.com/D3M-Sudo/ktile/actions).
+See [Testing](docs/testing/TESTING.md), [Contributing](CONTRIBUTING.md) and [Agent instructions](AGENTS.md). CI results are available in [GitHub Actions](https://github.com/D3M-Sudo/ktile/actions).
 
 ## Documentation
 
-- [Usage guide](docs/USAGE.md)
-- [Installation and removal](docs/INSTALLATION.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Roadmap](docs/ROADMAP.md)
-- [Testing strategy and manual Cinnamon checklist](docs/TESTING.md)
-- [Release checklist](docs/RELEASING.md)
-- [Dependency and attribution inventory](docs/DEPENDENCIES.md)
-- [Cortile porting and license notes](docs/CORTILE-PORTING.md)
+Documentation is grouped by purpose. Start with the [documentation index](docs/README.md).
+
+- [Usage guide](docs/user-guide/USAGE.md)
+- [Installation and removal](docs/user-guide/INSTALLATION.md)
+- [Architecture](docs/architecture/ARCHITECTURE.md)
+- [Roadmap](docs/planning/ROADMAP.md)
+- [Testing strategy and manual Cinnamon checklist](docs/testing/TESTING.md)
+- [Release checklist](docs/release/RELEASING.md)
+- [Dependency and attribution inventory](docs/release/DEPENDENCIES.md)
+- [Cortile porting and license notes](docs/development/CORTILE-PORTING.md)
 - [Security policy](SECURITY.md)
 - [Contributing](CONTRIBUTING.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
@@ -101,4 +103,4 @@ Future live geometry changes must revalidate the window's current state immediat
 
 ## License
 
-K-tile is distributed under the MIT License; see [LICENSE](LICENSE). Third-party notices and the complete dependency-license audit are release requirements. See [LICENSES](LICENSES/README.md) and [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md).
+K-tile is distributed under the MIT License; see [LICENSE](LICENSE). Third-party notices and the complete dependency-license audit are release requirements. See [LICENSES](LICENSES/README.md) and [docs/release/DEPENDENCIES.md](docs/release/DEPENDENCIES.md).
