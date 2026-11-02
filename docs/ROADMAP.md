@@ -16,7 +16,8 @@ Status labels describe verified repository implementation, not aspiration. A mil
 
 - [ ] Port and test Cortile's vertical/horizontal layout behavior, proportion persistence, and master/stack rules.
 - [ ] Define rounding and gap invariants, including tiny work areas and negative monitor origins.
-- [ ] Property tests for non-overlap, bounds, positive dimensions and idempotence.
+- [x] Property tests for non-overlap, bounds and positive dimensions.
+- [ ] Idempotence and window insertion/removal/reordering semantics.
 - [ ] Add window insertion/removal/reordering semantics.
 
 ## M2 — X11 read-only inventory
@@ -24,6 +25,7 @@ Status labels describe verified repository implementation, not aspiration. A mil
 - [x] EWMH capability detection and client-list discovery.
 - [x] Read-only EWMH metadata: title, WM_CLASS, state, desktop count/current desktop and work area.
 - [ ] RandR monitor/workarea enumeration with validated fallback; no hard-coded display geometry.
+- [x] Read-only diagnostic event watcher for basic X11 window lifecycle events.
 - [ ] Xvfb/Openbox integration tests for supported behavior.
 - [x] No geometry writes are issued in the read-only inventory milestone.
 
