@@ -643,6 +643,23 @@ mod tests {
     }
 
     #[test]
+    fn watch_plan_command_accepts_optional_layout_override() {
+        let cli = Cli::try_parse_from(["k-tile", "watch-plan"]).unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Command::WatchPlan { layout: None })
+        ));
+        let explicit =
+            Cli::try_parse_from(["k-tile", "watch-plan", "--layout", "grid"]).unwrap();
+        assert!(matches!(
+            explicit.command,
+            Some(Command::WatchPlan {
+                layout: Some(LayoutArg::Grid)
+            })
+        ));
+    }
+
+    #[test]
     fn plan_live_command_is_available_and_layout_override_is_optional() {
         let cli = Cli::try_parse_from(["k-tile", "plan-live"]).unwrap();
         assert!(matches!(
