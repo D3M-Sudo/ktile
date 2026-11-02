@@ -18,6 +18,11 @@ CI must treat each check as blocking. A failed formatter, test or Clippy run mus
 5. Target desktop: Linux Mint 22.3 Cinnamon/Muffin X11; panels/workareas, fullscreen, modal/transient, workspace changes and monitor hotplug.
 6. Resource checks: idle/active CPU and RSS; no busy loops or repeated identical geometry requests.
 
+Run the isolated smoke test locally after building the release binary and installing Xvfb, Openbox, x11-utils and xdotool:
+
+    cargo build --release --all-features
+    bash scripts/test-x11-integration.sh
+
 ## Manual Cinnamon/Muffin checklist
 - [ ] Start and stop without disrupting Muffin or Cinnamon.
 - [ ] Confirm decorations, focus, stacking and shortcuts.
