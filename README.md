@@ -14,7 +14,8 @@ The current branch provides:
 - TOML parsing and validation;
 - CLI commands for configuration initialization/validation and non-mutating layout previews;
 - a read-only X11/EWMH adapter for client metadata and root-relative geometry, workspace/workarea information and RandR 1.5 monitor enumeration, with a diagnosed root-screen fallback when RandR 1.5 is unavailable;
-- a diagnostic X11 event watcher and a pure reconciliation planner with guarded restore proposals.
+- a diagnostic X11 event watcher and a pure reconciliation planner with guarded restore proposals;
+- a disposable Xvfb/Openbox integration test that explicitly compares client geometry before and after `plan-live`.
 
 **K-tile does not yet automatically tile live desktop windows.** The event loop, safe geometry application/restoration, workspace and monitor management, rules, keyboard shortcuts, drag interactions, tray, full GTK4/Libadwaita GUI, and packaging remain unfinished. Do not configure the current development build to start automatically or treat it as a production tiling manager.
 
