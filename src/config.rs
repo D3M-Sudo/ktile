@@ -158,6 +158,40 @@ mod tests {
     }
 
     #[test]
+    fn rejects_invalid_master_count_and_log_level() {
+        let config = Config {
+            master_count: 0,
+            ..Default::default()
+        };
+        assert!(config.validate().is_err());
+
+        let config = Config {
+            master_count: 17,
+            ..Default::default()
+        };
+        assert!(config.validate().is_err());
+
+        let config = Config {
+            log_level: "verbose".into(),
+            ..Default::default()
+        };
+        assert!(config.validate().is_err());
+    }
+
+    #[test]
+    fn accepts_documented_numeric_boundaries() {
+        for ratio in [0.1, 0.9] {
+            let config = Config {
+                master_ratio: ratio,
+                master_count: 16,
+                gap: 128,
+                ..Default::default()
+            };
+            assert!(config.validate().is_ok());
+        }
+    }
+
+    #[test]
     fn write_default_creates_config_and_refuses_overwrite() {
         let directory = tempfile::tempdir().unwrap();
         let path = directory.path().join("nested/config.toml");
