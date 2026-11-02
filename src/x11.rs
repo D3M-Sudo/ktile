@@ -13,6 +13,7 @@ use x11rb::{
     connection::Connection,
     protocol::randr::ConnectionExt as RandrConnectionExt,
     protocol::{
+        randr::NotifyMask,
         Event,
         xproto::{Atom, AtomEnum, ChangeWindowAttributesAux, ConnectionExt, EventMask, Window},
     },
@@ -299,6 +300,12 @@ impl X11Backend {
                     .event_mask(EventMask::SUBSTRUCTURE_NOTIFY | EventMask::PROPERTY_CHANGE),
             )?
             .check()?;
+        if let Err(error) = self.connection.randr_select_input(
+            self.root_window(),
+            NotifyMask::SCREEN_CHANGE | NotifyMask::CRTC_CHANGE | NotifyMask::OUTPUT_CHANGE,
+        ) {
+            tracing::debug!(%error, "RandR monitor-change subscription unavailable");
+        }
         for window in self.client_windows()? {
             self.subscribe_window_properties(window.0);
         }
@@ -363,6 +370,18 @@ impl X11Backend {
                     Event::DestroyNotify(event) => {
                         reconcile_needed = true;
                         tracing::info!(window = event.window, "X11 window destroyed");
+                    }
+                    Event::FocusIn(event) => {
+                        reconcile_needed = true;
+                        tracing::debug!(window = event.event, "X11 focus entered window");
+                    }
+                    Event::FocusOut(event) => {
+                        reconcile_needed = true;
+                        tracing::debug!(window = event.event, "X11 focus left window");
+                    }
+                    Event::RandrScreenChangeNotify(_) | Event::RandrNotify(_) => {
+                        reconcile_needed = true;
+                        tracing::info!("X11 monitor configuration changed");
                     }
                     Event::PropertyNotify(event) => {
                         if relevant_properties.contains(&event.atom) {
