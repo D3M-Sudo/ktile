@@ -9,7 +9,7 @@ Status labels describe verified repository implementation, not aspiration. A mil
 - [x] TOML config schema and validation.
 - [x] Read-only X11/EWMH connection probe.
 - [x] Unit tests for layout and eligibility policy.
-- [ ] Run Cargo quality gates in a network-enabled Rust environment.
+- [x] Run Cargo quality gates in GitHub Actions: formatting, tests, Clippy and release build pass on the current development commit.
 - [ ] Confirm exact Cortile source files and record per-file attribution before any code is ported.
 
 ## M1 — Layout parity and geometry hardening
@@ -21,11 +21,11 @@ Status labels describe verified repository implementation, not aspiration. A mil
 
 ## M2 — X11 read-only inventory
 
-- [ ] EWMH capability detection and robust root/client-list parsing.
-- [ ] ICCCM/EWMH window metadata, title, WM_CLASS, state and workspace.
+- [x] EWMH capability detection and client-list discovery.
+- [x] Read-only EWMH metadata: title, WM_CLASS, state, desktop count/current desktop and work area.
 - [ ] RandR monitor/workarea enumeration with validated fallback; no hard-coded display geometry.
 - [ ] Xvfb/Openbox integration tests for supported behavior.
-- [ ] Do not issue geometry writes in this milestone.
+- [x] No geometry writes are issued in the read-only inventory milestone.
 
 ## M3 — Event-driven reconciler and safe application
 
