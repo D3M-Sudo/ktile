@@ -37,6 +37,11 @@ enum Command {
         #[arg(long, value_enum)]
         layout: Option<LayoutArg>,
     },
+    /// Build a read-only layout preview from currently managed X11 windows.
+    PlanLive {
+        #[arg(long, value_enum)]
+        layout: Option<LayoutArg>,
+    },
     /// Inspect whether an EWMH-compatible X11 window manager is reachable.
     CheckX11,
     /// List EWMH client windows and read their metadata without changing desktop state.
@@ -150,6 +155,90 @@ fn run(
                     window.rect.height
                 );
             }
+        }
+        Command::PlanLive { layout } => {
+            #[cfg(feature = "x11")]
+            {
+                let backend = k_tile::x11::X11Backend::connect()?;
+                let desktop = backend
+                    .current_desktop()?
+                    .ok_or("window manager does not publish _NET_CURRENT_DESKTOP")?;
+                let area = if config.respect_workarea {
+                    backend
+                        .work_area(desktop)?
+                        .ok_or("window manager does not publish a valid _NET_WORKAREA")?
+                } else {
+                    let (width, height) = backend.screen_size();
+                    Rect {
+                        x: 0,
+                        y: 0,
+                        width: u32::from(width),
+                        height: u32::from(height),
+                    }
+                };
+                let mut windows = Vec::new();
+                for id in backend.client_windows()? {
+                    let state = match backend.window_state(id) {
+                        Ok(state) => state,
+                        Err(error) => {
+                            tracing::warn!(window = id.0, %error, "skipping window with unreadable state");
+                            continue;
+                        }
+                    };
+                    let window_desktop = backend.window_desktop(id)?;
+                    if window_desktop.is_some_and(|value| value != desktop && value != u32::MAX)
+                    {
+                        continue;
+                    }
+                    let app_class = backend.window_class(id)?;
+                    let class_matches = |patterns: &[String]| {
+                        app_class.as_ref().is_some_and(|class| {
+                            patterns.iter().any(|pattern| {
+                                class.eq_ignore_ascii_case(pattern)
+                            })
+                        })
+                    };
+                    let floating = class_matches(&config.floating_classes)
+                        || class_matches(&config.excluded_classes);
+                    windows.push(k_tile::WindowInfo {
+                        id,
+                        title: backend.window_title(id)?,
+                        app_class,
+                        workspace: window_desktop.unwrap_or(desktop),
+                        monitor: 0,
+                        state,
+                        floating,
+                    });
+                }
+                let selected_layout = layout.map(Into::into).unwrap_or(config.layout);
+                let plan = config.engine().plan(selected_layout, area, &windows)?;
+                println!(
+                    "read-only live preview: desktop={} layout={:?} area={}x{} at {},{} eligible_windows={}",
+                    desktop,
+                    plan.layout,
+                    area.width,
+                    area.height,
+                    area.x,
+                    area.y,
+                    plan.windows.len()
+                );
+                for planned in plan.windows {
+                    let window = windows.iter().find(|window| window.id == planned.id);
+                    println!(
+                        "window={} class={:?} title={:?} x={} y={} width={} height={}",
+                        planned.id.0,
+                        window.and_then(|window| window.app_class.as_deref()),
+                        window.and_then(|window| window.title.as_deref()),
+                        planned.rect.x,
+                        planned.rect.y,
+                        planned.rect.width,
+                        planned.rect.height
+                    );
+                }
+                println!("No window geometry was changed.");
+            }
+            #[cfg(not(feature = "x11"))]
+            return Err("this build has no X11 support".into());
         }
         Command::CheckX11 => {
             #[cfg(feature = "x11")]
