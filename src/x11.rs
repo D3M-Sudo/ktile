@@ -12,8 +12,8 @@ use thiserror::Error;
 use x11rb::{
     connection::Connection,
     protocol::{
-        xproto::{Atom, AtomEnum, ChangeWindowAttributesAux, ConnectionExt, EventMask, Window},
         Event,
+        xproto::{Atom, AtomEnum, ChangeWindowAttributesAux, ConnectionExt, EventMask, Window},
     },
     rust_connection::RustConnection,
 };
@@ -223,9 +223,8 @@ impl X11Backend {
         self.connection
             .change_window_attributes(
                 self.root_window(),
-                &ChangeWindowAttributesAux::new().event_mask(
-                    EventMask::SUBSTRUCTURE_NOTIFY | EventMask::PROPERTY_CHANGE,
-                ),
+                &ChangeWindowAttributesAux::new()
+                    .event_mask(EventMask::SUBSTRUCTURE_NOTIFY | EventMask::PROPERTY_CHANGE),
             )?
             .check()?;
         self.connection.flush()?;
