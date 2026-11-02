@@ -42,6 +42,7 @@ target/release/k-tile plan --width 1600 --height 900 --windows 6 --layout grid
 
 # Inspect X11/EWMH connectivity (read-only)
 target/release/k-tile check-x11
+target/release/k-tile inspect-windows
 ```
 
 For all commands, configuration keys and limitations, see [Usage](docs/USAGE.md). For local build and removal instructions, see [Installation](docs/INSTALLATION.md).

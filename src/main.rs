@@ -39,6 +39,8 @@ enum Command {
     },
     /// Inspect whether an EWMH-compatible X11 window manager is reachable.
     CheckX11,
+    /// List EWMH client windows and read their metadata without changing desktop state.
+    InspectWindows,
 }
 
 #[derive(Debug, Clone, Copy, clap::ValueEnum)]
@@ -152,6 +154,44 @@ fn run(
                     width,
                     height
                 );
+            }
+            #[cfg(not(feature = "x11"))]
+            return Err("this build has no X11 support".into());
+        }
+        Command::InspectWindows => {
+            #[cfg(feature = "x11")]
+            {
+                let backend = k_tile::x11::X11Backend::connect()?;
+                let windows = backend.client_windows()?;
+                if windows.is_empty() {
+                    println!("No EWMH client windows found.");
+                }
+                for id in windows {
+                    let title = backend.window_title(id).unwrap_or_else(|error| {
+                        tracing::warn!(window = id.0, %error, "could not read window title");
+                        None
+                    });
+                    let class = backend.window_class(id).unwrap_or_else(|error| {
+                        tracing::warn!(window = id.0, %error, "could not read window class");
+                        None
+                    });
+                    let desktop = backend.window_desktop(id).unwrap_or_else(|error| {
+                        tracing::warn!(window = id.0, %error, "could not read window desktop");
+                        None
+                    });
+                    let state = match backend.window_state(id) {
+                        Ok(state) => state,
+                        Err(error) => {
+                            tracing::warn!(window = id.0, %error, "could not read window state");
+                            continue;
+                        }
+                    };
+                    // Debug formatting escapes control characters in untrusted titles/classes.
+                    println!(
+                        "window={} desktop={:?} class={:?} title={:?} state={:?}",
+                        id.0, desktop, class, title, state
+                    );
+                }
             }
             #[cfg(not(feature = "x11"))]
             return Err("this build has no X11 support".into());
