@@ -58,6 +58,15 @@ DISPLAY="$DISPLAY" target/release/k-tile check-x11 >"$TMP_DIR/check.log" 2>&1 ||
 }
 grep -q "X11 connection OK" "$TMP_DIR/check.log"
 
+# Verify custom TOML settings are actually consumed by the layout preview.
+printf 'gap = 0\n' >"$TMP_DIR/custom.toml"
+DISPLAY="$DISPLAY" target/release/k-tile plan --width 800 --height 600 --windows 3 --layout grid >"$TMP_DIR/default-plan.log"
+DISPLAY="$DISPLAY" target/release/k-tile --config "$TMP_DIR/custom.toml" plan --width 800 --height 600 --windows 3 --layout grid >"$TMP_DIR/custom-plan.log"
+if cmp -s "$TMP_DIR/default-plan.log" "$TMP_DIR/custom-plan.log"; then
+    echo "Custom TOML gap setting did not affect the layout preview." >&2
+    exit 1
+fi
+
 xmessage -title "K-tile integration test" "K-tile X11 integration test window" >"$TMP_DIR/xmessage.log" 2>&1 &
 WINDOW_PID=$!
 WINDOW_ID=""
