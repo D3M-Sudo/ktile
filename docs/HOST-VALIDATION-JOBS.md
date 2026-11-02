@@ -25,9 +25,14 @@ Do not enable live geometry writes, autostart or a user service during the read-
   cargo build --release --all-features --locked
   target/release/k-tile check-x11
   target/release/k-tile inspect-windows
-  timeout --signal=TERM 10s target/release/k-tile watch-x11
+  RUST_LOG=debug target/release/k-tile watch-x11 > /tmp/ktile-host-watch.log 2>&1 &
+  watcher_pid=$!
+  sleep 2
+  kill -TERM "$watcher_pid"
+  wait "$watcher_pid"
+  grep -F "X11 watcher received cooperative shutdown request" /tmp/ktile-host-watch.log
   ```
-- **Checks:** Cinnamon remains responsive; focus, stacking, decorations, panels and workspace switching remain unchanged; watcher exits on SIGTERM; no unexpected errors.
+- **Checks:** Cinnamon remains responsive; focus, stacking, decorations, panels and workspace switching remain unchanged; watcher exits with status 0 after SIGTERM and logs the cooperative-shutdown marker; no unexpected errors.
 - **Safety:** all current commands are read-only. Do not run as root.
 
 ### HOST-02 — Window-state and lifecycle matrix
