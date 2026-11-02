@@ -36,9 +36,10 @@ Status labels describe verified repository implementation, not aspiration. A mil
 
 - [x] Pure reconciliation planner proposes Apply/Restore actions without X11 I/O.
 - [x] Capture original geometry and track last confirmed K-tile geometry; suppress windows after external geometry changes.
-- [ ] Event loop for map/unmap/configure/property/focus/workspace/monitor events.
+- [x] Event loop handles map/unmap/configure/destroy and relevant EWMH root-property events; focus and monitor-hotplug subscriptions remain open.
 - [x] Diagnostic event watcher blocks while idle and drains queued events in batches capped at 128, bounding event-burst work without busy polling.
-- [ ] Coalesced reconciliation that triggers snapshots/plans only for relevant events, with bounded work and no busy loop.
+- [x] Coalesced event batches trigger one read-only snapshot/layout preview per relevant batch, with no idle polling.
+- [ ] Add focus and monitor-hotplug event coverage and lifecycle shutdown.
 - [ ] Re-read eligibility state immediately before each geometry request.
 - [ ] Opt-in geometry write gate until target desktop verification.
 - [ ] Cooperative shutdown and safe restoration tests using a real child process.
