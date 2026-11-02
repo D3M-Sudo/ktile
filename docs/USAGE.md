@@ -52,7 +52,7 @@ Available layouts: vertical-left, vertical-right, horizontal-top, horizontal-bot
 ## Configuration
 Default path is $XDG_CONFIG_HOME/k-tile/config.toml, or ~/.config/k-tile/config.toml if XDG_CONFIG_HOME is unset. See config.example.toml.
 
-Keys include layout, master_ratio (0.1–0.9), master_count (1–16), gap (0–128 pixels), respect_workarea, restore_on_exit, floating_classes, excluded_classes and log_level. Some policy fields are stored for future milestones and do not yet affect live windows.
+Keys include layout, master_ratio (0.1–0.9), master_count (1–16), gap (0–128 pixels), respect_workarea, restore_on_exit, floating_classes, excluded_classes and log_level. The configured log level is used unless overridden by RUST_LOG. The restore_on_exit policy is reserved for the future live-management milestone and has no effect while the backend remains read-only.
 
 ## Safe testing
 Use preview commands first. Backend integration should use a disposable X11 session or Xvfb. Do not enable autostart or rely on the current build for live tiling. See TESTING.md.
