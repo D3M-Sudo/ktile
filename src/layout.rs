@@ -244,6 +244,7 @@ impl LayoutEngine {
 mod tests {
     use super::*;
     use crate::model::{WindowInfo, WindowState};
+    use proptest::prelude::*;
 
     fn windows(count: u32) -> Vec<WindowInfo> {
         (1..=count)
@@ -385,8 +386,6 @@ mod tests {
             gap in 0u32..24,
             ratio in 0.2f64..0.8,
         ) {
-            use proptest::prelude::*;
-
             let work_area = Rect { x, y, width, height };
             let windows = windows(count);
             let engine = LayoutEngine { master_ratio: ratio, master_count: 1, gap };
@@ -427,5 +426,4 @@ mod tests {
             }
         }
     }
-
 }
