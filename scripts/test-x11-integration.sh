@@ -113,5 +113,15 @@ if ! grep -q "X11 window geometry changed" "$TMP_DIR/watch.log"; then
     echo "X11 watcher did not report the test window geometry change." >&2
     exit 1
 fi
+if ! grep -q "processing bounded X11 event batch" "$TMP_DIR/watch.log"; then
+    cat "$TMP_DIR/watch.log" >&2
+    echo "X11 watcher did not report bounded event-batch processing." >&2
+    exit 1
+fi
+if grep -oE 'events=[0-9]+' "$TMP_DIR/watch.log" | cut -d= -f2 | awk '$1 > 128 { found=1 } END { exit !found }'; then
+    cat "$TMP_DIR/watch.log" >&2
+    echo "X11 watcher exceeded the 128-event batch bound." >&2
+    exit 1
+fi
 
 echo "X11 integration checks passed (Xvfb + Openbox; no live desktop windows modified)."
