@@ -53,6 +53,8 @@ pub struct LayoutPlan {
 pub enum LayoutError {
     #[error("work area must have non-zero width and height")]
     InvalidWorkArea,
+    #[error("work area coordinates exceed the supported signed coordinate range")]
+    UnrepresentableWorkArea,
     #[error("master ratio must be between 0.1 and 0.9")]
     InvalidMasterRatio,
     #[error("work area is too small for the requested layout and window count")]
@@ -85,6 +87,12 @@ impl LayoutEngine {
     ) -> Result<LayoutPlan, LayoutError> {
         if !area.is_valid() {
             return Err(LayoutError::InvalidWorkArea);
+        }
+        // Rect positions are signed i32 values. Reject areas whose far edge
+        // cannot be represented, before any offset arithmetic or casts occur.
+        let max_edge = i64::from(i32::MAX) + 1;
+        if area.right() > max_edge || area.bottom() > max_edge {
+            return Err(LayoutError::UnrepresentableWorkArea);
         }
         if !(0.1..=0.9).contains(&self.master_ratio) {
             return Err(LayoutError::InvalidMasterRatio);
@@ -153,32 +161,32 @@ impl LayoutEngine {
         let stack_axis = available_axis.saturating_sub(master_axis);
         let axis_origin = if vertical { area.x } else { area.y };
         let master_origin = if master_last {
-            axis_origin.saturating_add(stack_axis.saturating_add(axis_gap) as i32)
+            (i64::from(axis_origin) + i64::from(stack_axis) + i64::from(axis_gap)) as i32
         } else {
             axis_origin
         };
         let stack_origin = if master_last {
             axis_origin
         } else {
-            axis_origin.saturating_add(master_axis.saturating_add(axis_gap) as i32)
+            (i64::from(axis_origin) + i64::from(master_axis) + i64::from(axis_gap)) as i32
         };
 
         let mut result = Vec::with_capacity(windows.len());
         for index in 0..masters {
-            let start = index as u32 * cross_total / masters as u32;
-            let end = (index + 1) as u32 * cross_total / masters as u32;
+            let start = (index as u64 * u64::from(cross_total) / masters as u64) as u32;
+            let end = ((index + 1) as u64 * u64::from(cross_total) / masters as u64) as u32;
             let cross_gap = self.gap.min(end.saturating_sub(start).saturating_sub(1));
             let cross_size = end.saturating_sub(start).saturating_sub(cross_gap);
             result.push(if vertical {
                 Rect {
                     x: master_origin,
-                    y: area.y.saturating_add(start as i32),
+                    y: (i64::from(area.y) + i64::from(start)) as i32,
                     width: master_axis,
                     height: cross_size,
                 }
             } else {
                 Rect {
-                    x: area.x.saturating_add(start as i32),
+                    x: (i64::from(area.x) + i64::from(start)) as i32,
                     y: master_origin,
                     width: cross_size,
                     height: master_axis,
@@ -223,15 +231,15 @@ impl LayoutEngine {
             .map(|(i, _)| {
                 let col = i as u32 % cols;
                 let row = i as u32 / cols;
-                let x0 = col * area.width / cols;
-                let x1 = (col + 1) * area.width / cols;
-                let y0 = row * area.height / rows;
-                let y1 = (row + 1) * area.height / rows;
+                let x0 = (u64::from(col) * u64::from(area.width) / u64::from(cols)) as u32;
+                let x1 = (u64::from(col + 1) * u64::from(area.width) / u64::from(cols)) as u32;
+                let y0 = (u64::from(row) * u64::from(area.height) / u64::from(rows)) as u32;
+                let y1 = (u64::from(row + 1) * u64::from(area.height) / u64::from(rows)) as u32;
                 let cell_width = x1.saturating_sub(x0);
                 let cell_height = y1.saturating_sub(y0);
                 Rect {
-                    x: area.x.saturating_add(x0 as i32),
-                    y: area.y.saturating_add(y0 as i32),
+                    x: (i64::from(area.x) + i64::from(x0)) as i32,
+                    y: (i64::from(area.y) + i64::from(y0)) as i32,
                     width: cell_width.saturating_sub(self.gap.min(cell_width.saturating_sub(1))),
                     height: cell_height.saturating_sub(self.gap.min(cell_height.saturating_sub(1))),
                 }
@@ -340,6 +348,40 @@ mod tests {
                     && w.rect.bottom() <= work_area.bottom()
             }));
         }
+    }
+
+    #[test]
+    fn rejects_work_areas_whose_far_edge_cannot_be_represented() {
+        let too_wide = Rect {
+            x: i32::MAX,
+            y: 0,
+            width: 2,
+            height: 100,
+        };
+        assert_eq!(
+            LayoutEngine::default().plan(LayoutKind::Grid, too_wide, &windows(2)),
+            Err(LayoutError::UnrepresentableWorkArea)
+        );
+    }
+
+    #[test]
+    fn handles_large_dimensions_without_intermediate_u32_overflow() {
+        let work_area = Rect {
+            x: i32::MIN,
+            y: i32::MIN,
+            width: u32::MAX,
+            height: u32::MAX,
+        };
+        let result = LayoutEngine::default().plan(LayoutKind::Grid, work_area, &windows(4));
+        assert!(result.is_ok());
+        let plan = result.unwrap();
+        assert!(plan.windows.iter().all(|window| {
+            window.rect.is_valid()
+                && window.rect.x >= work_area.x
+                && window.rect.y >= work_area.y
+                && window.rect.right() <= work_area.right()
+                && window.rect.bottom() <= work_area.bottom()
+        }));
     }
 
     #[test]
