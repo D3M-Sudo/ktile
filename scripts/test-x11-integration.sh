@@ -83,6 +83,12 @@ done
 DISPLAY="$DISPLAY" target/release/k-tile inspect-windows >"$TMP_DIR/windows.log" 2>&1
 grep -q "K-tile integration test" "$TMP_DIR/windows.log"
 
+# Live planning reads actual client metadata but must never change geometry.
+DISPLAY="$DISPLAY" target/release/k-tile plan-live >"$TMP_DIR/live-plan.log" 2>&1
+grep -q "read-only live preview" "$TMP_DIR/live-plan.log"
+grep -q "K-tile integration test" "$TMP_DIR/live-plan.log"
+grep -q "No window geometry was changed." "$TMP_DIR/live-plan.log"
+
 # Verify the diagnostic watcher observes an externally initiated configure event.
 DISPLAY="$DISPLAY" timeout 5s target/release/k-tile watch-x11 >"$TMP_DIR/watch.log" 2>&1 &
 WATCH_PID=$!
