@@ -34,8 +34,8 @@ enum Command {
         height: u32,
         #[arg(long, default_value_t = 4)]
         windows: u32,
-        #[arg(long, value_enum, default_value_t = LayoutArg::VerticalLeft)]
-        layout: LayoutArg,
+        #[arg(long, value_enum)]
+        layout: Option<LayoutArg>,
     },
     /// Inspect whether an EWMH-compatible X11 window manager is reachable.
     CheckX11,
@@ -122,8 +122,9 @@ fn run(
             } else {
                 Config::default()
             };
+            let layout = layout.map(Into::into).unwrap_or(config.layout);
             let plan = config.engine().plan(
-                layout.into(),
+                layout,
                 Rect {
                     x: 0,
                     y: 0,
