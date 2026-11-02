@@ -364,6 +364,22 @@ mod tests {
     }
 
     #[test]
+    fn plan_live_command_is_available_and_layout_override_is_optional() {
+        let cli = Cli::try_parse_from(["k-tile", "plan-live"]).unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Command::PlanLive { layout: None })
+        ));
+        let explicit = Cli::try_parse_from(["k-tile", "plan-live", "--layout", "grid"]).unwrap();
+        assert!(matches!(
+            explicit.command,
+            Some(Command::PlanLive {
+                layout: Some(LayoutArg::Grid)
+            })
+        ));
+    }
+
+    #[test]
     fn layout_arg_is_optional_so_toml_layout_can_be_used() {
         let cli = Cli::try_parse_from(["k-tile", "plan"]).unwrap();
         assert!(matches!(
