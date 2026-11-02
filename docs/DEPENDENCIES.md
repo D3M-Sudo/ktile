@@ -24,7 +24,7 @@ Cortile: https://github.com/leukipp/cortile
 Cortile is MIT-licensed; its upstream license includes copyright notices for Berin Larson (2019) and leukipp (2022). The current K-tile foundation is newly authored and does not claim a completed source port. Before importing code, record source paths, modifications, original notices and applicable license text in CORTILE-PORTING.md.
 
 ## Release requirements
-- [ ] Commit and review Cargo.lock.
+- [x] Keep Cargo.lock committed and reviewed; re-review it whenever dependencies change.
 - [ ] Generate a complete dependency license inventory.
 - [ ] Check advisories and unsupported dependencies.
 - [ ] Include required license texts/notices in source and binary distributions.
