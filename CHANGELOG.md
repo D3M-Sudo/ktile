@@ -14,4 +14,5 @@ K-tile has not yet published a stable release.
 - Added automated dependency license-metadata completeness checks and explicit documentation that they are not a license-compatibility verdict.
 - Hardened layout coordinate arithmetic for large dimensions and explicitly rejects unrepresentable work areas or tiny areas that cannot fit a non-overlapping layout.
 - Fixed layout previews to consume validated TOML layout-engine settings when a config file exists.
+- Added `plan-live`, a read-only preview over current EWMH clients using the active desktop work area and configured exclusions; it never applies geometry changes.
 - Automatic live tiling, GUI, tray, workspace/monitor management, hotkeys, drag interactions and packaging remain unfinished.
