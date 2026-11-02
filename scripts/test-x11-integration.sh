@@ -25,7 +25,7 @@ trap cleanup EXIT
 
 command -v Xvfb >/dev/null
 command -v openbox >/dev/null
-command -v xterm >/dev/null
+command -v xmessage >/dev/null
 command -v xdotool >/dev/null
 [[ -x target/release/k-tile ]] || {
     echo "Build target/release/k-tile before running this test." >&2
@@ -58,7 +58,7 @@ DISPLAY="$DISPLAY" target/release/k-tile check-x11 >"$TMP_DIR/check.log" 2>&1 ||
 }
 grep -q "X11 connection OK" "$TMP_DIR/check.log"
 
-xterm -title "K-tile integration test" >"$TMP_DIR/xterm.log" 2>&1 &
+xmessage -title "K-tile integration test" "K-tile X11 integration test window" >"$TMP_DIR/xmessage.log" 2>&1 &
 WINDOW_PID=$!
 WINDOW_ID=""
 for _ in $(seq 1 50); do
