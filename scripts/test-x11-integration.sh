@@ -113,9 +113,9 @@ if ! grep -q "X11 window geometry changed" "$TMP_DIR/watch.log"; then
     echo "X11 watcher did not report the test window geometry change." >&2
     exit 1
 fi
-if ! grep -q "processing bounded X11 event batch" "$TMP_DIR/watch.log"; then
+if ! grep -q "processed coalesced X11 event batch" "$TMP_DIR/watch.log"; then
     cat "$TMP_DIR/watch.log" >&2
-    echo "X11 watcher did not report bounded event-batch processing." >&2
+    echo "X11 watcher did not report coalesced event-batch processing." >&2
     exit 1
 fi
 if grep -oE 'events=[0-9]+' "$TMP_DIR/watch.log" | cut -d= -f2 | awk '$1 > 128 { found=1 } END { exit !found }'; then
@@ -124,4 +124,22 @@ if grep -oE 'events=[0-9]+' "$TMP_DIR/watch.log" | cut -d= -f2 | awk '$1 > 128 {
     exit 1
 fi
 
-echo "X11 integration checks passed (Xvfb + Openbox; no live desktop windows modified)."
+# The event-driven planner should refresh exactly in response to a relevant batch.
+DISPLAY="$DISPLAY" timeout 5s target/release/k-tile watch-plan >"$TMP_DIR/watch-plan.log" 2>&1 &
+WATCH_PID=$!
+sleep 0.4
+DISPLAY="$DISPLAY" xdotool windowmove "$WINDOW_ID" 190 140
+for _ in $(seq 1 30); do
+    if grep -q 'reconcile_needed=true' "$TMP_DIR/watch-plan.log"; then break; fi
+    sleep 0.1
+done
+kill "$WATCH_PID" 2>/dev/null || true
+wait "$WATCH_PID" 2>/dev/null || true
+WATCH_PID=""
+if ! grep -q 'reconcile_needed=true' "$TMP_DIR/watch-plan.log"; then
+    cat "$TMP_DIR/watch-plan.log" >&2
+    echo "watch-plan did not trigger a preview refresh after a window event." >&2
+    exit 1
+fi
+
+echo "X11 integration checks passed (Xvfb + Openbox; geometry mutation remains disabled)."
