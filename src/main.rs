@@ -50,6 +50,11 @@ enum Command {
     InspectWindows,
     /// Watch basic X11 window lifecycle events without changing window geometry.
     WatchX11,
+    /// Recompute a read-only layout preview after relevant X11 event batches.
+    WatchPlan {
+        #[arg(long, value_enum)]
+        layout: Option<LayoutArg>,
+    },
 }
 
 #[derive(Debug, Clone, Copy, clap::ValueEnum)]
@@ -276,6 +281,26 @@ fn run(
             #[cfg(feature = "x11")]
             {
                 k_tile::x11::X11Backend::connect()?.watch_events()?;
+            }
+            #[cfg(not(feature = "x11"))]
+            return Err("this build has no X11 support".into());
+        }
+        Command::WatchPlan { layout } => {
+            #[cfg(feature = "x11")]
+            {
+                let config = if config_path.exists() {
+                    Config::load(config_path)?
+                } else {
+                    Config::default()
+                };
+                let backend = k_tile::x11::X11Backend::connect()?;
+                print_live_plan(&backend, &config, layout)?;
+                tracing::info!("watch-plan active; previews are read-only");
+                backend.watch_events_with_reconcile(|| {
+                    if let Err(error) = print_live_plan(&backend, &config, layout) {
+                        tracing::warn!(%error, "could not refresh read-only layout preview");
+                    }
+                })?;
             }
             #[cfg(not(feature = "x11"))]
             return Err("this build has no X11 support".into());
