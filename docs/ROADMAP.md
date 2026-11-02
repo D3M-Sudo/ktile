@@ -29,6 +29,7 @@ Status labels describe verified repository implementation, not aspiration. A mil
 - [x] Read-only diagnostic event watcher for basic X11 window lifecycle events.
 - [x] Basic Xvfb/Openbox smoke test covers connection, EWMH client discovery, config-driven preview and diagnostic configure events; broader EWMH matrix remains open.
 - [x] No geometry writes are issued in the read-only inventory milestone.
+- [x] Integration test asserts that `plan-live` leaves the test client's geometry unchanged.
 
 ## M3 — Event-driven reconciler and safe application
 
