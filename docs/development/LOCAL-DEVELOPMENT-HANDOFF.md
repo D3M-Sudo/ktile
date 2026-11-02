@@ -151,7 +151,7 @@ Complete these work packages in order. Each package should be a focused implemen
 6. Add tests for stable output, no unintended overlap, positive dimensions, bounds and deterministic ordering. Maximized overlap is intentional and should be asserted separately.
 7. Document any intentional divergence from Cortile and preserve MIT notices if source is copied/adapted.
 
-**Acceptance:** fixtures and property tests cover insertion/removal/reordering and all layout variants; formatting, tests and Clippy pass. Update M1 in `docs/planning/ROADMAP.md) only with evidence.
+**Acceptance:** fixtures and property tests cover insertion/removal/reordering and all layout variants; formatting, tests and Clippy pass. Update M1 in `docs/planning/ROADMAP.md` only with evidence.
 
 ### REPO-02 — Complete safe reconciliation design, still disabled by default
 

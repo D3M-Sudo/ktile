@@ -21,7 +21,7 @@ Create the default configuration. Existing files are not overwritten:
 Validate configuration:
 
     target/release/k-tile check-config
-    target/release/k-tile --config ./config.example.toml check-config
+    target/release/k-tile --config ./config/config.example.toml check-config
 
 Preview geometry without touching desktop windows:
 
@@ -51,12 +51,12 @@ Check X11/EWMH connectivity:
 Available layouts: vertical-left, vertical-right, horizontal-top, horizontal-bottom, maximized and grid. `check-x11` only inspects connectivity and screen dimensions; `inspect-windows` lists EWMH client metadata, and `watch-x11` is a diagnostic event watcher; `watch-plan` recomputes a read-only preview once per relevant event batch.
 
 ## Configuration
-Default path is $XDG_CONFIG_HOME/k-tile/config.toml, or ~/.config/k-tile/config.toml if XDG_CONFIG_HOME is unset. See config.example.toml.
+Default path is $XDG_CONFIG_HOME/k-tile/config.toml, or ~/.config/k-tile/config.toml if XDG_CONFIG_HOME is unset. See [the example configuration](../../config/config.example.toml).
 
 Keys include layout, master_ratio (0.1–0.9), master_count (1–16), gap (0–128 pixels), respect_workarea, restore_on_exit, floating_classes, excluded_classes and log_level. Floating/excluded class entries match WM_CLASS case-insensitively. The configured log level is used unless overridden by RUST_LOG. The restore_on_exit policy is reserved for the future live-management milestone and has no effect while the backend remains read-only.
 
 ## Safe testing
-Use preview commands first. Backend integration should use a disposable X11 session or Xvfb. Do not enable autostart or rely on the current build for live tiling. See TESTING.md.
+Use preview commands first. Backend integration should use a disposable X11 session or Xvfb. Do not enable autostart or rely on the current build for live tiling. See [the testing strategy](../testing/TESTING.md).
 
 
 ### Cooperative shutdown
