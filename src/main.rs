@@ -186,7 +186,9 @@ fn run(
                         })
                         .collect(),
                     Ok(_) => {
-                        tracing::warn!("RandR returned no monitors; using X11 root geometry for this preview");
+                        tracing::warn!(
+                            "RandR returned no monitors; using X11 root geometry for this preview"
+                        );
                         let (width, height) = backend.screen_size();
                         vec![(
                             0,
@@ -289,7 +291,10 @@ fn run(
                             && center_y >= i64::from(rect.y)
                             && center_y < rect.bottom()
                     }) else {
-                        tracing::warn!(window = id.0, "skipping window whose center is outside known monitors");
+                        tracing::warn!(
+                            window = id.0,
+                            "skipping window whose center is outside known monitors"
+                        );
                         continue;
                     };
                     windows.push(k_tile::WindowInfo {
@@ -330,7 +335,9 @@ fn run(
                         plan.windows.len()
                     );
                     for planned in plan.windows {
-                        let window = monitor_windows.iter().find(|window| window.id == planned.id);
+                        let window = monitor_windows
+                            .iter()
+                            .find(|window| window.id == planned.id);
                         println!(
                             "window={} monitor={} class={:?} title={:?} x={} y={} width={} height={}",
                             planned.id.0,
