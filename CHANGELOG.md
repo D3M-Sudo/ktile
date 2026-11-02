@@ -10,4 +10,8 @@ K-tile has not yet published a stable release.
 - Added a committed Cargo.lock, locked CI builds and a dependency advisory audit workflow.
 - Added initial architecture, roadmap and Cortile attribution guidance.
 - Added repository security, contribution, agent, usage and release documentation.
+- Added a CI Xvfb/Openbox smoke test for EWMH discovery, diagnostic events and TOML-driven preview behavior.
+- Added automated dependency license-metadata completeness checks and explicit documentation that they are not a license-compatibility verdict.
+- Hardened layout coordinate arithmetic for large dimensions and explicitly rejects unrepresentable work areas or tiny areas that cannot fit a non-overlapping layout.
+- Fixed layout previews to consume validated TOML layout-engine settings when a config file exists.
 - Automatic live tiling, GUI, tray, workspace/monitor management, hotkeys, drag interactions and packaging remain unfinished.
