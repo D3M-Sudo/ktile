@@ -23,7 +23,7 @@ Status labels describe verified repository implementation, not aspiration. A mil
 ## M2 — X11 read-only inventory
 
 - [x] EWMH capability detection and client-list discovery.
-- [x] Read-only EWMH metadata: title, WM_CLASS, state, desktop count/current desktop and work area.
+- [x] Read-only EWMH metadata: title, WM_CLASS, state, root-relative client geometry, desktop count/current desktop and work area.
 - [x] RandR 1.5 active-monitor enumeration and EWMH work-area reads; no guessed display geometry.
 - [ ] Validated fallback for servers without RandR 1.5; currently the CLI reports an explicit diagnostic.
 - [x] Read-only diagnostic event watcher for basic X11 window lifecycle events.
