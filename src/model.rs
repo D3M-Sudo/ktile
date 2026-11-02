@@ -63,15 +63,42 @@ mod tests {
     #[test]
     fn special_window_states_are_excluded() {
         let states = [
-            WindowState { fullscreen: true, ..Default::default() },
-            WindowState { maximized_horizontal: true, ..Default::default() },
-            WindowState { maximized_vertical: true, ..Default::default() },
-            WindowState { modal: true, ..Default::default() },
-            WindowState { above: true, ..Default::default() },
-            WindowState { below: true, ..Default::default() },
-            WindowState { skip_taskbar: true, ..Default::default() },
-            WindowState { skip_pager: true, ..Default::default() },
-            WindowState { minimized: true, ..Default::default() },
+            WindowState {
+                fullscreen: true,
+                ..Default::default()
+            },
+            WindowState {
+                maximized_horizontal: true,
+                ..Default::default()
+            },
+            WindowState {
+                maximized_vertical: true,
+                ..Default::default()
+            },
+            WindowState {
+                modal: true,
+                ..Default::default()
+            },
+            WindowState {
+                above: true,
+                ..Default::default()
+            },
+            WindowState {
+                below: true,
+                ..Default::default()
+            },
+            WindowState {
+                skip_taskbar: true,
+                ..Default::default()
+            },
+            WindowState {
+                skip_pager: true,
+                ..Default::default()
+            },
+            WindowState {
+                minimized: true,
+                ..Default::default()
+            },
         ];
         assert!(states.into_iter().all(|state| !state.is_tile_eligible()));
     }

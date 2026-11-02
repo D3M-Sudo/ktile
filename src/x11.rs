@@ -4,14 +4,13 @@
 //! mutation belongs to a later milestone after reconciliation and restoration
 //! behavior have dedicated integration tests.
 
+use crate::model::{WindowId, WindowState};
 use thiserror::Error;
 use x11rb::{
     connection::Connection,
     protocol::xproto::{Atom, AtomEnum, ConnectionExt, Window},
     rust_connection::RustConnection,
 };
-
-use crate::model::{WindowId, WindowState};
 
 #[derive(Debug, Error)]
 pub enum X11Error {
@@ -39,19 +38,31 @@ impl X11Backend {
         let property = connection
             .get_property(false, root, supporting_atom, AtomEnum::WINDOW, 0, 1)?
             .reply()?;
-        let wm_window = property.value32().and_then(|mut values| values.next())
+        let wm_window = property
+            .value32()
+            .and_then(|mut values| values.next())
             .ok_or(X11Error::NoWindowManager)?;
 
         // EWMH requires the supporting-WM property on the WM window to point
         // back to itself. A root property alone is not sufficient evidence.
         let wm_property = connection
-            .get_property(false, wm_window, supporting_atom, AtomEnum::WINDOW, 0, 1)?
+            .get_property(
+                false,
+                wm_window,
+                supporting_atom,
+                AtomEnum::WINDOW,
+                0,
+                1,
+            )?
             .reply()?;
         if wm_property.value32().and_then(|mut values| values.next()) != Some(wm_window) {
             return Err(X11Error::NoWindowManager);
         }
 
-        Ok(Self { connection, screen_num })
+        Ok(Self {
+            connection,
+            screen_num,
+        })
     }
 
     fn intern(connection: &RustConnection, name: &[u8]) -> Result<Atom, X11Error> {
@@ -70,25 +81,45 @@ impl X11Backend {
     /// Read the EWMH client list without changing any desktop state.
     pub fn client_windows(&self) -> Result<Vec<WindowId>, X11Error> {
         let atom = Self::intern(&self.connection, b"_NET_CLIENT_LIST")?;
-        let reply = self.connection
-            .get_property(false, self.root_window(), atom, AtomEnum::WINDOW, 0, u32::MAX)?
+        let reply = self
+            .connection
+            .get_property(
+                false,
+                self.root_window(),
+                atom,
+                AtomEnum::WINDOW,
+                0,
+                u32::MAX,
+            )?
             .reply()?;
-        Ok(reply.value32().map(|values| values.map(WindowId).collect()).unwrap_or_default())
+        Ok(reply
+            .value32()
+            .map(|values| values.map(WindowId).collect())
+            .unwrap_or_default())
     }
 
     /// Read a window title, preferring UTF-8 EWMH title over legacy WM_NAME.
     pub fn window_title(&self, window: WindowId) -> Result<Option<String>, X11Error> {
         let name_atom = Self::intern(&self.connection, b"_NET_WM_NAME")?;
         let utf8_atom = Self::intern(&self.connection, b"UTF8_STRING")?;
-        let modern = self.connection
+        let modern = self
+            .connection
             .get_property(false, window.0, name_atom, utf8_atom, 0, 16_384)?
             .reply()?;
         if !modern.value.is_empty() {
             return Ok(Some(String::from_utf8_lossy(&modern.value).into_owned()));
         }
 
-        let legacy = self.connection
-            .get_property(false, window.0, AtomEnum::WM_NAME, AtomEnum::STRING, 0, 16_384)?
+        let legacy = self
+            .connection
+            .get_property(
+                false,
+                window.0,
+                AtomEnum::WM_NAME,
+                AtomEnum::STRING,
+                0,
+                16_384,
+            )?
             .reply()?;
         if legacy.value.is_empty() {
             Ok(None)
@@ -99,13 +130,23 @@ impl X11Backend {
 
     /// WM_CLASS is two NUL-separated strings: instance followed by class.
     pub fn window_class(&self, window: WindowId) -> Result<Option<String>, X11Error> {
-        let reply = self.connection
-            .get_property(false, window.0, AtomEnum::WM_CLASS, AtomEnum::STRING, 0, 1024)?
+        let reply = self
+            .connection
+            .get_property(
+                false,
+                window.0,
+                AtomEnum::WM_CLASS,
+                AtomEnum::STRING,
+                0,
+                1024,
+            )?
             .reply()?;
         if reply.value.is_empty() {
             return Ok(None);
         }
-        let parts: Vec<_> = reply.value.split(|byte| *byte == 0)
+        let parts: Vec<_> = reply
+            .value
+            .split(|byte| *byte == 0)
             .filter(|part| !part.is_empty())
             .collect();
         let class = parts.get(1).or_else(|| parts.first());
@@ -114,7 +155,8 @@ impl X11Backend {
 
     pub fn window_desktop(&self, window: WindowId) -> Result<Option<u32>, X11Error> {
         let atom = Self::intern(&self.connection, b"_NET_WM_DESKTOP")?;
-        let reply = self.connection
+        let reply = self
+            .connection
             .get_property(false, window.0, atom, AtomEnum::CARDINAL, 0, 1)?
             .reply()?;
         Ok(reply.value32().and_then(|mut values| values.next()))
@@ -122,10 +164,14 @@ impl X11Backend {
 
     pub fn window_state(&self, window: WindowId) -> Result<WindowState, X11Error> {
         let state_atom = Self::intern(&self.connection, b"_NET_WM_STATE")?;
-        let reply = self.connection
+        let reply = self
+            .connection
             .get_property(false, window.0, state_atom, AtomEnum::ATOM, 0, 64)?
             .reply()?;
-        let states: Vec<Atom> = reply.value32().map(|values| values.collect()).unwrap_or_default();
+        let states: Vec<Atom> = reply
+            .value32()
+            .map(|values| values.collect())
+            .unwrap_or_default();
         let has = |name: &[u8]| -> Result<bool, X11Error> {
             let atom = Self::intern(&self.connection, name)?;
             Ok(states.contains(&atom))

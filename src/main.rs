@@ -1,10 +1,17 @@
 use clap::{Parser, Subcommand};
+use k_tile::{
+    config::Config,
+    layout::{LayoutEngine, LayoutKind, Rect},
+};
 use std::{path::PathBuf, process::ExitCode};
 use tracing_subscriber::EnvFilter;
-use k_tile::{config::Config, layout::{LayoutEngine, LayoutKind, Rect}};
 
 #[derive(Debug, Parser)]
-#[command(name = "k-tile", version, about = "Modern lightweight X11 tiling manager for Cinnamon/Muffin")]
+#[command(
+    name = "k-tile",
+    version,
+    about = "Modern lightweight X11 tiling manager for Cinnamon/Muffin"
+)]
 struct Cli {
     /// Path to TOML configuration.
     #[arg(long, global = true)]
@@ -35,7 +42,14 @@ enum Command {
 }
 
 #[derive(Debug, Clone, Copy, clap::ValueEnum)]
-enum LayoutArg { VerticalLeft, VerticalRight, HorizontalTop, HorizontalBottom, Maximized, Grid }
+enum LayoutArg {
+    VerticalLeft,
+    VerticalRight,
+    HorizontalTop,
+    HorizontalBottom,
+    Maximized,
+    Grid,
+}
 
 impl From<LayoutArg> for LayoutKind {
     fn from(value: LayoutArg) -> Self {
@@ -51,7 +65,9 @@ impl From<LayoutArg> for LayoutKind {
 }
 
 fn main() -> ExitCode {
-    tracing_subscriber::fmt().with_env_filter(EnvFilter::from_default_env()).init();
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::from_default_env())
+        .init();
     let cli = Cli::parse();
     let config_path = cli.config.unwrap_or_else(default_config_path);
 
@@ -64,7 +80,10 @@ fn main() -> ExitCode {
     }
 }
 
-fn run(command: Option<Command>, config_path: &std::path::Path) -> Result<(), Box<dyn std::error::Error>> {
+fn run(
+    command: Option<Command>,
+    config_path: &std::path::Path,
+) -> Result<(), Box<dyn std::error::Error>> {
     match command.unwrap_or(Command::CheckConfig) {
         Command::CheckConfig => {
             Config::load(config_path)?;
@@ -77,24 +96,49 @@ fn run(command: Option<Command>, config_path: &std::path::Path) -> Result<(), Bo
             Config::write_default(config_path)?;
             println!("Wrote default configuration: {}", config_path.display());
         }
-        Command::Plan { width, height, windows, layout } => {
-            let infos: Vec<_> = (1..=windows).map(|id| k_tile::WindowInfo {
-                id: k_tile::WindowId(id),
-                title: Some(format!("Example {id}")),
-                app_class: None,
-                workspace: 0,
-                monitor: 0,
-                state: Default::default(),
-                floating: false,
-            }).collect();
+        Command::Plan {
+            width,
+            height,
+            windows,
+            layout,
+        } => {
+            let infos: Vec<_> = (1..=windows)
+                .map(|id| k_tile::WindowInfo {
+                    id: k_tile::WindowId(id),
+                    title: Some(format!("Example {id}")),
+                    app_class: None,
+                    workspace: 0,
+                    monitor: 0,
+                    state: Default::default(),
+                    floating: false,
+                })
+                .collect();
             let plan = LayoutEngine::default().plan(
                 layout.into(),
-                Rect { x: 0, y: 0, width, height },
+                Rect {
+                    x: 0,
+                    y: 0,
+                    width,
+                    height,
+                },
                 &infos,
             )?;
-            println!("layout={:?} area={}x{} windows={}", plan.layout, width, height, plan.windows.len());
+            println!(
+                "layout={:?} area={}x{} windows={}",
+                plan.layout,
+                width,
+                height,
+                plan.windows.len()
+            );
             for window in plan.windows {
-                println!("window={} x={} y={} width={} height={}", window.id.0, window.rect.x, window.rect.y, window.rect.width, window.rect.height);
+                println!(
+                    "window={} x={} y={} width={} height={}",
+                    window.id.0,
+                    window.rect.x,
+                    window.rect.y,
+                    window.rect.width,
+                    window.rect.height
+                );
             }
         }
         Command::CheckX11 => {
@@ -102,7 +146,12 @@ fn run(command: Option<Command>, config_path: &std::path::Path) -> Result<(), Bo
             {
                 let backend = k_tile::x11::X11Backend::connect()?;
                 let (width, height) = backend.screen_size();
-                println!("X11 connection OK; root={} screen={}x{}", backend.root_window(), width, height);
+                println!(
+                    "X11 connection OK; root={} screen={}x{}",
+                    backend.root_window(),
+                    width,
+                    height
+                );
             }
             #[cfg(not(feature = "x11"))]
             return Err("this build has no X11 support".into());
