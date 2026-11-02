@@ -25,6 +25,8 @@ jobs:
         run: cargo test --all-features --locked
       - name: Clippy
         run: cargo clippy --all-targets --all-features --locked -- -D warnings
+      - name: Check resolved dependency license metadata
+        run: python3 scripts/check_dependency_licenses.py
       - name: Release build
         run: cargo build --release --all-features --locked
       - name: Install isolated X11 test tools
