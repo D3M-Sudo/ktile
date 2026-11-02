@@ -174,193 +174,8 @@ fn run(
                     Config::default()
                 };
                 let backend = k_tile::x11::X11Backend::connect()?;
-                let desktop = backend
-                    .current_desktop()?
-                    .ok_or("window manager does not publish _NET_CURRENT_DESKTOP")?;
-                let monitor_specs: Vec<(u32, String, Rect)> = match backend.monitors() {
-                    Ok(monitors) if !monitors.is_empty() => monitors
-                        .into_iter()
-                        .enumerate()
-                        .map(|(index, monitor)| {
-                            (
-                                index as u32,
-                                monitor.name,
-                                Rect {
-                                    x: monitor.x,
-                                    y: monitor.y,
-                                    width: monitor.width,
-                                    height: monitor.height,
-                                },
-                            )
-                        })
-                        .collect(),
-                    Ok(_) => {
-                        tracing::warn!(
-                            "RandR returned no monitors; using X11 root geometry for this preview"
-                        );
-                        let (width, height) = backend.screen_size();
-                        vec![(
-                            0,
-                            "X11 root screen".into(),
-                            Rect {
-                                x: 0,
-                                y: 0,
-                                width: u32::from(width),
-                                height: u32::from(height),
-                            },
-                        )]
-                    }
-                    Err(error) => {
-                        tracing::warn!(%error, "RandR monitor discovery unavailable; using X11 root geometry for this preview");
-                        let (width, height) = backend.screen_size();
-                        vec![(
-                            0,
-                            "X11 root screen".into(),
-                            Rect {
-                                x: 0,
-                                y: 0,
-                                width: u32::from(width),
-                                height: u32::from(height),
-                            },
-                        )]
-                    }
-                };
-                let work_area = if config.respect_workarea {
-                    Some(
-                        backend
-                            .work_area(desktop)?
-                            .ok_or("window manager does not publish a valid _NET_WORKAREA")?,
-                    )
-                } else {
-                    None
-                };
-                let monitor_areas: Vec<(u32, String, Rect)> = monitor_specs
-                    .iter()
-                    .filter_map(|(id, name, monitor_rect)| {
-                        let area = work_area
-                            .map(|work| intersect_rect(*monitor_rect, work))
-                            .unwrap_or(Some(*monitor_rect));
-                        area.map(|area| (*id, name.clone(), area))
-                    })
-                    .collect();
-                if monitor_areas.is_empty() {
-                    return Err("no usable monitor work areas are available".into());
-                }
-                let mut windows = Vec::new();
-                for id in backend.client_windows()? {
-                    let state = match backend.window_state(id) {
-                        Ok(state) => state,
-                        Err(error) => {
-                            tracing::warn!(window = id.0, %error, "skipping window with unreadable state");
-                            continue;
-                        }
-                    };
-                    let window_desktop = match backend.window_desktop(id) {
-                        Ok(value) => value,
-                        Err(error) => {
-                            tracing::warn!(window = id.0, %error, "skipping window with unreadable desktop");
-                            continue;
-                        }
-                    };
-                    if !belongs_to_desktop(window_desktop, desktop, state.sticky) {
-                        continue;
-                    }
-                    let app_class = match backend.window_class(id) {
-                        Ok(value) => value,
-                        Err(error) => {
-                            tracing::warn!(window = id.0, %error, "skipping window with unreadable class");
-                            continue;
-                        }
-                    };
-                    let title = backend.window_title(id).unwrap_or_else(|error| {
-                        tracing::warn!(window = id.0, %error, "window title unavailable");
-                        None
-                    });
-                    let class_matches = |patterns: &[String]| {
-                        app_class.as_ref().is_some_and(|class| {
-                            patterns
-                                .iter()
-                                .any(|pattern| class.eq_ignore_ascii_case(pattern))
-                        })
-                    };
-                    let floating = class_matches(&config.floating_classes)
-                        || class_matches(&config.excluded_classes);
-                    let geometry = match backend.window_geometry(id) {
-                        Ok(geometry) => geometry,
-                        Err(error) => {
-                            tracing::warn!(window = id.0, %error, "skipping window with unreadable geometry");
-                            continue;
-                        }
-                    };
-                    let center_x = i64::from(geometry.x) + i64::from(geometry.width) / 2;
-                    let center_y = i64::from(geometry.y) + i64::from(geometry.height) / 2;
-                    let Some((monitor_id, _, _)) = monitor_specs.iter().find(|(_, _, rect)| {
-                        center_x >= i64::from(rect.x)
-                            && center_x < rect.right()
-                            && center_y >= i64::from(rect.y)
-                            && center_y < rect.bottom()
-                    }) else {
-                        tracing::warn!(
-                            window = id.0,
-                            "skipping window whose center is outside known monitors"
-                        );
-                        continue;
-                    };
-                    windows.push(k_tile::WindowInfo {
-                        id,
-                        title,
-                        app_class,
-                        workspace: window_desktop.unwrap_or(desktop),
-                        monitor: *monitor_id,
-                        state,
-                        floating,
-                    });
-                }
-                let selected_layout = layout.map(Into::into).unwrap_or(config.layout);
-                let engine = config.engine();
-                let mut total_planned = 0usize;
-                println!(
-                    "read-only live preview: desktop={} layout={:?} monitors={}",
-                    desktop,
-                    selected_layout,
-                    monitor_areas.len()
-                );
-                for (monitor_id, monitor_name, area) in &monitor_areas {
-                    let monitor_windows: Vec<_> = windows
-                        .iter()
-                        .filter(|window| window.monitor == *monitor_id)
-                        .cloned()
-                        .collect();
-                    let plan = engine.plan(selected_layout, *area, &monitor_windows)?;
-                    total_planned += plan.windows.len();
-                    println!(
-                        "monitor={} name={:?} area={}x{} at {},{} eligible_windows={}",
-                        monitor_id,
-                        monitor_name,
-                        area.width,
-                        area.height,
-                        area.x,
-                        area.y,
-                        plan.windows.len()
-                    );
-                    for planned in plan.windows {
-                        let window = monitor_windows
-                            .iter()
-                            .find(|window| window.id == planned.id);
-                        println!(
-                            "window={} monitor={} class={:?} title={:?} x={} y={} width={} height={}",
-                            planned.id.0,
-                            monitor_id,
-                            window.and_then(|window| window.app_class.as_deref()),
-                            window.and_then(|window| window.title.as_deref()),
-                            planned.rect.x,
-                            planned.rect.y,
-                            planned.rect.width,
-                            planned.rect.height
-                        );
-                    }
-                }
-                println!("Planned windows: {total_planned}. No window geometry was changed.");
+                print_live_plan(&backend, &config, layout)?;
+
             }
             #[cfg(not(feature = "x11"))]
             return Err("this build has no X11 support".into());
@@ -466,6 +281,203 @@ fn run(
             return Err("this build has no X11 support".into());
         }
     }
+    Ok(())
+}
+
+
+#[cfg(feature = "x11")]
+fn print_live_plan(
+    backend: &k_tile::x11::X11Backend,
+    config: &Config,
+    layout: Option<LayoutArg>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let desktop = backend
+        .current_desktop()?
+        .ok_or("window manager does not publish _NET_CURRENT_DESKTOP")?;
+    let monitor_specs: Vec<(u32, String, Rect)> = match backend.monitors() {
+        Ok(monitors) if !monitors.is_empty() => monitors
+            .into_iter()
+            .enumerate()
+            .map(|(index, monitor)| {
+                (
+                    index as u32,
+                    monitor.name,
+                    Rect {
+                        x: monitor.x,
+                        y: monitor.y,
+                        width: monitor.width,
+                        height: monitor.height,
+                    },
+                )
+            })
+            .collect(),
+        Ok(_) => {
+            tracing::warn!(
+                "RandR returned no monitors; using X11 root geometry for this preview"
+            );
+            let (width, height) = backend.screen_size();
+            vec![(
+                0,
+                "X11 root screen".into(),
+                Rect {
+                    x: 0,
+                    y: 0,
+                    width: u32::from(width),
+                    height: u32::from(height),
+                },
+            )]
+        }
+        Err(error) => {
+            tracing::warn!(%error, "RandR monitor discovery unavailable; using X11 root geometry for this preview");
+            let (width, height) = backend.screen_size();
+            vec![(
+                0,
+                "X11 root screen".into(),
+                Rect {
+                    x: 0,
+                    y: 0,
+                    width: u32::from(width),
+                    height: u32::from(height),
+                },
+            )]
+        }
+    };
+    let work_area = if config.respect_workarea {
+        Some(
+            backend
+                .work_area(desktop)?
+                .ok_or("window manager does not publish a valid _NET_WORKAREA")?,
+        )
+    } else {
+        None
+    };
+    let monitor_areas: Vec<(u32, String, Rect)> = monitor_specs
+        .iter()
+        .filter_map(|(id, name, monitor_rect)| {
+            let area = work_area
+                .map(|work| intersect_rect(*monitor_rect, work))
+                .unwrap_or(Some(*monitor_rect));
+            area.map(|area| (*id, name.clone(), area))
+        })
+        .collect();
+    if monitor_areas.is_empty() {
+        return Err("no usable monitor work areas are available".into());
+    }
+    let mut windows = Vec::new();
+    for id in backend.client_windows()? {
+        let state = match backend.window_state(id) {
+            Ok(state) => state,
+            Err(error) => {
+                tracing::warn!(window = id.0, %error, "skipping window with unreadable state");
+                continue;
+            }
+        };
+        let window_desktop = match backend.window_desktop(id) {
+            Ok(value) => value,
+            Err(error) => {
+                tracing::warn!(window = id.0, %error, "skipping window with unreadable desktop");
+                continue;
+            }
+        };
+        if !belongs_to_desktop(window_desktop, desktop, state.sticky) {
+            continue;
+        }
+        let app_class = match backend.window_class(id) {
+            Ok(value) => value,
+            Err(error) => {
+                tracing::warn!(window = id.0, %error, "skipping window with unreadable class");
+                continue;
+            }
+        };
+        let title = backend.window_title(id).unwrap_or_else(|error| {
+            tracing::warn!(window = id.0, %error, "window title unavailable");
+            None
+        });
+        let class_matches = |patterns: &[String]| {
+            app_class.as_ref().is_some_and(|class| {
+                patterns
+                    .iter()
+                    .any(|pattern| class.eq_ignore_ascii_case(pattern))
+            })
+        };
+        let floating = class_matches(&config.floating_classes)
+            || class_matches(&config.excluded_classes);
+        let geometry = match backend.window_geometry(id) {
+            Ok(geometry) => geometry,
+            Err(error) => {
+                tracing::warn!(window = id.0, %error, "skipping window with unreadable geometry");
+                continue;
+            }
+        };
+        let center_x = i64::from(geometry.x) + i64::from(geometry.width) / 2;
+        let center_y = i64::from(geometry.y) + i64::from(geometry.height) / 2;
+        let Some((monitor_id, _, _)) = monitor_specs.iter().find(|(_, _, rect)| {
+            center_x >= i64::from(rect.x)
+                && center_x < rect.right()
+                && center_y >= i64::from(rect.y)
+                && center_y < rect.bottom()
+        }) else {
+            tracing::warn!(
+                window = id.0,
+                "skipping window whose center is outside known monitors"
+            );
+            continue;
+        };
+        windows.push(k_tile::WindowInfo {
+            id,
+            title,
+            app_class,
+            workspace: window_desktop.unwrap_or(desktop),
+            monitor: *monitor_id,
+            state,
+            floating,
+        });
+    }
+    let selected_layout = layout.map(Into::into).unwrap_or(config.layout);
+    let engine = config.engine();
+    let mut total_planned = 0usize;
+    println!(
+        "read-only live preview: desktop={} layout={:?} monitors={}",
+        desktop,
+        selected_layout,
+        monitor_areas.len()
+    );
+    for (monitor_id, monitor_name, area) in &monitor_areas {
+        let monitor_windows: Vec<_> = windows
+            .iter()
+            .filter(|window| window.monitor == *monitor_id)
+            .cloned()
+            .collect();
+        let plan = engine.plan(selected_layout, *area, &monitor_windows)?;
+        total_planned += plan.windows.len();
+        println!(
+            "monitor={} name={:?} area={}x{} at {},{} eligible_windows={}",
+            monitor_id,
+            monitor_name,
+            area.width,
+            area.height,
+            area.x,
+            area.y,
+            plan.windows.len()
+        );
+        for planned in plan.windows {
+            let window = monitor_windows
+                .iter()
+                .find(|window| window.id == planned.id);
+            println!(
+                "window={} monitor={} class={:?} title={:?} x={} y={} width={} height={}",
+                planned.id.0,
+                monitor_id,
+                window.and_then(|window| window.app_class.as_deref()),
+                window.and_then(|window| window.title.as_deref()),
+                planned.rect.x,
+                planned.rect.y,
+                planned.rect.width,
+                planned.rect.height
+            );
+        }
+    }
+    println!("Planned windows: {total_planned}. No window geometry was changed.");
     Ok(())
 }
 
