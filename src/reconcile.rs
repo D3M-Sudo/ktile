@@ -21,16 +21,8 @@ pub struct ObservedWindow {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum GeometryAction {
-    Apply {
-        id: WindowId,
-        from: Rect,
-        to: Rect,
-    },
-    Restore {
-        id: WindowId,
-        from: Rect,
-        to: Rect,
-    },
+    Apply { id: WindowId, from: Rect, to: Rect },
+    Restore { id: WindowId, from: Rect, to: Rect },
 }
 
 impl GeometryAction {
@@ -76,7 +68,8 @@ impl Reconciler {
         let mut next = self.clone();
         let present: HashSet<_> = observed.iter().map(|window| window.info.id).collect();
         next.original_geometry.retain(|id, _| present.contains(id));
-        next.last_applied_geometry.retain(|id, _| present.contains(id));
+        next.last_applied_geometry
+            .retain(|id, _| present.contains(id));
         next.user_managed.retain(|id| present.contains(id));
 
         let by_id: HashMap<_, _> = observed
@@ -254,7 +247,11 @@ mod tests {
             reconciler.original_geometry(WindowId(1)),
             Some(windows[0].geometry)
         );
-        assert!(actions.iter().all(|action| matches!(action, GeometryAction::Apply { .. })));
+        assert!(
+            actions
+                .iter()
+                .all(|action| matches!(action, GeometryAction::Apply { .. }))
+        );
     }
 
     #[test]
