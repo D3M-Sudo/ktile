@@ -32,6 +32,16 @@ target/release/k-tile plan --width 1600 --height 900 --windows 6
 
 Preview commands use validated settings from the TOML file when it exists; if no config file exists, the preview uses built-in defaults. Pass `--config PATH` to select another config. `check-config` still requires an existing config file.
 
+Build a read-only preview using the real windows on the current X11 desktop. This command does not resize or move windows:
+
+    target/release/k-tile plan-live
+
+Override the layout for this preview:
+
+    target/release/k-tile plan-live --layout grid
+
+The preview uses the configured layout, master ratio, master count, gap and work-area policy. Floating and excluded application classes are omitted. Windows on other desktops are skipped; sticky windows remain eligible. It fails rather than guessing the work area when the window manager does not publish the required EWMH metadata.
+
 Check X11/EWMH connectivity:
 
     target/release/k-tile check-x11
