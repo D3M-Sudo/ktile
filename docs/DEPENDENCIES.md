@@ -16,7 +16,7 @@ This initial inventory is not a complete legal report. Re-check the full resolve
 | proptest (development) | Property-based tests |
 | tempfile (development) | Temporary test files |
 
-Cargo version constraints are not exact resolved versions. Review Cargo.lock and generate a full direct/transitive license report before distribution.
+Cargo.lock records the resolved graph. CI runs `python3 scripts/check_dependency_licenses.py`, which lists every resolved third-party package and fails if license metadata is missing. This is an inventory-completeness check only: it does not assess license compatibility or prove that required license texts are bundled. Generate and review a full direct/transitive legal report before distribution.
 
 ## Upstream source reuse
 Cortile: https://github.com/leukipp/cortile
