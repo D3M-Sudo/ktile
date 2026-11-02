@@ -17,5 +17,6 @@ K-tile has not yet published a stable release.
 - Added `plan-live`, a read-only preview over current EWMH clients, grouped by discovered monitor and clipped to the active desktop work area; it never applies geometry changes.
 - Added tests for negative-origin monitor/work-area intersection, disjoint monitor areas, XDG configuration path handling, and configuration validation boundaries.
 - Applied the TOML `log_level` setting to tracing by default, while preserving `RUST_LOG` as the explicit override.
+- Added a CI test/build path with default features disabled to verify the backend-independent core does not require X11.
 - Hardened the default configuration path to ignore a relative `XDG_CONFIG_HOME` rather than writing configuration into the working directory.
 - Automatic live tiling, GUI, tray, workspace/monitor management, hotkeys, drag interactions and packaging remain unfinished.
