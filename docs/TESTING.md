@@ -3,10 +3,15 @@
 ## Automated quality gates
 Run from the repository root:
 
+    make check
+
+Or run the individual commands:
+
     cargo fmt --all -- --check
-    cargo test --all-features
-    cargo clippy --all-targets --all-features -- -D warnings
-    cargo build --release
+    cargo test --all-features --locked
+    cargo clippy --all-targets --all-features --locked -- -D warnings
+    cargo build --release --all-features --locked
+    python3 scripts/check_dependency_licenses.py
 
 CI must treat each check as blocking. A failed formatter, test or Clippy run must not be downgraded to a warning.
 
