@@ -10,6 +10,7 @@ Status labels describe verified repository implementation, not aspiration. A mil
 - [x] Read-only X11/EWMH connection probe.
 - [x] Unit tests for layout and eligibility policy.
 - [x] Run Cargo quality gates in GitHub Actions: formatting, tests, Clippy and release build pass on the current development commit.
+- [x] Test and build the backend-independent core with default features disabled.
 - [ ] Confirm exact Cortile source files and record per-file attribution before any code is ported.
 
 ## M1 — Layout parity and geometry hardening
