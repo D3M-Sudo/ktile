@@ -3,8 +3,41 @@ use k_tile::{
     config::Config,
     layout::{LayoutKind, Rect},
 };
-use std::{path::PathBuf, process::ExitCode};
+use std::{
+    path::PathBuf,
+    process::ExitCode,
+    sync::atomic::{AtomicBool, Ordering},
+};
 use tracing_subscriber::EnvFilter;
+
+static SHUTDOWN_REQUESTED: AtomicBool = AtomicBool::new(false);
+
+extern "C" fn request_shutdown(_signal: libc::c_int) {
+    SHUTDOWN_REQUESTED.store(true, Ordering::Relaxed);
+}
+
+#[cfg(unix)]
+fn install_shutdown_handlers() -> Result<(), Box<dyn std::error::Error>> {
+    // The handler performs only an atomic store, which is signal-safe.
+    unsafe {
+        if libc::signal(libc::SIGINT, request_shutdown as libc::sighandler_t)
+            == libc::SIG_ERR
+        {
+            return Err("could not install SIGINT handler".into());
+        }
+        if libc::signal(libc::SIGTERM, request_shutdown as libc::sighandler_t)
+            == libc::SIG_ERR
+        {
+            return Err("could not install SIGTERM handler".into());
+        }
+    }
+    Ok(())
+}
+
+#[cfg(not(unix))]
+fn install_shutdown_handlers() -> Result<(), Box<dyn std::error::Error>> {
+    Ok(())
+}
 
 #[derive(Debug, Parser)]
 #[command(
@@ -93,6 +126,11 @@ fn main() -> ExitCode {
     let filter =
         EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(configured_level));
     tracing_subscriber::fmt().with_env_filter(filter).init();
+
+    if let Err(error) = install_shutdown_handlers() {
+        eprintln!("k-tile: {error}");
+        return ExitCode::FAILURE;
+    }
 
     match run(cli.command, &config_path) {
         Ok(()) => ExitCode::SUCCESS,
@@ -279,7 +317,10 @@ fn run(
         Command::WatchX11 => {
             #[cfg(feature = "x11")]
             {
-                k_tile::x11::X11Backend::connect()?.watch_events()?;
+                k_tile::x11::X11Backend::connect()?.watch_events_until(
+                    || SHUTDOWN_REQUESTED.load(Ordering::Relaxed),
+                    || {},
+                )?;
             }
             #[cfg(not(feature = "x11"))]
             return Err("this build has no X11 support".into());
@@ -295,11 +336,14 @@ fn run(
                 let backend = k_tile::x11::X11Backend::connect()?;
                 print_live_plan(&backend, &config, layout)?;
                 tracing::info!("watch-plan active; previews are read-only");
-                backend.watch_events_with_reconcile(|| {
-                    if let Err(error) = print_live_plan(&backend, &config, layout) {
-                        tracing::warn!(%error, "could not refresh read-only layout preview");
-                    }
-                })?;
+                backend.watch_events_until(
+                    || SHUTDOWN_REQUESTED.load(Ordering::Relaxed),
+                    || {
+                        if let Err(error) = print_live_plan(&backend, &config, layout) {
+                            tracing::warn!(%error, "could not refresh read-only layout preview");
+                        }
+                    },
+                )?;
             }
             #[cfg(not(feature = "x11"))]
             return Err("this build has no X11 support".into());
