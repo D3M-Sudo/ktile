@@ -4,7 +4,10 @@
 //! mutation belongs to a later milestone after reconciliation and restoration
 //! behavior have dedicated integration tests.
 
-use crate::{layout::Rect, model::{WindowId, WindowState}};
+use crate::{
+    layout::Rect,
+    model::{WindowId, WindowState},
+};
 use thiserror::Error;
 use x11rb::{
     connection::Connection,
