@@ -318,6 +318,81 @@ mod tests {
         assert!(reconciler.plan_restore(&changed).is_empty());
     }
 
+
+    #[test]
+    fn settled_geometry_is_idempotent() {
+        let mut reconciler = Reconciler::default();
+        let original = observed(3);
+        let first = reconciler
+            .plan(
+                &LayoutEngine::default(),
+                LayoutKind::Grid,
+                area(),
+                &original,
+            )
+            .unwrap();
+        for action in &first {
+            reconciler.record_applied(action);
+        }
+
+        let settled: Vec<_> = original
+            .iter()
+            .map(|window| ObservedWindow {
+                info: window.info.clone(),
+                geometry: first
+                    .iter()
+                    .find(|action| action.id() == window.info.id)
+                    .map(GeometryAction::to)
+                    .unwrap_or(window.geometry),
+            })
+            .collect();
+        let second = reconciler
+            .plan(
+                &LayoutEngine::default(),
+                LayoutKind::Grid,
+                area(),
+                &settled,
+            )
+            .unwrap();
+
+        assert!(second.is_empty());
+    }
+
+    #[test]
+    fn ineligible_window_proposes_safe_restore() {
+        let mut reconciler = Reconciler::default();
+        let original = observed(1);
+        let apply = reconciler
+            .plan(
+                &LayoutEngine::default(),
+                LayoutKind::VerticalLeft,
+                area(),
+                &original,
+            )
+            .unwrap()
+            .remove(0);
+        reconciler.record_applied(&apply);
+
+        let mut info = original[0].info.clone();
+        info.state.fullscreen = true;
+        let fullscreen = vec![ObservedWindow {
+            info,
+            geometry: apply.to(),
+        }];
+        let actions = reconciler
+            .plan(
+                &LayoutEngine::default(),
+                LayoutKind::VerticalLeft,
+                area(),
+                &fullscreen,
+            )
+            .unwrap();
+
+        assert_eq!(actions.len(), 1);
+        assert!(matches!(actions[0], GeometryAction::Restore { .. }));
+        assert_eq!(actions[0].to(), original[0].geometry);
+    }
+
     #[test]
     fn disappeared_windows_are_removed_from_tracking() {
         let mut reconciler = Reconciler::default();
