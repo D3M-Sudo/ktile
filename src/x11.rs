@@ -13,8 +13,8 @@ use x11rb::{
     connection::Connection,
     protocol::randr::ConnectionExt as RandrConnectionExt,
     protocol::{
-        randr::NotifyMask,
         Event,
+        randr::NotifyMask,
         xproto::{Atom, AtomEnum, ChangeWindowAttributesAux, ConnectionExt, EventMask, Window},
     },
     rust_connection::RustConnection,
