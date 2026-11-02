@@ -260,7 +260,7 @@ fn run(
                             continue;
                         }
                     };
-                    if window_desktop.is_some_and(|value| value != desktop && value != u32::MAX) {
+                    if !belongs_to_desktop(window_desktop, desktop, state.sticky) {
                         continue;
                     }
                     let app_class = match backend.window_class(id) {
@@ -467,6 +467,12 @@ fn run(
     Ok(())
 }
 
+fn belongs_to_desktop(window_desktop: Option<u32>, current_desktop: u32, sticky: bool) -> bool {
+    sticky
+        || window_desktop.is_none()
+        || window_desktop.is_some_and(|desktop| desktop == current_desktop || desktop == u32::MAX)
+}
+
 fn intersect_rect(a: Rect, b: Rect) -> Option<Rect> {
     let left = i64::from(a.x).max(i64::from(b.x));
     let top = i64::from(a.y).max(i64::from(b.y));
@@ -501,6 +507,19 @@ fn config_path_from_env(xdg_config_home: Option<PathBuf>, home: Option<PathBuf>)
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn sticky_windows_are_not_filtered_by_desktop_number() {
+        assert!(belongs_to_desktop(Some(3), 1, true));
+    }
+
+    #[test]
+    fn ordinary_windows_on_other_desktops_are_filtered() {
+        assert!(!belongs_to_desktop(Some(3), 1, false));
+        assert!(belongs_to_desktop(Some(1), 1, false));
+        assert!(belongs_to_desktop(Some(u32::MAX), 1, false));
+        assert!(belongs_to_desktop(None, 1, false));
+    }
 
     #[test]
     fn intersects_monitor_with_global_work_area() {
