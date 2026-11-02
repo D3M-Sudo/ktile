@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use k_tile::{
     config::Config,
-    layout::{LayoutEngine, LayoutKind, Rect},
+    layout::{LayoutKind, Rect},
 };
 use std::{path::PathBuf, process::ExitCode};
 use tracing_subscriber::EnvFilter;
