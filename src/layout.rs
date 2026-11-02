@@ -151,9 +151,9 @@ impl LayoutEngine {
             let col = i as u32 % cols;
             let row = i as u32 / cols;
             let x0 = col * area.width / cols;
-            let x1 = (col + 1) as u32 * area.width / cols;
+            let x1 = (col + 1) * area.width / cols;
             let y0 = row * area.height / rows;
-            let y1 = (row + 1) as u32 * area.height / rows;
+            let y1 = (row + 1) * area.height / rows;
             let cell_width = x1.saturating_sub(x0);
             let cell_height = y1.saturating_sub(y0);
             Rect {
