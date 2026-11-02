@@ -283,6 +283,12 @@ impl X11Backend {
     /// This diagnostic event loop does not move, resize, focus, or otherwise
     /// manage desktop windows. It runs until the X11 connection fails or the
     /// process is interrupted.
+    /// Subscribe to basic root/subwindow lifecycle events and log them.
+    ///
+    /// The loop blocks for the first event, then drains at most 128 already
+    /// queued events before processing the next batch. This bounds work during
+    /// event bursts without polling an idle X server or starving shutdown.
+    /// This diagnostic watcher never mutates client geometry.
     pub fn watch_events(&self) -> Result<(), X11Error> {
         self.connection
             .change_window_attributes(
@@ -293,38 +299,51 @@ impl X11Backend {
             .check()?;
         self.connection.flush()?;
 
+        const MAX_EVENTS_PER_BATCH: usize = 128;
         loop {
-            match self.connection.wait_for_event()? {
-                Event::CreateNotify(event) => {
-                    tracing::info!(window = event.window, "X11 window created");
+            let first = self.connection.wait_for_event()?;
+            let mut batch = Vec::with_capacity(MAX_EVENTS_PER_BATCH);
+            batch.push(first);
+            while batch.len() < MAX_EVENTS_PER_BATCH {
+                match self.connection.poll_for_event()? {
+                    Some(event) => batch.push(event),
+                    None => break,
                 }
-                Event::MapNotify(event) => {
-                    tracing::info!(window = event.window, "X11 window mapped");
+            }
+            tracing::debug!(events = batch.len(), "processing bounded X11 event batch");
+            for event in batch {
+                match event {
+                    Event::CreateNotify(event) => {
+                        tracing::info!(window = event.window, "X11 window created");
+                    }
+                    Event::MapNotify(event) => {
+                        tracing::info!(window = event.window, "X11 window mapped");
+                    }
+                    Event::UnmapNotify(event) => {
+                        tracing::info!(window = event.window, "X11 window unmapped");
+                    }
+                    Event::ConfigureNotify(event) => {
+                        tracing::debug!(
+                            window = event.window,
+                            x = event.x,
+                            y = event.y,
+                            width = event.width,
+                            height = event.height,
+                            "X11 window geometry changed"
+                        );
+                    }
+                    Event::DestroyNotify(event) => {
+                        tracing::info!(window = event.window, "X11 window destroyed");
+                    }
+                    Event::PropertyNotify(event) => {
+                        tracing::debug!(
+                            window = event.window,
+                            atom = event.atom,
+                            "X11 root property changed"
+                        );
+                    }
+                    other => tracing::trace!(event = ?other, "unhandled X11 event"),
                 }
-                Event::UnmapNotify(event) => {
-                    tracing::info!(window = event.window, "X11 window unmapped");
-                }
-                Event::ConfigureNotify(event) => {
-                    tracing::debug!(
-                        window = event.window,
-                        x = event.x,
-                        y = event.y,
-                        width = event.width,
-                        height = event.height,
-                        "X11 window geometry changed"
-                    );
-                }
-                Event::DestroyNotify(event) => {
-                    tracing::info!(window = event.window, "X11 window destroyed");
-                }
-                Event::PropertyNotify(event) => {
-                    tracing::debug!(
-                        window = event.window,
-                        atom = event.atom,
-                        "X11 root property changed"
-                    );
-                }
-                other => tracing::trace!(event = ?other, "unhandled X11 event"),
             }
         }
     }
