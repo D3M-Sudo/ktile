@@ -159,6 +159,11 @@ fn run(
         Command::PlanLive { layout } => {
             #[cfg(feature = "x11")]
             {
+                let config = if config_path.exists() {
+                    Config::load(config_path)?
+                } else {
+                    Config::default()
+                };
                 let backend = k_tile::x11::X11Backend::connect()?;
                 let desktop = backend
                     .current_desktop()?
