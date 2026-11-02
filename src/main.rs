@@ -220,10 +220,17 @@ fn run(
                             continue;
                         }
                     };
+                    let geometry = match backend.window_geometry(id) {
+                        Ok(geometry) => geometry,
+                        Err(error) => {
+                            tracing::warn!(window = id.0, %error, "could not read window geometry");
+                            continue;
+                        }
+                    };
                     // Debug formatting escapes control characters in untrusted titles/classes.
                     println!(
-                        "window={} desktop={:?} class={:?} title={:?} state={:?}",
-                        id.0, desktop, class, title, state
+                        "window={} desktop={:?} geometry={:?} class={:?} title={:?} state={:?}",
+                        id.0, desktop, geometry, class, title, state
                     );
                 }
             }

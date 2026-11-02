@@ -254,6 +254,21 @@ impl X11Backend {
         Ok(class.map(|value| String::from_utf8_lossy(value).into_owned()))
     }
 
+    /// Read a client's root-relative geometry without issuing any configure request.
+    pub fn window_geometry(&self, window: WindowId) -> Result<Rect, X11Error> {
+        let geometry = self.connection.get_geometry(window.0)?.reply()?;
+        let translated = self
+            .connection
+            .translate_coordinates(window.0, self.root_window(), 0, 0)?
+            .reply()?;
+        Ok(Rect {
+            x: i32::from(translated.dst_x),
+            y: i32::from(translated.dst_y),
+            width: u32::from(geometry.width),
+            height: u32::from(geometry.height),
+        })
+    }
+
     pub fn window_desktop(&self, window: WindowId) -> Result<Option<u32>, X11Error> {
         let atom = Self::intern(&self.connection, b"_NET_WM_DESKTOP")?;
         let reply = self
