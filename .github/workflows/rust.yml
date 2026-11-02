@@ -22,14 +22,8 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all -- --check
       - name: Test core and X11 adapter
-        run: cargo test --all-features
+        run: cargo test --all-features --locked
       - name: Clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+        run: cargo clippy --all-targets --all-features --locked -- -D warnings
       - name: Release build
-        run: cargo build --release --all-features
-      - name: Bootstrap Cargo.lock
-        run: |
-          cargo generate-lockfile
-          printf 'LOCKFILE_BASE64_START\n'
-          base64 -w0 Cargo.lock
-          printf '\nLOCKFILE_BASE64_END\n'
+        run: cargo build --release --all-features --locked
