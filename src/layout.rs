@@ -371,9 +371,11 @@ mod tests {
                 "layout {kind:?} should reject an area too small for two windows"
             );
         }
-        assert!(LayoutEngine::default()
-            .plan(LayoutKind::Maximized, tiny, &windows(2))
-            .is_ok());
+        assert!(
+            LayoutEngine::default()
+                .plan(LayoutKind::Maximized, tiny, &windows(2))
+                .is_ok()
+        );
     }
 
     #[test]
