@@ -1,0 +1,43 @@
+# Usage guide
+
+**Development status:** K-tile currently plans layouts, validates TOML configuration and performs read-only X11 checks. It does not automatically reposition live windows.
+
+## Build
+Install stable Rust with Cargo, rustfmt and Clippy. From a checkout run:
+
+    cargo build --release
+
+The executable is target/release/k-tile.
+
+## Commands
+Show help:
+
+    target/release/k-tile --help
+
+Create the default configuration. Existing files are not overwritten:
+
+    target/release/k-tile init-config
+
+Validate configuration:
+
+    target/release/k-tile check-config
+    target/release/k-tile --config ./config.example.toml check-config
+
+Preview geometry without touching desktop windows:
+
+    target/release/k-tile plan --width 1920 --height 1080 --windows 5 --layout vertical-left
+    target/release/k-tile plan --width 1600 --height 900 --windows 6 --layout grid
+
+Check X11/EWMH connectivity:
+
+    target/release/k-tile check-x11
+
+Available layouts: vertical-left, vertical-right, horizontal-top, horizontal-bottom, maximized and grid. The X11 command only inspects connectivity and screen dimensions.
+
+## Configuration
+Default path is $XDG_CONFIG_HOME/k-tile/config.toml, or ~/.config/k-tile/config.toml if XDG_CONFIG_HOME is unset. See config.example.toml.
+
+Keys include layout, master_ratio (0.1–0.9), master_count (1–16), gap (0–128 pixels), respect_workarea, restore_on_exit, floating_classes, excluded_classes and log_level. Some policy fields are stored for future milestones and do not yet affect live windows.
+
+## Safe testing
+Use preview commands first. Backend integration should use a disposable X11 session or Xvfb. Do not enable autostart or rely on the current build for live tiling. See TESTING.md.

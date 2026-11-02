@@ -1,0 +1,46 @@
+name: Bug report
+description: Report a reproducible defect in K-tile
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "For security vulnerabilities, do not open a public issue. Follow SECURITY.md."
+  - type: input
+    id: version
+    attributes:
+      label: K-tile version or commit
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Desktop environment
+      description: Include distribution, Cinnamon/Muffin version, and X11/Wayland.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Remove window titles, usernames, paths and other private data before posting.
+    validations:
+      required: false

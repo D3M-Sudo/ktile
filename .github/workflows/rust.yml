@@ -20,9 +20,10 @@ jobs:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
       - name: Check formatting
-        run: |
-          cargo fmt --all -- --check || echo "::warning::Rust sources need rustfmt formatting; tests and Clippy will still run."
+        run: cargo fmt --all -- --check
       - name: Test core and X11 adapter
         run: cargo test --all-features
       - name: Clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
+      - name: Release build
+        run: cargo build --release --all-features

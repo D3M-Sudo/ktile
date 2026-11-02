@@ -1,64 +1,81 @@
 # K-tile
 
-K-tile is a Rust-based dynamic tiling manager for Linux desktop environments that expose the X11 EWMH/ICCCM interfaces. The first supported target is Linux Mint 22.3 Cinnamon running X11 with Muffin. A future Wayland backend is an architectural goal, not a current capability.
+K-tile is a Rust-based tiling-manager project designed to cooperate with existing Linux window managers. The primary target is Linux Mint 22.3 Cinnamon/Muffin on X11. A Wayland backend is a future goal, not a current capability.
 
-The project takes functional inspiration from [Cortile](https://github.com/leukipp/cortile). Cortile is MIT-licensed; any source code ported from it must retain its applicable copyright and license notices. K-tile's initial implementation is an independent Rust foundation, not a claim of feature parity.
+K-tile takes functional inspiration from [Cortile](https://github.com/leukipp/cortile). Cortile is MIT-licensed. Any source code ported or adapted from it must preserve the applicable copyright and license notices. The current foundation is newly authored Rust code and is not feature-parity with Cortile.
 
-## Current implementation status
+## Status: early development
 
-This repository is under active reconstruction. The initial foundation provides:
-- a backend-independent geometry model and deterministic layout planner;
-- vertical-left/right and horizontal-top/bottom master/stack layouts, maximized and grid layouts;
-- conservative exclusion of floating, fullscreen, maximized, modal, above/below and skip-taskbar/pager windows from plans;
+The current branch provides:
+- a backend-independent domain model and deterministic layout planner;
+- vertical-left/right and horizontal-top/bottom master/stack layouts, maximized and grid plans;
+- exclusion of floating, fullscreen, maximized, modal, above/below, skip-taskbar and skip-pager windows from layout plans;
 - TOML parsing and validation;
-- CLI commands for config initialization/validation, sample layout planning and read-only X11 connection checks;
-- a read-only X11 connection probe.
+- CLI commands for configuration initialization/validation and non-mutating layout previews;
+- a read-only X11/EWMH connection and window metadata adapter.
 
-**It does not yet automatically tile live desktop windows.** The event loop, EWMH state reconciliation, geometry application with revalidation, workspace/monitor tracking, GUI, tray integration, drag-and-drop, hotkeys and safe restore workflow remain implementation milestones.
+**K-tile does not yet automatically tile live desktop windows.** The event loop, safe geometry application/restoration, workspace and monitor management, rules, keyboard shortcuts, drag interactions, tray, full GTK4/Libadwaita GUI, and packaging remain unfinished. Do not configure the current development build to start automatically or treat it as a production tiling manager.
 
-## Build
+## Quick start
 
-Requirements: Rust toolchain and (for X11 integration) X11 development/runtime libraries as required by the target environment.
+Requirements: stable Rust toolchain with Cargo, rustfmt and Clippy.
 
 ```sh
-cargo fmt --check
-cargo test
+git clone https://github.com/D3M-Sudo/ktile.git
+cd ktile
+cargo build --release
+cargo test --all-features
+```
+
+Example commands:
+
+```sh
+# Create a default config; existing files are not overwritten
+target/release/k-tile init-config
+
+# Validate the config
+target/release/k-tile check-config
+
+# Preview geometry without modifying desktop windows
+target/release/k-tile plan --width 1920 --height 1080 --windows 5 --layout vertical-left
+target/release/k-tile plan --width 1600 --height 900 --windows 6 --layout grid
+
+# Inspect X11/EWMH connectivity (read-only)
+target/release/k-tile check-x11
+```
+
+For all commands, configuration keys and limitations, see [Usage](docs/USAGE.md). For local build and removal instructions, see [Installation](docs/INSTALLATION.md).
+
+## Development checks
+
+```sh
+cargo fmt --all -- --check
+cargo test --all-features
 cargo clippy --all-targets --all-features -- -D warnings
 cargo build --release
 ```
 
-## Usage
+See [Testing](docs/TESTING.md), [Contributing](CONTRIBUTING.md) and [Agent instructions](AGENTS.md). CI results are available in [GitHub Actions](https://github.com/D3M-Sudo/ktile/actions).
 
-```sh
-# Validate a configuration
-cargo run -- check-config --config ~/.config/k-tile/config.toml
+## Documentation
 
-# Create a default config (does not overwrite an existing file)
-cargo run -- --config ~/.config/k-tile/config.toml init-config
-
-# Preview geometry without changing any desktop windows
-cargo run -- plan --width 1920 --height 1080 --windows 5 --layout grid
-
-# Read-only X11/EWMH connection check
-cargo run -- check-x11
-```
-
-The CLI is deliberately read-only at this stage. No window geometry is changed by the current implementation.
-
-## Configuration
-
-See [config.example.toml](config.example.toml). The default config location is `$XDG_CONFIG_HOME/k-tile/config.toml`, or `~/.config/k-tile/config.toml` if `XDG_CONFIG_HOME` is not set.
-
-## Architecture and roadmap
-
+- [Usage guide](docs/USAGE.md)
+- [Installation and removal](docs/INSTALLATION.md)
 - [Architecture](docs/ARCHITECTURE.md)
-- [Development roadmap](docs/ROADMAP.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Testing strategy and manual Cinnamon checklist](docs/TESTING.md)
+- [Release checklist](docs/RELEASING.md)
+- [Dependency and attribution inventory](docs/DEPENDENCIES.md)
 - [Cortile porting and license notes](docs/CORTILE-PORTING.md)
+- [Security policy](SECURITY.md)
+- [Contributing](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Changelog](CHANGELOG.md)
 
 ## Safety contract
 
-The live backend must never resize a window based only on a stale snapshot. Before every geometry request, it must re-read the target's relevant EWMH state, verify the window is still eligible and confirm that the request remains within the current monitor work area. Tiling remains opt-in until target-machine tests on Cinnamon/Muffin pass. Disabling K-tile must restore captured geometry where the window still exists and where restoration will not overwrite a newer user action.
+Future live geometry changes must revalidate the window's current state immediately before every request, confirm that the target remains eligible and inside the current monitor work area, and track the original geometry. Shutdown must not overwrite newer user-driven geometry. Tiling stays opt-in until integration tests and real Cinnamon/Muffin checks pass. Monitor dimensions must be discovered from the active session; no fixed resolution fallback is acceptable.
 
 ## License
 
-K-tile is distributed under the MIT License. See [LICENSE](LICENSE). Source code copied or adapted from Cortile must preserve Cortile's copyright and license notices.
+K-tile is distributed under the MIT License; see [LICENSE](LICENSE). Third-party notices and the complete dependency-license audit are release requirements. See [LICENSES](LICENSES/README.md) and [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md).
