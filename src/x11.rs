@@ -388,14 +388,14 @@ impl X11Backend {
     }
 
     fn subscribe_window_properties(&self, window: Window) {
-        if let Err(error) = self
-            .connection
-            .change_window_attributes(
-                window,
-                &ChangeWindowAttributesAux::new().event_mask(EventMask::PROPERTY_CHANGE),
-            )
-            .and_then(|cookie| cookie.check())
-        {
+        let result = match self.connection.change_window_attributes(
+            window,
+            &ChangeWindowAttributesAux::new().event_mask(EventMask::PROPERTY_CHANGE),
+        ) {
+            Ok(cookie) => cookie.check().map_err(|error| error.to_string()),
+            Err(error) => Err(error.to_string()),
+        };
+        if let Err(error) = result {
             // Clients may disappear between discovery/event delivery and subscription.
             tracing::debug!(window, %error, "could not subscribe to client property changes");
         }
