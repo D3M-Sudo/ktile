@@ -196,20 +196,24 @@ impl LayoutEngine {
 
         let stack_count = windows.len() - masters;
         for index in 0..stack_count {
-            let start = index as u32 * cross_total / stack_count as u32;
-            let end = (index + 1) as u32 * cross_total / stack_count as u32;
+            // Use u64 for the partition products: both operands are u32 and
+            // their product can exceed u32::MAX for large virtual desktops.
+            let start = (u64::from(index as u32) * u64::from(cross_total)
+                / u64::from(stack_count as u32)) as u32;
+            let end = (u64::from(index as u32 + 1) * u64::from(cross_total)
+                / u64::from(stack_count as u32)) as u32;
             let cross_gap = self.gap.min(end.saturating_sub(start).saturating_sub(1));
             let cross_size = end.saturating_sub(start).saturating_sub(cross_gap);
             result.push(if vertical {
                 Rect {
                     x: stack_origin,
-                    y: area.y.saturating_add(start as i32),
+                    y: (i64::from(area.y) + i64::from(start)) as i32,
                     width: stack_axis,
                     height: cross_size,
                 }
             } else {
                 Rect {
-                    x: area.x.saturating_add(start as i32),
+                    x: (i64::from(area.x) + i64::from(start)) as i32,
                     y: stack_origin,
                     width: cross_size,
                     height: stack_axis,
@@ -410,6 +414,38 @@ mod tests {
                 && window.rect.right() <= work_area.right()
                 && window.rect.bottom() <= work_area.bottom()
         }));
+    }
+
+    #[test]
+    fn master_stack_handles_large_cross_axis_without_u32_overflow() {
+        let work_area = Rect {
+            x: i32::MIN,
+            y: i32::MIN,
+            width: u32::MAX,
+            height: u32::MAX,
+        };
+        let engine = LayoutEngine {
+            master_count: 1,
+            gap: 0,
+            ..Default::default()
+        };
+
+        for kind in [
+            LayoutKind::VerticalLeft,
+            LayoutKind::VerticalRight,
+            LayoutKind::HorizontalTop,
+            LayoutKind::HorizontalBottom,
+        ] {
+            let plan = engine.plan(kind, work_area, &windows(4)).unwrap();
+            assert_eq!(plan.windows.len(), 4);
+            assert!(plan.windows.iter().all(|window| {
+                window.rect.is_valid()
+                    && window.rect.x >= work_area.x
+                    && window.rect.y >= work_area.y
+                    && window.rect.right() <= work_area.right()
+                    && window.rect.bottom() <= work_area.bottom()
+            }));
+        }
     }
 
     #[test]
