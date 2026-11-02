@@ -10,7 +10,7 @@ Install stable Rust with Cargo, rustfmt and Clippy. From a checkout run:
 The executable is target/release/k-tile.
 
 ## Commands
-Show help:
+Show help (also shown when no subcommand is supplied):
 
     target/release/k-tile --help
 
