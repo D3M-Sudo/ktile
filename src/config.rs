@@ -169,6 +169,20 @@ mod tests {
     }
 
     #[test]
+    fn engine_uses_validated_layout_settings() {
+        let config = Config {
+            master_ratio: 0.7,
+            master_count: 2,
+            gap: 3,
+            ..Default::default()
+        };
+        let engine = config.engine();
+        assert_eq!(engine.master_ratio, 0.7);
+        assert_eq!(engine.master_count, 2);
+        assert_eq!(engine.gap, 3);
+    }
+
+    #[test]
     fn toml_roundtrip() {
         let serialized = toml::to_string(&Config::default()).unwrap();
         let parsed: Config = toml::from_str(&serialized).unwrap();
