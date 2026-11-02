@@ -67,7 +67,7 @@ fn main() -> ExitCode {
 fn run(command: Option<Command>, config_path: &std::path::Path) -> Result<(), Box<dyn std::error::Error>> {
     match command.unwrap_or(Command::CheckConfig) {
         Command::CheckConfig => {
-            let config = Config::load(config_path)?;
+            Config::load(config_path)?;
             println!("Configuration is valid: {}", config_path.display());
         }
         Command::InitConfig => {
