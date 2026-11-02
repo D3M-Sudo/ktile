@@ -332,6 +332,7 @@ impl X11Backend {
                 }
             }
 
+            let batch_len = batch.len();
             let mut reconcile_needed = false;
             for event in batch {
                 match event {
@@ -377,7 +378,7 @@ impl X11Backend {
                 }
             }
             tracing::debug!(
-                events = batch.len(),
+                events = batch_len,
                 reconcile_needed,
                 "processed coalesced X11 event batch"
             );
